@@ -1,0 +1,118 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Autoregressive Conditional Mean &amp; Variance</title><meta name="generator" content="MATLAB 7.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2011-12-04"><meta name="DC.source" content="readme_armax_garch.m"><style type="text/css">
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head><body><div class="content"><h1>Autoregressive Conditional Mean &amp; Variance</h1><!--introduction--><p>Allows the estimation of the family of ARMAX-GARCH of any order of AR, MA, ARCH and GARCH terms with the Gaussian, Student-t, Generalized Error, Modified Cauchy, Hansen's Skew-t, Logistic, Laplace, Rayleigh, Centered Cauchy, Extreme Value Distribution Type 1, Generalized Exponential and Gram and Charlier expansion series with constant higher moments.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1"><b><i>ARMAX Models</i></b></a></li><li><a href="#2"><b><i>GARCH Models</i></b></a></li><li><a href="#3"><b><i>Distributions</i></b></a></li></ul></div><h2><b><i>ARMAX Models</i></b><a name="1"></a></h2><p><img src="readme_armax_garch_eq08641.png" alt="$$ARMAX(AR, MA, X): r_t = a_0 + {\sum_{i=1}^n}{a_1}{r_{t-i}} + {\sum_{j=1}^k}{a_2}{\varepsilon}_{t-j} + {\sum_{l=1}^m}{a_3}{X_l} + {\varepsilon}_t$"></p><h2><b><i>GARCH Models</i></b><a name="2"></a></h2><p><img src="readme_armax_garch_eq10360.png" alt="$$GARCH(P,Q,Y): {\sigma}_t^2 = b_0 + {\sum_{i=1}^p}b_{1,i}{\varepsilon}_{t-i}^2 + {\sum_{j=1}^q}b_{2,j}{\sigma}_{t-q}^2 + {\sum_{l=1}^m}{b_3}{Y_l}$"> <img src="readme_armax_garch_eq94830.png" alt="$$GJR-GARCH(P,Q,Y): {\sigma}_t^2 = b_0 + {\sum_{i=1}^p}b_{1,i}{\varepsilon}_{t-i}^2 + {\sum_{j=1}^q}b_{2,j}{\sigma}_{t-j}^2 + {\sum_{i=1}^p}b_{3,i}{\varepsilon}_{t-i}^2*I_{t-i} + {\sum_{l=1}^m}{b_3}{Y_l}$"> <img src="readme_armax_garch_eq59693.png" alt="$$EGARCH(P,Q,Y): {\sigma}_t^2 = b_0 + {\sum_{i=1}^p}b_{1,i}(|{\varepsilon}_{t-i}|/{\sqrt{{\sigma}_{t-i}^2}}-{\sqrt{2/pi}}) +{\sum_{j=1}^q}b_{2,j}{\log{{\sigma}_{t-j}^2}} +  {\sum_{i=1}^p}b_{3,i}{\varepsilon}_{t-i}/{\sqrt{{\sigma}_{t-i}}} + {\sum_{l=1}^m}{b_3}{Y_l}$"> <img src="readme_armax_garch_eq43193.png" alt="$$NARCH(P,Q,Y): {\sigma}_t^2 = b_0 + {\sum_{i=1}^p}b_{1,i}|{\varepsilon}_{t-i}|^d + {\sum_{j=1}^q}b_{2,j}{\sigma}_{t-j}^2 + {\sum_{l=1}^m}{b_3}{Y_l}$"> <img src="readme_armax_garch_eq45844.png" alt="$$NGARCH(P,Q,Y): {\sigma}_t^d = b_0 + {\sum_{i=1}^p}b_{1,i}|{\varepsilon}_{t-i}|^d + {\sum_{j=1}^q}b_{2,j}{\sigma}_{t-j}^d + {\sum_{l=1}^m}{b_3}{Y_l}$"> <img src="readme_armax_garch_eq38481.png" alt="$$AGARCH(P,Q,Y): {\sigma}_t^2 = b_0 + {\sum_{i=1}^p}b_{1,i}({\varepsilon}_{t-i} + {\gamma_{t-p}}))^2 + {\sum_{j=1}^q}b_{2,j}{\sigma}_{t-j} + {\sum_{l=1}^m}{b_3}{Y_l}$"> <img src="readme_armax_garch_eq19870.png" alt="$$APGARCH(P,Q,Y): {\sigma}_t^d = b_0 + {\sum_{i=1}^p}b_{1,i}|{\varepsilon}_{t-i}-{\gamma_{t-i}}{\varepsilon}_{t-1}|^d +  {\sum_{j=1}^q}b_{2,j}{\sigma}_{t-j}^d + {\sum_{l=1}^m}{b_3}{Y_l}$"> <img src="readme_armax_garch_eq54949.png" alt="$$NAGARCH(P,Q,Y): {\sigma}_t^2 = b_0 + {\sum_{i=1}^p}b_{1,i}({\varepsilon}(t-i)/{\sqrt{{\sigma}_{t-i}^2}} + {\sum_{i=1}^p}{\gamma_{t-i}}^2 +  {\sum_{j=1}^q}b_{2,j}{\sigma}_{t-j}^2 + {\sum_{l=1}^m}{b_3}{Y_l}$"></p><h2><b><i>Distributions</i></b><a name="3"></a></h2><p><img src="readme_armax_garch_eq52106.png" alt="$$Gaussian: f(x) = {\frac{1}{\sqrt{{2}{\pi}{\sigma}_t^2}}}e^{\frac{-{\epsilon}_t^2}{2{\sigma}_t^2}}$"></p><p><img src="readme_armax_garch_eq55697.png" alt="$$Student's \ t: f(x) = \frac{{\Gamma}\left(\frac{{\nu}+1}{2} \right)}{\sqrt{{\nu}{\pi}}{\Gamma} \left( \frac{{\nu}}{2} \right)}\left(1+\frac{\epsilon_t^2}{\nu} \right)^{-\frac{\nu+1}{2}}$"></p><p><img src="readme_armax_garch_eq75742.png" alt="$$Generalized \ Error : f(x) = \frac{{\nu}e^{\left(-\frac{1}{2}\left|\frac{\epsilon_t}{\beta\sigma_t}\right|^{\nu}\right)}}{2^{\frac{\nu+1}{\nu}}\Gamma\left(\frac{1}{\nu}\right)\beta\sigma_t}, \ \beta = \left[\frac{\Gamma\left(\frac{1}{\nu}\right)}{2^{\frac{2}{\nu}}\Gamma\left(\frac{3}{\nu}\right)}\right]^{0.5}$"></p><p><img src="readme_armax_garch_eq64908.png" alt="$$Hansen's \ Skew-t :$"></p><p><img src="readme_armax_garch_eq62126.png" alt="$$Gram-Charlier \ Expansion: f(x) ={\frac{1}{\sqrt{{2}{\pi}{\sigma}_t^2}}}e^{\frac{-{\epsilon}_t^2}{2{\sigma}_t^2}}\frac{\psi\left({\eta}_t\right)^2}{\Gamma_t}$"></p><p><img src="readme_armax_garch_eq48814.png" alt="$$Modified \ Cauchy: f(x) = \frac{1}{\pi\sigma_t\left(1+\frac{\epsilon_t^2}{\sigma_t^2} \right)}$"></p><p><img src="readme_armax_garch_eq75822.png" alt="$$Centered \ Cauchy: f(x) = \frac{1}{\pi\gamma\left(1+\frac{\epsilon_t^2}{\gamma^2} \right)}$"></p><p><img src="readme_armax_garch_eq36445.png" alt="$$Logistic: f(x) = \frac{e^{-\frac{\epsilon_t}{\sigma_t}}}{\sigma_t\left(1+e^{-\frac{\epsilon_t}{\sigma_t}} \right)^2}$"></p><p><img src="readme_armax_garch_eq04222.png" alt="$$Laplace: f(x) = \frac{1}{2\sigma_t}e^{\frac{|\epsilon_t|}{\sigma_t}}$"></p><p><img src="readme_armax_garch_eq70792.png" alt="$$Rayleigh: f(x) = \frac{\epsilon_t}{\sigma_t^2}e^{-\frac{\epsilon_t^2}{2\sigma_t^2}}$"></p><p><img src="readme_armax_garch_eq40695.png" alt="$$Extreme \ Value \ Distribution \ Type \ 1: f(x) = {\frac{1}{\sqrt{{\sigma}_t^2}}}e^{\frac{-{\epsilon}_t^2}{2{\sigma}_t^2}}e^{e^{\frac{-{\epsilon}_t^2}{2{\sigma}_t^2}}}$"></p><p><img src="readme_armax_garch_eq50495.png" alt="$$Generalized \ Exponential: f(x) = \frac{1}{\sigma_t}e^{-\frac{\epsilon_t}{\sigma_t}}$"></p><p><a href="..\readme\readme.html">Return to Main</a></p><p class="footer"><br>
+      Published with MATLAB&reg; 7.12<br></p></div><!--
+##### SOURCE BEGIN #####
+%% Autoregressive Conditional Mean & Variance
+% Allows the estimation of the family of ARMAX-GARCH of any order of
+% AR, MA, ARCH and GARCH terms with the Gaussian, Student-t, 
+% Generalized Error, Modified Cauchy, Hansen's Skew-t, Logistic, Laplace,
+% Rayleigh, Centered Cauchy, Extreme Value Distribution Type 1, Generalized 
+% Exponential and Gram and Charlier expansion series with constant higher moments.
+%
+%% *_ARMAX Models_* 
+%
+% $$ARMAX(AR, MA, X): r_t = a_0 + {\sum_{i=1}^n}{a_1}{r_{t-i}} + {\sum_{j=1}^k}{a_2}{\varepsilon}_{t-j} + {\sum_{l=1}^m}{a_3}{X_l} + {\varepsilon}_t$
+%
+%% *_GARCH Models_*
+%
+% $$GARCH(P,Q,Y): {\sigma}_t^2 = b_0 + {\sum_{i=1}^p}b_{1,i}{\varepsilon}_{t-i}^2 + {\sum_{j=1}^q}b_{2,j}{\sigma}_{t-q}^2 + {\sum_{l=1}^m}{b_3}{Y_l}$
+% $$GJR-GARCH(P,Q,Y): {\sigma}_t^2 = b_0 + {\sum_{i=1}^p}b_{1,i}{\varepsilon}_{t-i}^2 + {\sum_{j=1}^q}b_{2,j}{\sigma}_{t-j}^2 + {\sum_{i=1}^p}b_{3,i}{\varepsilon}_{t-i}^2*I_{t-i} + {\sum_{l=1}^m}{b_3}{Y_l}$
+% $$EGARCH(P,Q,Y): {\sigma}_t^2 = b_0 + {\sum_{i=1}^p}b_{1,i}(|{\varepsilon}_{t-i}|/{\sqrt{{\sigma}_{t-i}^2}}-{\sqrt{2/pi}}) +{\sum_{j=1}^q}b_{2,j}{\log{{\sigma}_{t-j}^2}} +  {\sum_{i=1}^p}b_{3,i}{\varepsilon}_{t-i}/{\sqrt{{\sigma}_{t-i}}} + {\sum_{l=1}^m}{b_3}{Y_l}$
+% $$NARCH(P,Q,Y): {\sigma}_t^2 = b_0 + {\sum_{i=1}^p}b_{1,i}|{\varepsilon}_{t-i}|^d + {\sum_{j=1}^q}b_{2,j}{\sigma}_{t-j}^2 + {\sum_{l=1}^m}{b_3}{Y_l}$
+% $$NGARCH(P,Q,Y): {\sigma}_t^d = b_0 + {\sum_{i=1}^p}b_{1,i}|{\varepsilon}_{t-i}|^d + {\sum_{j=1}^q}b_{2,j}{\sigma}_{t-j}^d + {\sum_{l=1}^m}{b_3}{Y_l}$
+% $$AGARCH(P,Q,Y): {\sigma}_t^2 = b_0 + {\sum_{i=1}^p}b_{1,i}({\varepsilon}_{t-i} + {\gamma_{t-p}}))^2 + {\sum_{j=1}^q}b_{2,j}{\sigma}_{t-j} + {\sum_{l=1}^m}{b_3}{Y_l}$
+% $$APGARCH(P,Q,Y): {\sigma}_t^d = b_0 + {\sum_{i=1}^p}b_{1,i}|{\varepsilon}_{t-i}-{\gamma_{t-i}}{\varepsilon}_{t-1}|^d +  {\sum_{j=1}^q}b_{2,j}{\sigma}_{t-j}^d + {\sum_{l=1}^m}{b_3}{Y_l}$
+% $$NAGARCH(P,Q,Y): {\sigma}_t^2 = b_0 + {\sum_{i=1}^p}b_{1,i}({\varepsilon}(t-i)/{\sqrt{{\sigma}_{t-i}^2}} + {\sum_{i=1}^p}{\gamma_{t-i}}^2 +  {\sum_{j=1}^q}b_{2,j}{\sigma}_{t-j}^2 + {\sum_{l=1}^m}{b_3}{Y_l}$
+%
+%% *_Distributions_*
+%
+% $$Gaussian: f(x) = {\frac{1}{\sqrt{{2}{\pi}{\sigma}_t^2}}}e^{\frac{-{\epsilon}_t^2}{2{\sigma}_t^2}}$
+% 
+% $$Student's \ t: f(x) = \frac{{\Gamma}\left(\frac{{\nu}+1}{2} \right)}{\sqrt{{\nu}{\pi}}{\Gamma} \left( \frac{{\nu}}{2} \right)}\left(1+\frac{\epsilon_t^2}{\nu} \right)^{-\frac{\nu+1}{2}}$
+%
+% $$Generalized \ Error : f(x) = \frac{{\nu}e^{\left(-\frac{1}{2}\left|\frac{\epsilon_t}{\beta\sigma_t}\right|^{\nu}\right)}}{2^{\frac{\nu+1}{\nu}}\Gamma\left(\frac{1}{\nu}\right)\beta\sigma_t}, \ \beta = \left[\frac{\Gamma\left(\frac{1}{\nu}\right)}{2^{\frac{2}{\nu}}\Gamma\left(\frac{3}{\nu}\right)}\right]^{0.5}$
+%
+% $$Hansen's \ Skew-t :$
+%
+% $$Gram-Charlier \ Expansion: f(x) ={\frac{1}{\sqrt{{2}{\pi}{\sigma}_t^2}}}e^{\frac{-{\epsilon}_t^2}{2{\sigma}_t^2}}\frac{\psi\left({\eta}_t\right)^2}{\Gamma_t}$
+%
+% $$Modified \ Cauchy: f(x) = \frac{1}{\pi\sigma_t\left(1+\frac{\epsilon_t^2}{\sigma_t^2} \right)}$
+%
+% $$Centered \ Cauchy: f(x) = \frac{1}{\pi\gamma\left(1+\frac{\epsilon_t^2}{\gamma^2} \right)}$
+%
+% $$Logistic: f(x) = \frac{e^{-\frac{\epsilon_t}{\sigma_t}}}{\sigma_t\left(1+e^{-\frac{\epsilon_t}{\sigma_t}} \right)^2}$
+%
+% $$Laplace: f(x) = \frac{1}{2\sigma_t}e^{\frac{|\epsilon_t|}{\sigma_t}}$
+%
+% $$Rayleigh: f(x) = \frac{\epsilon_t}{\sigma_t^2}e^{-\frac{\epsilon_t^2}{2\sigma_t^2}}$
+% 
+% $$Extreme \ Value \ Distribution \ Type \ 1: f(x) = {\frac{1}{\sqrt{{\sigma}_t^2}}}e^{\frac{-{\epsilon}_t^2}{2{\sigma}_t^2}}e^{e^{\frac{-{\epsilon}_t^2}{2{\sigma}_t^2}}}$
+%
+% $$Generalized \ Exponential: f(x) = \frac{1}{\sigma_t}e^{-\frac{\epsilon_t}{\sigma_t}}$
+%
+% <..\readme\readme.html Return to Main>
+##### SOURCE END #####
+--></body></html>

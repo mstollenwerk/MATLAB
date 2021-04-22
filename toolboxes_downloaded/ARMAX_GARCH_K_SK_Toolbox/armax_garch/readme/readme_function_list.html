@@ -1,0 +1,153 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Function List</title><meta name="generator" content="MATLAB 7.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2011-12-04"><meta name="DC.source" content="readme_function_list.m"><style type="text/css">
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head><body><div class="content"><h1>Function List</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">ARMAX-GARCH Toolbox</a></li><li><a href="#2">ARMAX-GARCH-K Toolbox</a></li></ul></div><h2>ARMAX-GARCH Toolbox<a name="1"></a></h2><p><a href="matlab:web(fullfile('garch.m'))">garch.m</a>, estimates the ARMAX-GARCH family of models</p><p>Inputs: a data vector, the GARCH model to be estimated, the distribution, the order of AR, MA, ARCH and GARCH effects as well as a vector of factors for the mean and volatility process.</p><p>Outputs: a vector of estimated parameters, standard errors estimated by the inverse Hessian, the Log-Likelihood value, a vector of conditional variances, a vector of residuals, and a summary of results which includes: model statistics, t-statistics, robust standard errors, scores among others.</p><p><a href="matlab:web(fullfile('garchfind.m'))">garchfind</a>, finds the combination of models and distributions that better fits the data based on a set of criteria (i.e. largest log likelihood value and the smallest AIC and BIC criteria).</p><p>Inputs: a data vector, a model and distribution vectors, the order of AR, MA, ARCH and GARCH,</p><p>Outputs: the best fit model</p><p>% <a href="matlab:web(fullfile('garchplot.m'))">garchplot</a>, Plots the data,volatility and residuals</p><p><a href="matlab:web(fullfile('garchfor.m'))">garchfor</a> &amp; <a href="matlab:web(fullfile('garchfor2.m'))">garchfor2</a>, estimates mean, volatility and kurtosis forecasts</p><p>Inputs: a data vector, a vector of residuals, a vector of conditional variances, a set of parameters, the  model, the order of AR, MA, ARCH and GARCH and the number of forecasts</p><p>Outputs: a vector of mean, and volatility forecasts as well as a vector of cumulative mean and volatility forecasts.</p><p><a href="matlab:web(fullfile('garchsim.m'))">garchsim</a>, simulates GARCH responses</p><p>Inputs: estimated parameters, GARCH model, distribution, order of ARCH and GARCH, number of samples and number of paths. Additionally, a vector of time series of positive pre-sample conditional standard deviations may be provided, which the variance model will initialize.</p><p>Outputs: a vector of simulated series and conditional standard deviations</p><p><a href="matlab:web(fullfile('garchvar.m'))">garchvar</a> &amp; <a href="matlab:web(fullfile('garchvar2.m'))">garchvar2</a>, estimates  Value-at-Risk for a given confidence level and horizon period for both long and short positions</p><p>Inputs: a data vector, a vector of residuals, a vector of conditional% variances, a set of parameters, the  model, the distribution, the order of AR, MA, ARCH and GARCH, the number of forecasts and confidence level</p><p>Outputs: a vector of VaR forecasts</p><p><a href="matlab:web(fullfile('garchvolfor.m'))">garchvolfor</a>, an application in Volatility Forecasting &amp; Value-at-Risk. It allows the comparison of volatility and Value-at-Risk estimates for a data vector and for a variety of GARCH models and distributions as specified in the model &amp; distribution variables and at different forecast periods as well as sort the results according to only a sub-set of forecast periods.</p><p>Inputs: a data vector, a vector of models and distributions, order of AR, MA, ARCH and GARCH, max forecasts, the forecasts of interest and a vector of a% VaR losses</p><p>Outputs:  volatility and VaR back-testing results, vectors of forecasted estimated of volatility, VaR and returns</p><h2>ARMAX-GARCH-K Toolbox<a name="2"></a></h2><p><a href="matlab:web(fullfile('garchk.m'))">garchk</a>, estimates the ARMAX-GARCH-K family of models</p><p>Inputs: a data vector, the GARCH model to be estimated, the order of AR, MA, ARCH and GARCH effects as well as a vector of factors for the mean and volatility process.</p><p>Outputs: a vector of estimated parameters, standard errors estimated by the inverse Hessian, the Log-Likelihood value, a vector of conditional variances, a vector of conditional kurtosis, a vector of residuals, and a summary of results which includes: model statistics, t-statistics, robust standard errors, scores among others.</p><p><a href="matlab:web(fullfile('garchkplot.m'))">garchkplot</a>, Plots the data, conditional volatility, conditional kurtosis and residuals</p><p><a href="matlab:web(fullfile('garchkfor.m'))">garchkfor</a> &amp; <a href="matlab:web(fullfile('garchkfor2.m'))">garchkfor2</a>, estimates mean, volatility and kurtosis forecasts</p><p>Inputs: a data vector, a vector of residuals, a vector of conditional variances, a vector of conditional kurtosis, a set of parameters, the  model, the order of AR, MA, ARCH and GARCH and the number of forecasts</p><p>Outputs: a vector of mean, volatility and kurtosis forecasts as well as a vector of cumulative mean and volatility forecasts.</p><p><a href="matlab:web(fullfile('garchksim.m'))">garchksim</a>, simulates volatility and kurtosis responses</p><p>Inputs: estimated parameters, GARCH model, distribution, order of ARCH and GARCH, number of samples and number of paths. Additionally, a vector of time series of positive pre-sample conditional standard deviations may be provided, which the variance model will initialize.</p><p>Outputs: a vector of simulated series, conditional standard deviations and conditional kurtosis</p><p><a href="matlab:web(fullfile('garchkvar.m'))">garchkvar</a> &amp; <a href="matlab:web(fullfile('garchkvar2.m'))">garchkvar2</a>, estimates  Value-at-Risk for a given confidence level and horizon period for both long and short positions</p><p>Inputs: a data vector, a vector of residuals, a vector of conditional variances, a set of parameters, the  model, the order of AR, MA, ARCH and GARCH, the number of forecasts and confidence level</p><p>Outputs: a vector of VaR forecasts</p><p><a href="..\readme\readme.html">Return to Main</a></p><p class="footer"><br>
+      Published with MATLAB&reg; 7.12<br></p></div><!--
+##### SOURCE BEGIN #####
+%% Function List
+%
+%% ARMAX-GARCH Toolbox
+%
+% <matlab:web(fullfile('garch.m')) garch.m>, estimates the ARMAX-GARCH family of models
+% 
+% Inputs: a data vector, the GARCH model to be estimated, the distribution, the order of AR, MA, ARCH and GARCH effects as well as a vector of factors for the mean and volatility process. 
+% 
+% Outputs: a vector of estimated parameters, standard errors estimated by the inverse Hessian, the Log-Likelihood value, a vector of conditional variances, a vector of residuals, and a summary of results which includes: model statistics, t-statistics, robust standard errors, scores among others. 
+%
+% <matlab:web(fullfile('garchfind.m')) garchfind>, finds the combination of models and distributions that better fits the data based on a set of criteria (i.e. largest log likelihood value and the smallest AIC and BIC criteria).
+%
+% Inputs: a data vector, a model and distribution vectors, the order of AR, MA, ARCH and GARCH,
+%
+% Outputs: the best fit model
+%
+% % <matlab:web(fullfile('garchplot.m')) garchplot>, Plots the data,volatility and residuals
+%
+% <matlab:web(fullfile('garchfor.m')) garchfor> & <matlab:web(fullfile('garchfor2.m')) garchfor2>, estimates mean, volatility and kurtosis forecasts
+% 
+% Inputs: a data vector, a vector of residuals, a vector of conditional variances, a set of parameters, the  model, the order of AR, MA, ARCH and GARCH and the number of forecasts
+% 
+% Outputs: a vector of mean, and volatility forecasts as well as a vector of cumulative mean and volatility forecasts.
+%
+% <matlab:web(fullfile('garchsim.m')) garchsim>, simulates GARCH responses 
+%
+% Inputs: estimated parameters, GARCH model, distribution, order of ARCH and GARCH, number of samples and number of paths. Additionally, a vector of time series of positive pre-sample conditional standard deviations may be provided, which the variance model will initialize.
+%
+% Outputs: a vector of simulated series and conditional standard deviations
+%
+% <matlab:web(fullfile('garchvar.m')) garchvar> & <matlab:web(fullfile('garchvar2.m')) garchvar2>, estimates  Value-at-Risk for a given confidence level and horizon period for both long and short positions
+%
+% Inputs: a data vector, a vector of residuals, a vector of conditional% variances, a set of parameters, the  model, the distribution, the order of AR, MA, ARCH and GARCH, the number of forecasts and confidence level
+%
+% Outputs: a vector of VaR forecasts
+%
+% <matlab:web(fullfile('garchvolfor.m')) garchvolfor>, an application in Volatility Forecasting & Value-at-Risk. It allows the comparison of volatility and Value-at-Risk estimates for a data vector and for a variety of GARCH models and distributions as specified in the model & distribution variables and at different forecast periods as well as sort the results according to only a sub-set of forecast periods. 
+%
+% Inputs: a data vector, a vector of models and distributions, order of AR, MA, ARCH and GARCH, max forecasts, the forecasts of interest and a vector of a% VaR losses
+%
+% Outputs:  volatility and VaR back-testing results, vectors of forecasted estimated of volatility, VaR and returns
+%
+%% ARMAX-GARCH-K Toolbox
+%
+% <matlab:web(fullfile('garchk.m')) garchk>, estimates the ARMAX-GARCH-K family of models
+%
+% Inputs: a data vector, the GARCH model to be estimated, the order of AR, MA, ARCH and GARCH effects as well as a vector of factors for the mean and volatility process. 
+%
+% Outputs: a vector of estimated parameters, standard errors estimated by the inverse Hessian, the Log-Likelihood value, a vector of conditional variances, a vector of conditional kurtosis, a vector of residuals, and a summary of results which includes: model statistics, t-statistics, robust standard errors, scores among others. 
+%
+% <matlab:web(fullfile('garchkplot.m')) garchkplot>, Plots the data, conditional volatility, conditional kurtosis and residuals
+%
+% <matlab:web(fullfile('garchkfor.m')) garchkfor> & <matlab:web(fullfile('garchkfor2.m')) garchkfor2>, estimates mean, volatility and kurtosis forecasts
+%
+% Inputs: a data vector, a vector of residuals, a vector of conditional variances, a vector of conditional kurtosis, a set of parameters, the  model, the order of AR, MA, ARCH and GARCH and the number of forecasts
+%
+% Outputs: a vector of mean, volatility and kurtosis forecasts as well as a vector of cumulative mean and volatility forecasts.
+%
+% <matlab:web(fullfile('garchksim.m')) garchksim>, simulates volatility and kurtosis responses 
+%
+% Inputs: estimated parameters, GARCH model, distribution, order of ARCH and GARCH, number of samples and number of paths. Additionally, a vector of time series of positive pre-sample conditional standard deviations may be provided, which the variance model will initialize.
+%
+% Outputs: a vector of simulated series, conditional standard deviations and conditional kurtosis
+%
+% <matlab:web(fullfile('garchkvar.m')) garchkvar> & <matlab:web(fullfile('garchkvar2.m')) garchkvar2>, estimates  Value-at-Risk for a given confidence level and horizon period for both long and short positions
+%
+% Inputs: a data vector, a vector of residuals, a vector of conditional variances, a set of parameters, the  model, the order of AR, MA, ARCH and GARCH, the number of forecasts and confidence level
+%
+% Outputs: a vector of VaR forecasts
+%
+% <..\readme\readme.html Return to Main>
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+##### SOURCE END #####
+--></body></html>

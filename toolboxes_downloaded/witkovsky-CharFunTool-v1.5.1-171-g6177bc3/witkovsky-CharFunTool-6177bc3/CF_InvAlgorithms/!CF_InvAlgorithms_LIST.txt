@@ -1,0 +1,19 @@
+INVERSION ALGORITHM Functions:
+
+cf2Dist
+cf2DistBTAV
+cf2DistBV
+cf2DistFFT
+cf2DistGP
+cf2DistGPA
+cf2DistGPT
+
+OTHER INVERSION ALGORITHM Functions:
+
+cf2CDF_BTAV
+cf2CDF_GPA
+cf2PDF_BTAV
+cf2PDF_GPA
+cf2PMF_FFT
+cf2QF_BTAV
+cf2QF_GPA

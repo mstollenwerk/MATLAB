@@ -1,0 +1,25 @@
+proc(1)=normal(x,prewhite,kernel);
+local xbar,m3,se,sig,n,a,m2,m4,m5,m6,std,z,stat,omega,vv;
+a=zeros(2,4);
+a[1,3]=1.0;
+a[2,4]=1.0;
+xbar=meanc(x);
+z=x-xbar;
+n=rows(x);
+m2=sumc(z^2)/(n-1);
+m3=sumc(z^3)/(n-1);
+m4=sumc(z^4)/(n-1);
+m5=sumc(z^5)/(n-1);
+m6=sumc(z^6)/(n-1);
+a[1,1]=-3*m2;
+a[2,2]=-6*m2;
+omega=zeros(2,2);
+vv=z~(z^2-m2)~z^3~(z^4-3*m2^2);
+if kernel==1; omega=parzen(vv,prewhite); endif;
+if kernel==2; omega=nw(vv,prewhite); endif;
+if kernel==3; omega=qs(vv,prewhite); endif;
+se=a*omega*a';
+stat=(m3~(m4-3*m2^2))';
+retp(stat'inv(se)*stat*n);
+endp;
+

@@ -1,0 +1,24 @@
+APPLICATIONS  General:
+
+RenewalProcessPMF
+
+APPLICATIONS in Multivariate Analysis:
+
+LRT01_Independence
+LRT02_EqualityMeans
+LRT03_EqualityCovariances
+LRT04_EqualityPopulations
+LRT05_Sphericity
+
+APPLICATIONS in Polynomial Calibration:
+
+PolyCal
+
+APPLICATIONS in Risk Modeling:
+
+CRMTool
+
+APPLICATIONS in Renewal Rewar Process:
+
+RenewalProcessPMF
+RenewalREewardDistribution
