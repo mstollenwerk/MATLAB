@@ -72,7 +72,7 @@ b = 1;                                                   % Stationarity
 % Optimization-------------------------------------------------------------
 disp('-------------------------------------------------------------------')
 disp('-------------------------------------------------------------------')
-disp(strcat('Starting gas scalar BEKK ',num2str(p),' ',num2str(q),' ',dist,' estimation, targeting.'))
+disp(strcat("Starting gas scalar BEKK(",num2str(p),",",num2str(q),")-",dist," estimation, targeting."))
 disp('-------------------------------------------------------------------')
 disp('-------------------------------------------------------------------')
 [eparam,optimoutput] = ...
@@ -123,7 +123,7 @@ if optimize_ordering
 end
 disp('-------------------------------------------------------------------')
 disp('-------------------------------------------------------------------')
-disp(strcat('Finished gas scalar BEKK ',num2str(p),' ',num2str(q),' ',dist,' estimation, targeting.'))
+disp(strcat("Finished gas scalar BEKK(",num2str(p),",",num2str(q),")-",dist," estimation, targeting."))
 disp('-------------------------------------------------------------------')
 disp('-------------------------------------------------------------------')
 % [eparam,optimoutput] = ...
