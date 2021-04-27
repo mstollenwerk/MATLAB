@@ -122,6 +122,9 @@ if optimize_ordering
     end
     
 end
+if ~isfield(optimoutput{end}.perm_)
+    optimoutput{end}.perm_ = 1:k;
+end
 disp('-------------------------------------------------------------------')
 disp('-------------------------------------------------------------------')
 disp(strcat('Finished gas scalar har ',dist,' estimation, targeting.'))
