@@ -172,6 +172,8 @@ logL = struct(...
     'logLcontr', logLcontr...
 );
 
+iperm_ = iperm(optimoutput{end}.perm_);
+Sigma_ = Sigma_(iperm_,iperm_,:);
 fit = struct('Sigma_', Sigma_(:,:,1:T));
 fcst = struct('Sigma_', Sigma_(:,:,T+1:end));
 
