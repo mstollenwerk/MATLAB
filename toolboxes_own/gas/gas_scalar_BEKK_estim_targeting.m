@@ -121,7 +121,7 @@ if optimize_ordering
     end
     
 end
-if ~isfield(optimoutput{end}.perm_)
+if ~isfield(optimoutput{end},'perm_')
     optimoutput{end}.perm_ = 1:k;
 end
 disp('-------------------------------------------------------------------')
