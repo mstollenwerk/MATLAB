@@ -6,9 +6,9 @@ function [ K ] = comMat( r, m )
 % michael.stollenwerk@live.com
 % 11.02.2017
 %%
-eye_r=sparse(eye(r));
-eye_m=sparse(eye(m));
-K=sparse(zeros(r*m,r*m));
+eye_r=eye(r);
+eye_m=eye(m);
+K=zeros(r*m,r*m);
 
 for i=1:r
     for j=1:m

@@ -15,7 +15,9 @@ garchparam = param(k_ + p + 1 : k_+ p + q);
 if strcmp( dist, 'Wish' )
     n = param(k_+ p + q + 1);    
 elseif strcmp( dist, 'iWish' )
-    n = param(k_+ p + q + 1);  
+    n = param(k_+ p + q + 1);
+elseif strcmp( dist, 'LaplaceWish' )
+    n = param(k_+ p + q + 1);      
 elseif strcmp( dist, 'tWish' )
     n = param(k_+ p + q + 1); 
     nu = param(k_+ p + q + 2);
@@ -40,7 +42,7 @@ elseif strcmp( dist, 'FRiesz' )
     nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k);        
 end
 
-if nargout == 5
+if nargout >= 5
     param_out.intrcpt = intrcpt;
     param_out.scoreparam = scoreparam;
     param_out.garch_param = garchparam;
@@ -55,12 +57,18 @@ if nargout == 5
     varargout{1} = param_out;
 end
 %% Data Storage
-SigmaE = NaN(k,k,T+1);
+SigmaE = NaN(k,k,T+22);
 ScaledScore = NaN(k,k,T);
 logLcontr = NaN(T,1);
 %% Recursion
+% Initialize with Backcast. Code copied from Sheppard MFE Toolbox.
+m = ceil(sqrt(T));
+w = .06 * .94.^(0:(m-1));
+w = reshape(w/sum(w),[1 1 m]);
+backCast = sum(bsxfun(@times,w,X(:,:,1:m)),3);
+ini = backCast;
 % Initialize recursion at unconditional mean (stationarity assumed).
-ini_Sigma = intrcpt./(1 - sum(garchparam));
+% ini = intrcpt./(1 - sum(garchparam));
 for tt=1:T
     SigmaE(:,:,tt) = intrcpt;
     for jj = 1:p
@@ -72,7 +80,7 @@ for tt=1:T
     end
     for jj = 1:q
         if (tt-jj) <= 0
-            SigmaE(:,:,tt) = SigmaE(:,:,tt) + garchparam(jj)*ini_Sigma;
+            SigmaE(:,:,tt) = SigmaE(:,:,tt) + garchparam(jj)*ini;
         else
             SigmaE(:,:,tt) = SigmaE(:,:,tt) + garchparam(jj)*SigmaE(:,:,tt-jj);
         end
@@ -81,15 +89,21 @@ for tt=1:T
     try
         % Centering distributions
         if strcmp( dist, 'Wish' )
-            Sigma_ = SigmaE(:,:,tt)/n;
+            c = n;
+            Sigma_ = SigmaE(:,:,tt)/c;
+        elseif strcmp( dist, 'LaplaceWish' )
+            c = n;
+            Sigma_ = SigmaE(:,:,tt)/c;            
         elseif strcmp( dist, 'iWish' )
             Sigma_ = SigmaE(:,:,tt)*(n-k-1);
         elseif strcmp( dist, 'tWish')
-            Sigma_ = SigmaE(:,:,tt)*(nu-2)/nu/n;
+            c = n*nu/(nu-2);
+            Sigma_ = SigmaE(:,:,tt)/c;
         elseif strcmp( dist, 'itWish')
             Sigma_ = SigmaE(:,:,tt)*(n-k-1);
         elseif strcmp( dist, 'F' )
-            Sigma_ = SigmaE(:,:,tt)*(nu-k-1)/n;
+            c = n/(nu-k-1);
+            Sigma_ = SigmaE(:,:,tt)/c;
         elseif strcmp( dist, 'Riesz' )
             cholSigE = chol(SigmaE(:,:,tt),'lower');
             Sigma_ = cholSigE/diag(n)*cholSigE';
@@ -111,9 +125,9 @@ for tt=1:T
         end
         % Likelihood Evaluation    
         if exist('nu','var')
-            [logLcontr(tt), score] = logpdf( dist, X(:,:,tt), Sigma_, n, nu );
+            [logLcontr(tt), score] = logpdf( dist, 1, X(:,:,tt), SigmaE(:,:,tt), n, nu );                           %%%%%%%%%%%%%%%%%%%%%%%
         else
-            [logLcontr(tt), score] = logpdf( dist, X(:,:,tt), Sigma_, n );
+            [logLcontr(tt), score] = logpdf( dist, 0, X(:,:,tt), Sigma_, n );
         end
         S = ivech(score.Sigma_);
         S = (S + diag(diag(S)))./2; %disregard symmetry in differential
@@ -123,14 +137,14 @@ for tt=1:T
 %         {ME.stack.name}'
         nLogL = inf;
         logLcontr = NaN;
-        SigmaE = NaN;
-        param = NaN;        
+        varargout{1} = NaN;      
+        varargout{2} = NaN;
         return
     end
     
     % Scaled Score 
     if strcmp( dist, 'Wish' )
-        S = 2*Sigma_*S*Sigma_;
+        S = 2*Sigma_*S*Sigma_;   
     elseif strcmp( dist, 'iWish' )
         S = -2/(n-k-1)/n*Sigma_*S*Sigma_;
     elseif strcmp( dist, 'tWish')
@@ -138,7 +152,7 @@ for tt=1:T
     elseif strcmp( dist, 'itWish')
         S = -2/(n-k-1)/n/nu*(nu-2)*Sigma_*S*Sigma_;
     elseif strcmp( dist, 'F' )
-        S = 2*Sigma_*S*Sigma_;
+        S = 2/(n+1)*Sigma_*S*Sigma_;
     elseif strcmp( dist, 'Riesz' )
         S = 2*Sigma_*S*Sigma_;
     elseif strcmp( dist, 'iRiesz' )
@@ -151,16 +165,7 @@ for tt=1:T
         S = 2*Sigma_*S*Sigma_;
     end
     ScaledScore(:,:,tt) = (S+S')./2; % to get rid of small asymmetries.
-%         % Scaling as in Opschoor et. al (2018)
-%         S = ivech(S);
-%             % Opschoor et al. take derivative ignogring that Sigma_ is
-%             % symmetric, whereas my scores always take symmetry into
-%             % account. To undo that, half the off-diagonal elements of S.
-%         S = .5*(ones(p) + eye(p)).*S; 
-%         ScaledScore(:,:,tt) =  2/(sum(n.*ones(k,1))/k + 1) * Sigma_(:,:,tt)*S*Sigma_(:,:,tt);   
-
-%         % Scaling as proposed by Creal, Koopman, and Lucas (2013)
-%         Score(:,:,tt) = ivech( inv(fisherinfo.Sigma_)*score.Sigma_' );  
+    ScaledScore(:,:,tt) = score.Sigma_scaledByInvFisher;                                                    %%%%%%%%%%%%%%%%%%%%%%%
 end
 %% Fcst
 for tt=T+1:T+22
@@ -178,3 +183,14 @@ for tt=T+1:T+22
 end
 %% Log-Likelihood
 nLogL = -sum(logLcontr);
+%% Fit-Plot(s)
+if nargout >= 6
+    fitplot = figure("Visible",false,"WindowState",'fullscreen');
+    y1 = sum(diag3d(X),2);
+    y2 = sum(diag3d(SigmaE(:,:,1:T)),2);
+    plot(y1);
+    hold on
+    plot(y2,'LineWidth',2)
+    text(T/2,max(y1)*3/4,strcat(num2str(sum(logLcontr))," | Score-Parameters:", num2str(scoreparam), " | Garch-Parameters:", num2str(garchparam), " | Matrix Euclidean Distance:", num2str(mean(matrix_euclidean_loss(X,SigmaE(:,:,1:T))))));
+    varargout{2} = fitplot;
+end

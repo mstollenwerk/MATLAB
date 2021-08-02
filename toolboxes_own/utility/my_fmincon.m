@@ -3,7 +3,7 @@ function [X,optimoutput] = my_fmincon(FUN,X,A,b,Aeq,beq,lb,ub,nonlcon,varargin)
 %   Detailed explanation goes here
 
 options = optimoptions('fmincon',... 
-    'OutputFcn', @outfun_rec_x, ...        
+    'OutputFcn', @(x1,x2,x3) outfun_rec_x(x1,x2,x3,FUN), ...        
     'Display', 'iter-detailed' ...
 );
 options = optimoptions(options, varargin{:});
@@ -40,7 +40,7 @@ optimoutput.history.fval = history.fval;
 
 %% Outfunction to record values during optimization
     % It has to be a local function.
-    function stop = outfun_rec_x(x,optimValues,state)
+    function stop = outfun_rec_x(x,optimValues,state,FUN)
     % This is an output function for optimization algos. It records the points,
     % fvals and directions. 
     %
@@ -53,6 +53,13 @@ optimoutput.history.fval = history.fval;
         x = x';
     end
     
+%     try
+%     close all
+%     [~,~,~,~,~,p] = FUN(x');
+%     p.Visible = true;
+%     pause(.5)
+%     end
+%     
 %     disp(x);
     
     switch state

@@ -40,7 +40,7 @@ elseif strcmp( dist, 'FRiesz' )
     nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k);        
 end
 
-if nargout == 4
+if nargout >= 4
     param_out.intrcpt = intrcpt;
     param_out.archparam = archparam;
     param_out.garchparam = garchparam;
@@ -58,20 +58,26 @@ end
 SigmaE = NaN(k,k,T+1);
 logLcontr = NaN(T,1);
 %% Recursion
-% Initialize recursion at unconditional mean (stationarity assumed).
-ini_Sigma = intrcpt./(1 - sum(garchparam) - sum(archparam));
+% Initialize with Backcast. Code copied from Sheppard MFE Toolbox.
+m = ceil(sqrt(T));
+w = .06 * .94.^(0:(m-1));
+w = reshape(w/sum(w),[1 1 m]);
+backCast = sum(bsxfun(@times,w,X(:,:,1:m)),3);
+ini = backCast;
+% % Initialize recursion at unconditional mean (stationarity assumed).
+% ini = intrcpt./(1 - sum(garchparam) - sum(archparam));
 for tt=1:T
     SigmaE(:,:,tt) = intrcpt;
     for jj = 1:p
         if (tt-jj) <= 0
-            SigmaE(:,:,tt) = SigmaE(:,:,tt) + archparam(jj)*ini_Sigma;
+            SigmaE(:,:,tt) = SigmaE(:,:,tt) + archparam(jj)*ini;
         else
             SigmaE(:,:,tt) = SigmaE(:,:,tt) + archparam(jj)*X(:,:,tt-jj);
         end
     end
     for jj = 1:q
         if (tt-jj) <= 0
-            SigmaE(:,:,tt) = SigmaE(:,:,tt) + garchparam(jj)*ini_Sigma;
+            SigmaE(:,:,tt) = SigmaE(:,:,tt) + garchparam(jj)*ini;
         else
             SigmaE(:,:,tt) = SigmaE(:,:,tt) + garchparam(jj)*SigmaE(:,:,tt-jj);
         end
@@ -110,9 +116,9 @@ for tt=1:T
         end
         % Likelihood Evaluation    
         if exist('nu','var')
-            logLcontr(tt) = logpdf( dist, X(:,:,tt), Sigma_, n, nu );
+            logLcontr(tt) = logpdf( dist, 0, X(:,:,tt), Sigma_, n, nu );
         else
-            logLcontr(tt) = logpdf( dist, X(:,:,tt), Sigma_, n );
+            logLcontr(tt) = logpdf( dist, 0, X(:,:,tt), Sigma_, n );
         end
     catch ME
 %         ME.message
@@ -121,7 +127,8 @@ for tt=1:T
         nLogL = inf;
         logLcontr = NaN;
         SigmaE = NaN;
-        param = NaN;        
+        varargout{1} = NaN;   
+        varargout{2} = NaN;
         return
     end
     
@@ -142,3 +149,14 @@ for tt=T+1:T+22
 end
 %% Log-Likelihood
 nLogL = -sum(logLcontr);
+%% Fit-Plot(s)
+if nargout >= 5
+    fitplot = figure("Visible",false,"WindowState",'fullscreen');
+    y1 = sum(diag3d(X),2);
+    y2 = sum(diag3d(SigmaE(:,:,1:T)),2);
+    plot(y1);
+    hold on
+    plot(y2,'LineWidth',2)
+    text(T/2,max(y1)*3/4,strcat(num2str(sum(logLcontr))," | ARCH-Parameters:", num2str(archparam), " | GARCH-Parameters:", num2str(garchparam), " | Matrix Euclidean Distance:", num2str(mean(matrix_euclidean_loss(X,SigmaE(:,:,1:T))))));
+    varargout{2} = fitplot;
+end

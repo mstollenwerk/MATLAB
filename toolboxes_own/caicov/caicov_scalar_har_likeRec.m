@@ -134,9 +134,9 @@ for tt=1:T+1
         end
         % Likelihood Evaluation    
         if exist('nu','var')
-            logLcontr(tt) = logpdf( dist, X(:,:,tt), Sigma_, n, nu );
+            logLcontr(tt) = logpdf( dist, 0, X(:,:,tt), Sigma_, n, nu );
         else
-            logLcontr(tt) = logpdf( dist, X(:,:,tt), Sigma_, n );
+            logLcontr(tt) = logpdf( dist, 0, X(:,:,tt), Sigma_, n );
         end
     catch ME
 %         ME.message

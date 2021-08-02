@@ -22,9 +22,11 @@ end
 obj_fun = @(param) obj_fun_wrapper(param, X, p, q, dist);
 % x0-----------------------------------------------------------------------
 if isempty(x0)
-    x0 = [ones(1,p)*.01/p ones(1,q)*.75/q];
+    x0 = [zeros(1,p) ones(1,q)*.75/q];
     if strcmp( dist, 'Wish' )
 		x0 = [ x0, 2*k ]';
+    elseif strcmp( dist, 'LaplaceWish' )
+		x0 = [ x0, 2*k ]';        
     elseif strcmp( dist, 'iWish' )
 		x0 = [ x0, 2*k ]';  
     elseif strcmp( dist, 'tWish' )
@@ -48,6 +50,8 @@ end
 % Restrictions-------------------------------------------------------------
 if strcmp( dist, 'Wish' )
     lb = [-inf(p+q,1); k-1];
+elseif strcmp( dist, 'LaplaceWish' )
+    lb = [-inf(p+q,1); k-1];    
 elseif strcmp( dist, 'iWish' )
     lb = [-inf(p+q,1); k+1];
 elseif strcmp( dist, 'F' )
@@ -175,16 +179,16 @@ fcst = struct('Sigma_', Sigma_(:,:,T+1:end));
 
 end
 
-function [ nLogL, logLcontr, Sigma_, ScaledScore, param ] = obj_fun_wrapper(param, X, p, q, dist) 
+function [ nLogL, logLcontr, Sigma_, ScaledScore, param, fitplot ] = obj_fun_wrapper(param, X, p, q, dist) 
 
     if sum(param(p+1:p+q)) >= 1
-        nLogL = inf;
+        nLogL = inf;   
         return
     end
     
     vechcholSig = vechchol( mean(X,3)*(1-sum(param(p+1:p+q))) );
     
-    [ nLogL, logLcontr, Sigma_, ScaledScore, param ] = gas_scalar_BEKK_likeRec( ...
+    [ nLogL, logLcontr, Sigma_, ScaledScore, param, fitplot ] = gas_scalar_BEKK_likeRec( ...
         [vechcholSig; param], ...
         p, ...
         q, ...

@@ -174,7 +174,7 @@ fcst = struct('Sigma_', Sigma_(:,:,T+1:end));
 
 end
 
-function [ nLogL, logLcontr, Sigma_, param ] = obj_fun_wrapper(param, X, p, q, dist) 
+function [ nLogL, logLcontr, Sigma_, param, fitplot ] = obj_fun_wrapper(param, X, p, q, dist) 
 
     if sum(param(1:p+q)) >= 1
         nLogL = inf;
@@ -183,7 +183,7 @@ function [ nLogL, logLcontr, Sigma_, param ] = obj_fun_wrapper(param, X, p, q, d
     
     vechcholSig = vechchol( mean(X,3)*(1-sum(param(1:p+q))) );
     
-    [ nLogL, logLcontr, Sigma_, param ] = caicov_scalar_BEKK_likeRec( ...
+    [ nLogL, logLcontr, Sigma_, param, fitplot ] = caicov_scalar_BEKK_likeRec( ...
         [vechcholSig; param], ...
         p, ...
         q, ...
