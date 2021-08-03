@@ -1,10 +1,14 @@
-function [y] = loglpwdet(X,powers)
+function [y] = loglpwdet(X,powers,varargin)
 %LPWDET Lower Power Weighted Determinant
 %   Detailed explanation goes here
 if size(powers,1)<size(powers,2)
     powers = powers';
 end
-diagL = diag(chol(X,'lower'));
+if nargin >= 3 % Allow direct input of diagL
+    diagL = varargin{1};
+else
+    diagL = diag(chol(X,'lower'));
+end
 
 y = sum((2*powers).*log(diagL));
 
