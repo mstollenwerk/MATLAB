@@ -44,7 +44,7 @@ function [ nLogL, logLcontr, varargout ] = ...
 [p,~,N] = size(X);
 p_ = p*(p+1)/2;
 narginchk(4,5); %%%%%%%
-nargoutchk(0,5);
+nargoutchk(0,6);
 %% Param
 if nargin == 5 %%%%%%%
     if ~(isempty(Sigma_) && isempty(nu) && isempty(n))
@@ -55,35 +55,30 @@ if nargin == 5 %%%%%%%
     nu = all_param(p_ + 1);
     n = all_param(p_ + 1 + 1 : p_ + 1 + p);
 end
-
-% Optional Parameter Output
-if nargout == 5
-    param.Sigma_ = Sigma_;
-    param.chol_Sigma_ = vechchol(Sigma_);
-    param.df_1 = nu;
-    param.df_2 = n;
-    param.all = [param.chol_Sigma_; nu; n];
-    
-    varargout{3} = param;
-end
-%% Input Checking
-chol(Sigma_,'lower'); % Checking if Sigma_ is symmetric p.d.
+% Checking if Sigma_ is symmetric p.d.
+param.Sigma_ = Sigma_;
+param.chol_Sigma_ = vechchol(Sigma_);
+param.df_1 = nu;
+param.df_2 = n;
+param.all = [param.chol_Sigma_; nu; n];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
 
+invSig = inv(Sigma);
+Cdot = chol(invSig,'lower');
 term1 = gammaln((nu + sum(n))/2);
-S = -gammaln(nu/2);
+term2 = -gammaln(nu/2);
 term3 = -lgmvgammaln(n./2);
 term4 = -sum(n)/2*log(nu);
-term5 = -loglpwdet(inv(Sigma_),n./2);
+term5 = -loglpwdet([],n./2,diag(Cdot));
 
-log_normalizing_constant = term1 + S + term3 + term4 + term5;
+log_normalizing_constant = term1 + term2 + term3 + term4 + term5;
 
 for ii = 1:N
-    invX = inv(X(:,:,ii));
+    invA = inv(X(:,:,ii));
     
-    term6 = loglpwdet(invX,(n-p-1)./2);
-    term7 = -(nu + sum(n))/2*log(1 + trace(Sigma_*invX)/nu);
+    term6 = loglpwdet(invA,(n-p-1)./2);
+    term7 = -(nu + sum(n))/2*log(1 + trace(Sigma_*invA)/nu);
     term8 = -(p+1)*log(det(X(:,:,ii)));
     
     log_kernel = term6 + term7 + term8;
@@ -121,13 +116,28 @@ if nargout >= 3
     varargout{1} = score;
 
 end
-%% Fisher Info
-if nargout >= 4
+%% Hessian (Optional Output)
+
+%% Fisher Info (Optional Output)
+if nargout >= 6
     
-    fisherinfo.Sigma_ = NaN;
+    G = Dmatrix(p);
+    I = speye(p);
+    L = ELmatrix(p);
+    
+    invSig = inv(Sigma_);
+    q = Cdot*diag(n)*Cdot';
+    
+    term1 = G'*kron(Cdot*diag(n),I)*L'/(G'*kron(Cdot,I)*L')*G'*kron2(invSig)*G;
+    term2 = -1/(nu+sum(n)+2)*G'*(2*kron(q,invSig) + vec2(q))*G;
+    
+    fisherinfo.Sigma_ = -.5*(term1+term2);
     fisherinfo.n = NaN;
     
-    varargout{2} = fisherinfo;
+    varargout{4} = fisherinfo;
 end
-
+%% Optional Parameter Vector Output
+if nargout >= 5
+    varargout{3} = param;
+end
 end

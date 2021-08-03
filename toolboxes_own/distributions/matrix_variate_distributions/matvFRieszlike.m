@@ -44,7 +44,7 @@ function [ nLogL, logLcontr, varargout ] = ...
 [p,~,N] = size(X);
 p_ = p*(p+1)/2;
 narginchk(4,5); %%%%%%%
-nargoutchk(0,5);
+nargoutchk(0,6);
 %% Param
 if nargin == 5 %%%%%%%
     if ~(isempty(Sigma_) && isempty(n) && isempty(nu))
@@ -55,26 +55,20 @@ if nargin == 5 %%%%%%%
     n = all_param(p_ + 1 : p_ + p);
     nu = all_param(p_ + p + 1 : p_ + p + p);
 end
-
-% Optional Parameter Output
-if nargout == 5
-    param.Sigma_ = Sigma_;
-    param.chol_Sigma_ = vechchol(Sigma_);
-    param.n = n;
-    param.nu = nu;
-    param.all = [param.chol_Sigma_; n; nu];
-    
-    varargout{3} = param;
-end
-%% Input Checking
-chol(Sigma_,'lower'); % Checking if Sigma_ is symmetric p.d.
+% Checking if Sigma_ is symmetric p.d.
+param.Sigma_ = Sigma_;
+C = chol(Sigma_,'lower');
+param.chol_Sigma_ = vech(C);
+param.n = n;
+param.nu = nu;
+param.all = [param.chol_Sigma_; n; nu];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
 
 term1 = ugmvgammaln((n + nu)./2,p);
 term2 = -ugmvgammaln(nu./2);
 term3 = -lgmvgammaln(n./2);
-term4 = loglpwdet(Sigma_,nu./2);
+term4 = loglpwdet([],nu./2,diag(C));
 
 log_normalizing_constant = term1 + term2 + term3 + term4;
 
@@ -97,7 +91,10 @@ if nargout >= 3
     term1 = dloglpwdet_dX(Sigma_,nu/2);
     for ii = 1:N
         
-        S = term1 + dloglpwdet_dX(Sigma_ + X(:,:,ii),-(n+nu)/2);
+        A = X(:,:,ii);
+        
+        C_sigplusa = chol(Sigma_ + A, 'lower');
+        S = C'\diag(nu)/C + C_sigplusa'\diag(nu+n)/C_sigplusa;
         
         % Accounting for symmetry of Sigma_:
         S = 2*S - diag(diag(S));
@@ -112,14 +109,18 @@ if nargout >= 3
     varargout{1} = score;
 
 end
-%% Fisher Info
-if nargout >= 4
+%% Hessian (Optional Output)
+%% Fisher Info (Optional Output)
+if nargout >= 6
     
     fisherinfo.Sigma_ = NaN;
     fisherinfo.n = NaN;
     fisherinfo.nu = NaN;
     
-    varargout{2} = fisherinfo;
+    varargout{4} = fisherinfo;
 end
-
+%% Optional Parameter Vector Output
+if nargout == 5
+    varargout{3} = param;
+end
 end

@@ -62,10 +62,10 @@ if nargout >= 3
     score.df = NaN(N,1);
     for ii = 1:N
         
-        B = X(:,:,ii);
+        invA = inv(X(:,:,ii));
        
         % General matrix derivative (ignoring symmetry of Sigma_):
-        S = .5*( df*invSig - inv(B) );
+        S = .5*( df*invSig - invA );
 
         % Accounting for symmetry of Sigma_:
         S = 2*S - diag(diag(S));

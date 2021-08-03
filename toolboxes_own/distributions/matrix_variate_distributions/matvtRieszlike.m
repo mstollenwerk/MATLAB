@@ -44,9 +44,9 @@ function [ nLogL, logLcontr, varargout ] = ...
 [p,~,N] = size(X);
 p_ = p*(p+1)/2;
 narginchk(4,5); %%%%%%%
-nargoutchk(0,5);
+nargoutchk(0,6);
 %% Param
-if nargin == 5 %%%%%%%
+if nargin >= 5 %%%%%%%
     if ~(isempty(Sigma_) && isempty(nu) && isempty(n))
         error('Cannot input all_param and any of the parameters individually!')
     end
@@ -55,19 +55,13 @@ if nargin == 5 %%%%%%%
     nu = all_param(p_ + 1);
     n = all_param(p_ + 1 + 1 : p_ + 1 + p);
 end
-
-% Optional Parameter Output
-if nargout == 5
-    param.Sigma_ = Sigma_;
-    param.chol_Sigma_ = vechchol(Sigma_);
-    param.nu = nu;
-    param.n = n;
-    param.all = [param.chol_Sigma_; nu; n];
-    
-    varargout{3} = param;
-end
-%% Input Checking
-chol(Sigma_,'lower'); % Checking if Sigma_ is symmetric p.d.
+% Checking if Sigma_ is symmetric p.d.
+param.Sigma_ = Sigma_;
+C = chol(Sigma_,'lower');
+param.chol_Sigma_ = vech(C);
+param.nu = nu;
+param.n = n;
+param.all = [param.chol_Sigma_; nu; n];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
 
@@ -75,7 +69,7 @@ term1 = gammaln((nu + sum(n))/2);
 term2 = -gammaln(nu/2);
 term3 = -lgmvgammaln(n./2);
 term4 = -sum(n)/2*log(nu);
-term5 = -loglpwdet(Sigma_,n./2);
+term5 = -loglpwdet([],n./2,diag(C));
 
 log_normalizing_constant = term1 + term2 + term3 + term4 + term5;
 
@@ -97,11 +91,12 @@ if nargout >= 3
     
     for ii = 1:N
         
+        A = X(:,:,ii);
+        
         % General matrix derivative (ignoring symmetry of Sigma_):
-        S = dloglpwdet_dX(Sigma_,-n/2) ...
-                + .5*(nu + sum(n)) ...
-                    /(nu + trace(Sigma_\X(:,:,ii))) ...
-                    *(Sigma_\X(:,:,ii)/Sigma_);
+        invSigA = Sigma_\A;
+        S = (nu+sum(n))/(nu+trace(invSigA))*invSigA/Sigma_ - C'\diag(n)/C;
+        S = .5*S;
         
         % Accounting for symmetry of Sigma_:
         S = 2*S - diag(diag(S));
@@ -118,13 +113,28 @@ if nargout >= 3
     varargout{1} = score;
 
 end
-%% Fisher Info
-if nargout >= 4
+%% Hessian (Optional Output)
+
+%% Fisher Info (Optional Output)
+if nargout >= 6
     
-    fisherinfo.Sigma_ = NaN;
+    G = Dmatrix(p);
+    I = speye(p);
+    L = ELmatrix(p);
+    
+    invSig = inv(Sigma_);
+    q = C'\diag(n)/C;
+    
+    term1 = G'*kron2(invSig)*kron(C*diag(n),I)*L'/(G'*kron(C,I)*L')*(G'*G);
+    term2 = -1/(nu+sum(n)+2)*G'*(2*kron(q,invSig) + vec2(q))*G;
+    
+    fisherinfo.Sigma_ = .5*(term1+term2);
     fisherinfo.n = NaN;
     
-    varargout{2} = fisherinfo;
+    varargout{4} = fisherinfo;
 end
-
+%% Optional Parameter Vector Output
+if nargout >= 5   
+    varargout{3} = param;
+end
 end
