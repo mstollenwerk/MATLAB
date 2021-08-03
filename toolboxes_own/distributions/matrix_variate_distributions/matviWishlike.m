@@ -32,16 +32,10 @@ if nargin == 4
     Sigma_ = ivechchol(all_param(1:p_));
     df = all_param(p_ + 1);
 end
-
-if nargout == 5
-    param.Sigma_ = Sigma_;
-    param.df = df;
-    param.all = [vech(chol(Sigma_,'lower'))' df];
-    
-    varargout{3} = param;
-end
-%% Input Checking
-chol(Sigma_,'lower'); % Checking if Sigma_ is symmetric p.d.
+% Checking if Sigma_ is symmetric p.d.
+param.Sigma_ = Sigma_;
+param.df = df;
+param.all = [vechchol(Sigma_); df];
 %% Log-Likelihood
 logLcontr = NaN(N,1);
 
@@ -91,14 +85,20 @@ if nargout >= 3
     varargout{1} = score;
     
 end
-%% Fisher Info
-if nargout >= 4
+%% Hessian (Optional Output)
+
+%% Optional Parameter Vector Output
+if nargout >= 5
+    varargout{3} = param;
+end
+%% Fisher Info (Optional Output)
+if nargout >= 6
     
-    fisherinfo.Sigma_ = -df/2*G'*kron(invSig,invSig)*G;; 
+    fisherinfo.Sigma_ = -df/2*G'*kron(invSig,invSig)*G;
     
     fisherinfo.df = NaN;
     
-    varargout{2} = fisherinfo;
+    varargout{4} = fisherinfo;
     
 end
 end

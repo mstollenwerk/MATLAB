@@ -162,7 +162,7 @@ if nargout >= 6
     c2 = -n_^2/2/(nu_+p*n_+2);
     fisherInfo.Sigma_ = G'*(c1*kron2(invSig) + c2*vec2(invSig))*G;
     
-    varargout{2} = fisherInfo;
+    varargout{4} = fisherInfo;
 end
 %% Optional Parameter Vector Output
 if nargout >= 5    

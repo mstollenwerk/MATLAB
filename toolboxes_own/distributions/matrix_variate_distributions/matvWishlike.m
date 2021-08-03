@@ -24,7 +24,7 @@ function [ nLogL, logLcontr, varargout ] = matvWishlike( Sigma_, df, X, varargin
 % 14.08.2020
 
 narginchk(3,4);
-nargoutchk(0,5);
+nargoutchk(0,6);
 
 [p,~,N] = size(X);
 p_ = p*(p+1)/2;
@@ -35,15 +35,10 @@ if nargin == 4
     df = all_param(p_ + 1);
 end
 
-if nargout == 5
-    param.Sigma_ = Sigma_;
-    param.df = df;
-    param.all = [vechchol(Sigma_)' df];
-    
-    varargout{3} = param;
-end
-%% Input Checking
-chol(Sigma_,'lower'); % Checking if Sigma_ is symmetric p.d.
+% Checking if Sigma_ is symmetric p.d.
+param.Sigma_ = Sigma_;
+param.df = df;
+param.all = [vechchol(Sigma_); df];
 %% Log-Likelihood
 logLcontr = NaN(N,1);
 
@@ -95,13 +90,19 @@ if nargout >= 3
     varargout{1} = score;
     
 end
-%% Fisher Info
-if nargout >= 4
+%% Hessian (Optional Output)
+
+%% Optional Parameter Vector Output
+if nargout >= 5   
+    varargout{3} = param;
+end
+%% Fisher Info (Optional Output)
+if nargout >= 6
     
     G = Dmatrix(p);
     
     fisherinfo.Sigma_ = df/2*G'*kron(invSig,invSig)*G;
     
-    varargout{2} = fisherinfo;
+    varargout{4} = fisherinfo;
 end
 end
