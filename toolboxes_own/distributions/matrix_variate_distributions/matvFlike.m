@@ -27,12 +27,13 @@ function [ nLogL, logLcontr, varargout ] = ...
 %   distributions.
 %
 % REFERENCES:
-%   [1] Gupta and Nagar (2001) - Matrix Variate Distributions, p.167, p.156.
-%   [2] Mulder and Pericchi (2018) - The Matrix F Prior for Estimating and
+%   [1] Stollenwerk (2022)
+%   [2] Gupta and Nagar (2001) - Matrix Variate Distributions, p.167, p.156.
+%   [3] Mulder and Pericchi (2018) - The Matrix F Prior for Estimating and
 %           Testing Covariance Matrices.
-%   [3] Opschoor, Janus, Lucas and Van Dijk (2018) - New HEAVY Models for 
+%   [4] Opschoor, Janus, Lucas and Van Dijk (2018) - New HEAVY Models for 
 %           Fat-Tailed Realized Covariances and Returns.
-%   [4] Bodnar, Okhrin, Parolya and Stollenwerk (2020)
+%   [5] Bodnar, Okhrin, Parolya and Stollenwerk (2020)
 %
 % DEPENDENCIES:
 %   MVBETALN IVECHCHOL
@@ -44,7 +45,7 @@ function [ nLogL, logLcontr, varargout ] = ...
 [p,~,N] = size(X);
 p_ = p*(p+1)/2;
 narginchk(4,5);
-nargoutchk(0,5);
+nargoutchk(0,6);
 %% Param
 if nargin == 5
     if ~(isempty(Sigma_) && isempty(df_1) && isempty(df_2))
@@ -55,19 +56,12 @@ if nargin == 5
     df_1 = all_param(p_ + 1);
     df_2 = all_param(p_ + 2);
 end
-
-% Optional Parameter Output
-if nargout == 5
-    param.Sigma_ = Sigma_;
-    param.chol_Sigma_ = vechchol(Sigma_);
-    param.df_1 = df_1;
-    param.df_2 = df_2;
-    param.all = [param.chol_Sigma_; df_1; df_2];
-    
-    varargout{3} = param;
-end
-%% Input Checking
-cholSig = chol(Sigma_,'lower'); % Checking if Sigma_ is symmetric p.d.
+% Checking if Sigma_ is symmetric p.d.
+param.Sigma_ = Sigma_;
+param.chol_Sigma_ = vechchol(Sigma_);
+param.df_1 = df_1;
+param.df_2 = df_2;
+param.all = [param.chol_Sigma_; df_1; df_2];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
 term1 = -mvbetaln(df_1/2, df_2/2, p);
@@ -115,16 +109,27 @@ if nargout >= 3
     varargout{1} = score;
 
 end
-%% Fisher Info
-% enter to matrixcalculus.org: nu2/2*inv(Sigma) - (df1 + nu2)/2*inv( Sigma + X ), change the sign, then take expectation to arrive at
-% take symmetry into account (matrixcalculus.org doesn't) [D' ____ D]
-if nargout >= 4
+%% Hessian (Optional Output)
+%% Optional Parameter Vector Output
+if nargout >= 5  
+    varargout{3} = param;
+end
+%% Fisher Info (Optional Output)
+if nargout >= 6
     
-    fisherinfo.Sigma_ = NaN;
+    c_1 = (n^2*(nu-p-2) + 2*n)/((nu-p)*(nu-p-1)*(nu-p-3));
+    c_2 = (n*(nu-p-2)+n^2+n)/((nu-p)*(nu-p-1)*(nu-p-3));
+    c_4 = (n-p-1)/((n+nu-1)*(n+nu+2))*((n-p-2+1/(nu+n))*c_2-(1+(n-p-1)/(n+nu))*c_1);
+    c_3 = (n-p-1)/(n+nu)*((n-p-2)*c_2 - c_1)-(n+nu+1)*c_4;
+    
+    G = Dmatrix(p);
+    ckron2 = (nu+(n+nu)*(c_3+c_4));
+    cvec2 = (n+nu)*c_4;
+    fisherinfo.Sigma_ = 1/2*G'*(ckron2*kron2(invSig) + cvec2*vec2(invSig))*G;
     fisherinfo.df_1 = NaN;
     fisherinfo.df_2 = NaN;
     
-    varargout{2} = fisherinfo;
+    varargout{4} = fisherinfo;
 end
 
 end
