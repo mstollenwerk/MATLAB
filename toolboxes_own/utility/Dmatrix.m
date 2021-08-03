@@ -31,7 +31,7 @@ function [D, EL] = Dmatrix(n)
 
 %% Duplication Matrix
 % % Not my code. See Reference [1], but WAAYY too slow compared to
-% Reference [2]!
+% % Reference [2]!
 % D = zeros (n * n, n * (n + 1) / 2);
 % count = 0;
 % for j = 1 : n
