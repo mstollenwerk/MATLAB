@@ -1,0 +1,13 @@
+function [eDetPower_h] = matvncWish_Edet(df_, Sigma_, Theta_, h, mhg_precision)
+% p. 119, Theorem 3.5.6 Gupta, Nagar (2000) - Matrix Variate Distributions.
+
+p = size(Sigma_,1);
+log_eDetPower_h = p*h*log(2) + mvgammaln(.5*df_ + h, p) + h*log(det(Sigma_)) ...
+    -mvgammaln(.5*df_, p) + trace(-.5*Theta_) + ...
+    log(mhg(mhg_precision, 2, .5*df_ + h, .5*df_, eig(.5*Theta_)));
+eDetPower_h = exp(log_eDetPower_h);
+% eDetPower_h = 2^(p*h)*mvgamma(.5*df_ + h, p) * det(Sigma_)^h /...
+%     mvgamma(.5*df_, p) * exp(trace(-.5*Theta_)) * ...
+%     mhg(mhg_precision, 2, .5*df_ + h, .5*df_, eig(.5*Theta_));
+
+end
