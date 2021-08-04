@@ -125,7 +125,7 @@ for tt=1:T
         end
         % Likelihood Evaluation    
         if exist('nu','var')
-            [logLcontr(tt), score] = logpdf( dist, X(:,:,tt), SigmaE(:,:,tt), n, nu );                           %%%%%%%%%%%%%%%%%%%%%%%
+            [logLcontr(tt), score] = logpdf( dist, X(:,:,tt), Sigma_, n, nu );                           %%%%%%%%%%%%%%%%%%%%%%%
         else
             [logLcontr(tt), score] = logpdf( dist, X(:,:,tt), Sigma_, n );
         end
