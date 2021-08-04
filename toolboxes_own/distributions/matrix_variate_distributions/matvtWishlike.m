@@ -26,7 +26,7 @@ function [ nLogL, logLcontr, varargout ] = matvtWishlike( Sigma_, n, nu, X, vara
 %
 % DEPENDENCIES:
 
-narginchk(4,6);
+narginchk(4,5);
 nargoutchk(0,6);
 
 [p,~,N] = size(X);
@@ -46,17 +46,6 @@ if nargin >= 5
 end
 if size(n,1) ~= 1 || size(n,1) ~= N
     error('Input parameters must be either single objects or of same length as data.')
-end
-
-% Center distribution to have mean Sigma_?
-if nargin >= 6
-    centering = varargin{2};
-end
-if centering
-    for ii = 1:size(n,1)
-        c(ii) = n(ii)*nu(ii)/(nu(ii)-2);
-        Sigma_(:,:,ii) = Sigma_(:,:,ii)./c(ii);
-    end
 end
 
 param.Sigma_ = Sigma_;
@@ -94,12 +83,11 @@ nLogL = -sum(logLcontr);
 %% Gradient (Optional Output)
 if nargout >= 3
     
-    gradient.Sigma_ = NaN(N,p_);
-    gradient.cholSigma = NaN;
-    gradient.n = NaN;
-    gradient.nu = NaN;
-    gradient.all = NaN;
-    gradient.Sigma_scaledByInvFisher = NaN(p,p,N);
+    score.Sigma_ = NaN(N,p_);
+    score.cholSigma = NaN;
+    score.n = NaN;
+    score.nu = NaN;
+    score.all = NaN;
     
     for ii = 1:N        
         A = X(:,:,ii);
@@ -110,22 +98,17 @@ if nargout >= 3
         trQ_ = trQ(ii);
        
         % General matrix derivative (ignoring symmetry of Sigma_): [ enter to matrixcalculus.org: -dfn/2*log(det(Sigma)) - (dft + dfn*p)/2*log(dft+tr(inv(Sigma)*A)) ]        
-        score_Sig = - n_*invSig ...
+        S = - n_*invSig ...
             + (nu_ + p*n_) / (nu_ + trace(Sig\A)) * (Sig\A/Sig);
-        score_Sig = .5*score_Sig;
+        S = .5*S;
         
         % Accounting for symmetry of Sigma_:
-        score_vechSig = 2*score_Sig - diag(diag(score_Sig));
+        S = 2*S - diag(diag(S));
         
         % Numerical inaccuracies make S not exactly symmetric
-        score_vechSig = vech((score_vechSig+score_vechSig')./2);
-        
-        
-        if centering 
-            gradient.Sigma_(ii,:) = score_vechSig./c(ii);
-        else
-            gradient.Sigma_(ii,:) = score_vechSig;
-        end
+        S = vech((S+S')./2);
+
+        score.Sigma_(ii,:) = S;
 
         % Wolframalpha querie: d/da log(gamma((a + p*n)/2)) - p*n/2*log(a)
         % - log(gamma(a/2)) - (a + p*n)/2*log(1+q/a) 
@@ -134,13 +117,13 @@ if nargout >= 3
         term3 = psi(.5*(nu_+n_*p));
         term4 = log(trQ_/nu_+1);
         term5 = psi(nu_/2);
-        gradient.nu(ii) = .5*(term1+term2+term3+term4+term5);
+        score.nu(ii) = .5*(term1+term2+term3+term4+term5);
         
-        gradient.n(ii) = NaN;
+        score.n(ii) = NaN;
     
     end
     
-    varargout{1} = gradient;
+    varargout{1} = score;
     
 end
 %% Hessian (Optional Output)
