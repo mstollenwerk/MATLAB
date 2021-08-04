@@ -147,9 +147,9 @@ for tt=1:T+1
         end
         % Likelihood Evaluation    
         if exist('nu','var')
-            [logLcontr(tt), score] = logpdf( dist, 0, X(:,:,tt), Sigma_, n, nu );
+            [logLcontr(tt), score] = logpdf( dist, X(:,:,tt), Sigma_, n, nu );
         else
-            [logLcontr(tt), score] = logpdf( dist, 0, X(:,:,tt), Sigma_, n );
+            [logLcontr(tt), score] = logpdf( dist, X(:,:,tt), Sigma_, n );
         end
         S = ivech(score.Sigma_);
         S = (S + diag(diag(S)))./2; %disregard symmetry in differential

@@ -120,9 +120,9 @@ for tt=1:T
     try
    
         if exist('nu','var')
-            [logLcontr(tt), score] = logpdf( dist, 1, X(:,:,tt), SigmaE(:,:,tt), n, nu(tt) );
+            [logLcontr(tt), score] = logpdf( dist, X(:,:,tt), SigmaE(:,:,tt), n, nu(tt) );
         else
-            [logLcontr(tt), score] = logpdf( dist, 1, X(:,:,tt), SigmaE(:,:,tt), n );
+            [logLcontr(tt), score] = logpdf( dist, X(:,:,tt), SigmaE(:,:,tt), n );
         end
         nuScore(tt) = score.nu;
         

@@ -1,49 +1,49 @@
-function [y, varargout] = logpdf( dist, scaling, dta, varargin )
+function [y, varargout] = logpdf( dist, dta, varargin )
 
 if nargout == 1
     if strcmp( dist, 'Wish' )
-        y = matvWishlike(varargin{:}, dta, [], scaling);      
+        y = matvWishlike(varargin{:}, dta, []);      
     elseif strcmp( dist, 'iWish' )
-        y = matviWishlike(varargin{:}, dta, [], scaling);
+        y = matviWishlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'tWish' )
-        y = matvtWishlike(varargin{:}, dta, [], scaling);
+        y = matvtWishlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'itWish' )
-        y = matvitWishlike(varargin{:}, dta, [], scaling);
+        y = matvitWishlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'F' )
-        y = matvFlike(varargin{:}, dta, [], scaling);
+        y = matvFlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'Riesz' )
-        y = matvRieszlike(varargin{:}, dta, [], scaling);
+        y = matvRieszlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'iRiesz' )
-        y = matviRieszlike(varargin{:}, dta, [], scaling);
+        y = matviRieszlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'tRiesz' )
-        y = matvtRieszlike(varargin{:}, dta, [], scaling);
+        y = matvtRieszlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'itRiesz' )
-        y = matvitRieszlike(varargin{:}, dta, [], scaling);
+        y = matvitRieszlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'FRiesz' )
-        y = matvFRieszlike(varargin{:}, dta, [], scaling);
+        y = matvFRieszlike(varargin{:}, dta, []);
     end
 y = -y;
 elseif nargout==2
     if strcmp( dist, 'Wish' )
-        [y, ~, score] = matvWishlike(varargin{:}, dta, [], scaling);
+        [y, ~, score] = matvWishlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'iWish' )
-        [y, ~, score] = matviWishlike(varargin{:}, dta, [], scaling);
+        [y, ~, score] = matviWishlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'tWish' )
-        [y, ~, score] = matvtWishlike(varargin{:}, dta, [], scaling);
+        [y, ~, score] = matvtWishlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'itWish' )
-        [y, ~, score] = matvitWishlike(varargin{:}, dta, [], scaling);
+        [y, ~, score] = matvitWishlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'F' )
-        [y, ~, score] = matvFlike(varargin{:}, dta, [], scaling);
+        [y, ~, score] = matvFlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'Riesz' )
-        [y, ~, score] = matvRieszlike(varargin{:}, dta, [], scaling);
+        [y, ~, score] = matvRieszlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'iRiesz' )
-        [y, ~, score] = matviRieszlike(varargin{:}, dta, [], scaling);
+        [y, ~, score] = matviRieszlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'tRiesz' )
-        [y, ~, score] = matvtRieszlike(varargin{:}, dta, [], scaling);
+        [y, ~, score] = matvtRieszlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'itRiesz' )
-        [y, ~, score] = matvitRieszlike(varargin{:}, dta, [], scaling);
+        [y, ~, score] = matvitRieszlike(varargin{:}, dta, []);
     elseif strcmp( dist, 'FRiesz' )
-        [y, ~, score] = matvFRieszlike(varargin{:}, dta, [], scaling);
+        [y, ~, score] = matvFRieszlike(varargin{:}, dta, []);
     end
 y = -y;
 varargout{1} = score;
