@@ -64,7 +64,7 @@ param.all = [param.chol_Sigma_; nu; n];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
 
-invSig = inv(Sigma);
+invSig = inv(Sigma_);
 Cdot = chol(invSig,'lower');
 term1 = gammaln((nu + sum(n))/2);
 term2 = -gammaln(nu/2);

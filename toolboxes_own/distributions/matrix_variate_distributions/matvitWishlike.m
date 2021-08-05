@@ -101,8 +101,8 @@ end
 if nargout >= 6
     
     G = Dmatrix(p);
-    c1 = n_/2*(nu_+p*n_)/(nu_+p*n_+2);
-    c2 = -n_^2/2/(nu_+p*n_+2);
+    c1 = n/2*(nu+p*n)/(nu+p*n+2);
+    c2 = -n^2/2/(nu+p*n+2);
     fisherInfo.Sigma_ = -G'*(c1*kron2(invSig) + c2*vec2(invSig))*G;
     
     varargout{4} = fisherInfo;
