@@ -44,20 +44,33 @@ function [D, EL] = Dmatrix(n)
 % end
 
 % Not my code. See Reference [2]
-m   = n * (n + 1) / 2;
-nsq = n^2;
-r   = 1;
-a   = 1;
-v   = zeros(1, nsq);
-for i = 1:n
-   v(r:r + i - 2) = i - n + cumsum(n - (0:i-2));
-   r = r + i - 1;
-   
-   v(r:r + n - i) = a:a + n - i;
-   r = r + n - i + 1;
-   a = a + n - i + 1;
+persistent C
+if isempty(C)
+   nCache = 1000;  % Set according to your needs
+   C      = cell(1, nCache);
 end
-D = sparse(1:nsq, v, 1, nsq, m);
+if n <= numel(C) && ~isempty(C{n})
+   D = C{n};
+else
+   m   = n * (n + 1) / 2;
+   nsq = n^2;
+   r   = 1;
+   a   = 1;
+   v   = zeros(1, nsq);
+   cn  = cumsum(n:-1:2);
+   for i = 1:n
+      v(r:r + i - 2) = i - n + cn(1:i - 1);
+      r = r + i - 1;
+      
+      v(r:r + n - i) = a:a + n - i;
+      r = r + n - i + 1;
+      a = a + n - i + 1;
+   end
+   D = sparse(1:nsq, v, 1, nsq, m);
+   if n <= numel(C)
+      C{n} = D;
+   end
+end
 
 %% Elimination Matrix
 % The Moore-Penrose inverse is an Elimination matrix, but not the canonical
