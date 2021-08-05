@@ -22,7 +22,7 @@ function [ nLogL, logLcontr, varargout ] = matviWishlike( Sigma_, df, X, varargi
 % michael.stollenwerk@live.com
 
 narginchk(3,4);
-nargoutchk(0,5);
+nargoutchk(0,6);
 
 [p,~,N] = size(X);
 p_ = p*(p+1)/2;
@@ -94,6 +94,7 @@ end
 %% Fisher Info (Optional Output)
 if nargout >= 6
     
+    G = Dmatrix(p);
     fisherinfo.Sigma_ = -df/2*G'*kron(invSig,invSig)*G;
     
     fisherinfo.df = NaN;
