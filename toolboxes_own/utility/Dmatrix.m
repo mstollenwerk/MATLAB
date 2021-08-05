@@ -44,13 +44,13 @@ function [D, EL] = Dmatrix(n)
 % end
 
 % Not my code. See Reference [2]
-persistent C
-if isempty(C)
+persistent C_Dmatrix
+if isempty(C_Dmatrix)
    nCache = 1000;  % Set according to your needs
-   C      = cell(1, nCache);
+   C_Dmatrix      = cell(1, nCache);
 end
-if n <= numel(C) && ~isempty(C{n})
-   D = C{n};
+if n <= numel(C_Dmatrix) && ~isempty(C_Dmatrix{n})
+   D = C_Dmatrix{n};
 else
    m   = n * (n + 1) / 2;
    nsq = n^2;
@@ -67,8 +67,8 @@ else
       a = a + n - i + 1;
    end
    D = sparse(1:nsq, v, 1, nsq, m);
-   if n <= numel(C)
-      C{n} = D;
+   if n <= numel(C_Dmatrix)
+      C_Dmatrix{n} = D;
    end
 end
 
