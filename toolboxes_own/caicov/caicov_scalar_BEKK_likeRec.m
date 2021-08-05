@@ -151,12 +151,13 @@ end
 nLogL = -sum(logLcontr);
 %% Fit-Plot(s)
 if nargout >= 5
-    fitplot = figure("Visible",false,"WindowState",'fullscreen');
-    y1 = sum(diag3d(X),2);
-    y2 = sum(diag3d(SigmaE(:,:,1:T)),2);
-    plot(y1);
-    hold on
-    plot(y2,'LineWidth',2)
-    text(T/2,max(y1)*3/4,strcat(num2str(sum(logLcontr))," | ARCH-Parameters:", num2str(archparam), " | GARCH-Parameters:", num2str(garchparam), " | Matrix Euclidean Distance:", num2str(mean(matrix_euclidean_loss(X,SigmaE(:,:,1:T))))));
+    fitplot = NaN;
+%     fitplot = figure("Visible",false,"WindowState",'fullscreen');
+%     y1 = sum(diag3d(X),2);
+%     y2 = sum(diag3d(SigmaE(:,:,1:T)),2);
+%     plot(y1);
+%     hold on
+%     plot(y2,'LineWidth',2)
+%     text(T/2,max(y1)*3/4,strcat(num2str(sum(logLcontr))," | ARCH-Parameters:", num2str(archparam), " | GARCH-Parameters:", num2str(garchparam), " | Matrix Euclidean Distance:", num2str(mean(matrix_euclidean_loss(X,SigmaE(:,:,1:T))))));
     varargout{2} = fitplot;
 end
