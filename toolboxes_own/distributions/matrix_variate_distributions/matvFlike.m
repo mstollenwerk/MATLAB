@@ -1,5 +1,5 @@
 function [ nLogL, logLcontr, varargout ] = ...
-    matvFlike( Sigma_, df_1, df_2, X, varargin )
+    matvFlike( Sigma_, n, nu, X, varargin )
 %MATVFLIKE Negative log-likelihood and score of the matrix-variate F distr.
 %
 % USAGE:
@@ -48,29 +48,29 @@ narginchk(4,5);
 nargoutchk(0,6);
 %% Param
 if nargin == 5
-    if ~(isempty(Sigma_) && isempty(df_1) && isempty(df_2))
+    if ~(isempty(Sigma_) && isempty(n) && isempty(nu))
         error('Cannot input all_param and any of the parameters individually!')
     end
     all_param = varargin{1};
     Sigma_ = ivechchol(all_param(1 : p_));
-    df_1 = all_param(p_ + 1);
-    df_2 = all_param(p_ + 2);
+    n = all_param(p_ + 1);
+    nu = all_param(p_ + 2);
 end
 % Checking if Sigma_ is symmetric p.d.
 param.Sigma_ = Sigma_;
 param.chol_Sigma_ = vechchol(Sigma_);
-param.df_1 = df_1;
-param.df_2 = df_2;
-param.all = [param.chol_Sigma_; df_1; df_2];
+param.df_1 = n;
+param.df_2 = nu;
+param.all = [param.chol_Sigma_; n; nu];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
-term1 = -mvbetaln(df_1/2, df_2/2, p);
-term2 = df_2/2 * logdet(Sigma_);
+term1 = -mvbetaln(n/2, nu/2, p);
+term2 = nu/2 * logdet(Sigma_);
 log_normalizing_constant = term1 + term2;
 
 for ii = 1:N
-    term3 = (df_1 - p - 1)/2*logdet( X(:,:,ii) );
-    term4 = -(df_1 + df_2)/2*logdet (Sigma_ + X(:,:,ii) );
+    term3 = (n - p - 1)/2*logdet( X(:,:,ii) );
+    term4 = -(n + nu)/2*logdet (Sigma_ + X(:,:,ii) );
     log_kernel = term3 + term4;
 
     logLcontr(ii) = log_normalizing_constant + log_kernel;
@@ -87,7 +87,7 @@ if nargout >= 3
     for ii = 1:N
         
         % General matrix derivative (ignoring symmetry of Sigma_): [ enter to matrixcalculus.org: (df2 + p - 1)/2 * log(det(Sigma))-(df1 + df2 + p - 1)/2*log(det (Sigma + X )) ]
-        S = df_2/2*invSig - (df_1 + df_2)/2*inv( Sigma_ + X(:,:,ii) );
+        S = nu/2*invSig - (n + nu)/2*inv( Sigma_ + X(:,:,ii) );
 %         S = - df_1/2*invSig ...
 %             + (df_1+df_2)/2 ...
 %               *invSig/(eye(p) + X(:,:,ii)*invSig)*X(:,:,ii)*invSig;
