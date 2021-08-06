@@ -181,12 +181,12 @@ end
 
 function [ nLogL, logLcontr, Sigma_, ScaledScore, param, fitplot ] = obj_fun_wrapper(param, X, p, q, dist) 
 
-    if sum(param(p+1:p+q)) >= 1
+    if sum(param(2*p+1:2*p+q)) >= 1
         nLogL = inf;   
         return
     end
     
-    vechcholSig = vechchol( mean(X,3)*(1-sum(param(p+1:p+q))) );
+    vechcholSig = vechchol( mean(X,3)*(1-sum(param(2*p+1:2*p+q))) );
     
     [ nLogL, logLcontr, Sigma_, ScaledScore, param, fitplot ] = gas_scalar_BEKK_alternative_scaling_likeRec( ...
         [vechcholSig; param], ...

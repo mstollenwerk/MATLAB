@@ -11,7 +11,7 @@ k_ = k*(k+1)/2;
 intrcpt = ivechchol(param(1:k_));
 scoreparam1 = param(k_ + 1 : k_ + p);
 scoreparam2 = param(k_ + p + 1 : k_ + 2*p);
-garchparam = param(k_ + 2*p : k_+ 2*p + q);
+garchparam = param(k_ + 2*p + 1: k_+ 2*p + q);
 
 if strcmp( dist, 'Wish' )
     n = param(k_+ 2*p + q + 1);    
@@ -34,7 +34,7 @@ elseif strcmp( dist, 'iRiesz' )
     n = param(k_+ 2*p + q + 1 : k_+ 2*p + q + k);  
 elseif strcmp( dist, 'tRiesz' )
     n = param(k_+ 2*p + q + 1 : k_+ 2*p + q + k); 
-    nu = param(k_+ p + q + k + 1);
+    nu = param(k_+ 2*p + q + k + 1);
 elseif strcmp( dist, 'itRiesz' )
     n = param(k_+ 2*p + q + 1 : k_+ 2*p + q + k); 
     nu = param(k_+ 2*p + q + k + 1);
@@ -124,31 +124,31 @@ for tt=1:T
             CsigE = chol(SigmaE(:,:,tt),'lower');
             C = CsigE/sqrtm(Y);
             Sigma_ = C*C';
-            dSigmaEdSigma = G'*kron(C*Y,I)*L'/(G'*kron(C,I)*L')*(G'*G);
+            dSigmaEdSigma = iG*kron(C*Y,I)*L'/(iG*kron(C,I)*L');
         elseif strcmp( dist, 'iRiesz' )
             Y = inv(diag(n-k-1));
             iCdotSigE = inv(chol(inv(SigmaE(:,:,tt)),'lower'));
             iCdot = iCdotSigE/sqrtm(Y);
             Sigma_ = iCdot'*iCdot;
-            dSigmaEdSigma = G'*kron(iCdot',iCdot'*Y*iCdot)*L'/(G'*kron(iCdot',Sigma_)*L')*(G'*G);
+            dSigmaEdSigma = iG*kron(iCdot',iCdot'*Y*iCdot)*L'/(iG*kron(iCdot',Sigma_)*L');
         elseif strcmp( dist, 'tRiesz' )
             Y = diag(n).*nu./(nu - 2);
             CsigE = chol(SigmaE(:,:,tt),'lower');
             C = CsigE/sqrtm(Y);
             Sigma_ = C*C';
-            dSigmaEdSigma = G'*kron(C*Y,I)*L'/(G'*kron(C,I)*L')*(G'*G);
+            dSigmaEdSigma = iG*kron(C*Y,I)*L'/(iG*kron(C,I)*L');
         elseif strcmp( dist, 'itRiesz' )
             Y = inv(diag(n-k-1));
             iCdotSigE = inv(chol(inv(SigmaE(:,:,tt)),'lower'));
             iCdot = iCdotSigE/sqrtm(Y);
             Sigma_ = iCdot'*iCdot;
-            dSigmaEdSigma = G'*kron(iCdot',iCdot'*Y*iCdot)*L'/(G'*kron(iCdot',Sigma_)*L')*(G'*G);
+            dSigmaEdSigma = iG*kron(iCdot',iCdot'*Y*iCdot)*L'/(iG*kron(iCdot',Sigma_)*L');
         elseif strcmp( dist, 'FRiesz' )
             Y = matvFRieszexpmat(n,nu);
             CsigE = chol(SigmaE(:,:,tt),'lower');
             C = CsigE/sqrtm(Y);
             Sigma_ = C*C';
-            dSigmaEdSigma = G'*kron(C*Y,I)*L'/(G'*kron(C,I)*L')*(G'*G);
+            dSigmaEdSigma = iG*kron(C*Y,I)*L'/(iG*kron(C,I)*L');
         end
         % Likelihood Evaluation    
         if exist('nu','var')
@@ -168,8 +168,8 @@ for tt=1:T
     end
     
     % Scaled Score 
-    ScaledScore1(:,:,tt) = ivech(iG*kron2(Sigma_)*iG'/dSigmaEdSigma*score.Sigma_');
-    ScaledScore2(:,:,tt) = ivech(iG*vec2(Sigma_)*iG'/dSigmaEdSigma*score.Sigma_');
+    ScaledScore1(:,:,tt) = ivech(iG*kron2(SigmaE(:,:,tt))*iG'/dSigmaEdSigma*score.Sigma_');
+    ScaledScore2(:,:,tt) = ivech(iG*vec2(SigmaE(:,:,tt))*iG'/dSigmaEdSigma*score.Sigma_');
     
 end
 %% Fcst
