@@ -168,8 +168,8 @@ for tt=1:T
     end
     
     % Scaled Score 
-    ScaledScore1(:,:,tt) = ivech(iG*kron2(Sigma_)*iG'*(dSigmaEdSigma\score.Sigma_'));
-    ScaledScore2(:,:,tt) = ivech(iG*vec2(Sigma_)*iG'*(dSigmaEdSigma\score.Sigma_'));
+    ScaledScore1(:,:,tt) = ivech(iG*kron2(Sigma_)*iG'/dSigmaEdSigma*score.Sigma_');
+    ScaledScore2(:,:,tt) = ivech(iG*vec2(Sigma_)*iG'/dSigmaEdSigma*score.Sigma_');
     
 end
 %% Fcst
