@@ -70,6 +70,7 @@ ini = backCast;
 % Initialize recursion at unconditional mean (stationarity assumed).
 % ini = intrcpt./(1 - sum(garchparam));
 G = Dmatrix(k);
+iG = (G'*G)\G';
 L = ELmatrix(k);
 I = eye(k);
 for tt=1:T
@@ -120,31 +121,31 @@ for tt=1:T
             CsigE = chol(SigmaE(:,:,tt),'lower');
             C = CsigE/sqrtm(Y);
             Sigma_ = C*C';
-            dSigmaEdSigma = G'*kron(C*Y,I)*L'/(G'*kron(C,I)*L')*(G'*G);
+            dSigmaEdSigma = iG*kron(C*Y,I)*L'/(iG*kron(C,I)*L');
         elseif strcmp( dist, 'iRiesz' )
             Y = inv(diag(n-k-1));
             iCdotSigE = inv(chol(inv(SigmaE(:,:,tt)),'lower'));
             iCdot = iCdotSigE/sqrtm(Y);
             Sigma_ = iCdot'*iCdot;
-            dSigmaEdSigma = G'*kron(iCdot',iCdot'*Y*iCdot)*L'/(G'*kron(iCdot',Sigma_)*L')*(G'*G);
+            dSigmaEdSigma = iG*kron(iCdot',iCdot'*Y*iCdot)*L'/(iG*kron(iCdot',Sigma_)*L');
         elseif strcmp( dist, 'tRiesz' )
             Y = diag(n).*nu./(nu - 2);
             CsigE = chol(SigmaE(:,:,tt),'lower');
             C = CsigE/sqrtm(Y);
             Sigma_ = C*C';
-            dSigmaEdSigma = G'*kron(C*Y,I)*L'/(G'*kron(C,I)*L')*(G'*G);
+            dSigmaEdSigma = iG*kron(C*Y,I)*L'/(iG*kron(C,I)*L');
         elseif strcmp( dist, 'itRiesz' )
             Y = inv(diag(n-k-1));
             iCdotSigE = inv(chol(inv(SigmaE(:,:,tt)),'lower'));
             iCdot = iCdotSigE/sqrtm(Y);
             Sigma_ = iCdot'*iCdot;
-            dSigmaEdSigma = G'*kron(iCdot',iCdot'*Y*iCdot)*L'/(G'*kron(iCdot',Sigma_)*L')*(G'*G);
+            dSigmaEdSigma = iG*kron(iCdot',iCdot'*Y*iCdot)*L'/(iG*kron(iCdot',Sigma_)*L');
         elseif strcmp( dist, 'FRiesz' )
             Y = matvFRieszexpmat(n,nu);
             CsigE = chol(SigmaE(:,:,tt),'lower');
             C = CsigE/sqrtm(Y);
             Sigma_ = C*C';
-            dSigmaEdSigma = G'*kron(C*Y,I)*L'/(G'*kron(C,I)*L')*(G'*G);
+            dSigmaEdSigma = iG*kron(C*Y,I)*L'/(iG*kron(C,I)*L');
         end
         % Likelihood Evaluation    
         if exist('nu','var')
