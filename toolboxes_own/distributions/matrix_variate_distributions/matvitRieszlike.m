@@ -93,13 +93,17 @@ if nargout >= 3
     score.n = NaN(N,p);
     score.nu = NaN(N,1);
     
+    invSig = inv(Sigma_);
+    Cdot = chol(invSig,'lower');
+    q = Cdot*diag(n)*Cdot';
+    
     for ii = 1:N
         
+        invA = inv(X(:,:,ii));
+        
         % General matrix derivative (ignoring symmetry of Sigma_):
-        S = -Sigma_\dloglpwdet_dX(inv(Sigma_),-n/2)/Sigma_ ...
-                    - .5*(nu + sum(n)) ...
-                    /(nu + trace(Sigma_/X(:,:,ii))) ...
-                    *inv(X(:,:,ii));
+        S = q - (nu + sum(n))/(nu + trace(Sigma_*invA))*invA;
+        S = .5*S;
         
         % Accounting for symmetry of Sigma_:
         S = 2*S - diag(diag(S));
@@ -124,9 +128,6 @@ if nargout >= 6
     G = Dmatrix(p);
     I = speye(p);
     L = ELmatrix(p);
-    
-    invSig = inv(Sigma_);
-    q = Cdot*diag(n)*Cdot';
     
     term1 = G'*kron(Cdot*diag(n),I)*L'/(G'*kron(Cdot,I)*L')*G'*kron2(invSig)*G;
     term2 = -1/(nu+sum(n)+2)*G'*(2*kron(q,invSig) + vec2(q))*G;

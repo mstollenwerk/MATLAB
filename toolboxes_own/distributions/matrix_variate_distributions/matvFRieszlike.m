@@ -88,7 +88,6 @@ if nargout >= 3
     score.n = NaN(N,p);
     score.nu = NaN(N,p);
     
-    term1 = dloglpwdet_dX(Sigma_,nu/2);
     for ii = 1:N
         
         A = X(:,:,ii);
