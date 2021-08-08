@@ -112,7 +112,17 @@ end
 %% Fisher Info (Optional Output)
 if nargout >= 6
     
-    fisherinfo.Sigma_ = NaN;
+    G = Dmatrix(p);
+    L = ELmatrix(p);
+    I = speye(p);
+    
+    iC = inv(C);
+    
+    %%% THIS IS ONLY AN APPROXIMATION TO THE FISHER INFO WRT SIGMA!!! %%%
+    fishSig = .5*G'*kron(iC',C'\diag(nu)/C)*L'/(G'*kron(C,I)*L')*(G'*G) ...
+              + G'*kron(iC',C'\diag(nu + n)/C)*L'/(G'*kron(C,I)*L')*(G'*G);
+    
+    fisherinfo.Sigma_ = fishSig;
     fisherinfo.n = NaN;
     fisherinfo.nu = NaN;
     
