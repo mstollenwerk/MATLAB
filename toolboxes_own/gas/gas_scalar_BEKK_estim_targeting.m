@@ -34,7 +34,7 @@ if isempty(x0)
     elseif strcmp( dist, 'itWish' )
 		x0 = [ x0, 2*k, 5 ]';
     elseif strcmp( dist, 'F' )
-		x0 = [ x0, 2*k, 2*k ]';        
+		x0 = [ x0, 2*k+3, 2*k+3 ]';  % nu > p - 3 for Fisher Info to exist.      
     elseif strcmp( dist, 'Riesz' )
 		x0 = [ x0, ones(1,k).*(2*k) ]';
     elseif strcmp( dist, 'iRiesz' )
@@ -44,7 +44,7 @@ if isempty(x0)
     elseif strcmp( dist, 'itRiesz' )
 		x0 = [ x0, ones(1,k).*(2*k), 5 ]';    
     elseif strcmp( dist, 'FRiesz' )
-		x0 = [ x0, ones(1,k).*(2*k), ones(1,k).*(2*k) ]';        
+		x0 = [ x0, ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]';        
     end
 end
 % Restrictions-------------------------------------------------------------
