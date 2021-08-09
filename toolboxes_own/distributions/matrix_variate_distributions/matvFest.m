@@ -8,7 +8,7 @@ function [eparam, tstats, logL, optimoutput] = matvFest(X, x0, varargin)
 p_ = p*(p+1)/2;
 if ~isempty(varargin) && strcmp(varargin{1},'EstimationStrategy:MethodOfMoments')
     %% Optimization
-    obj_fun = @(df) matvFlike( mean(X,3)*(df(1)-p-1)/df(2)/df(1),df(1),df(2),X);
+    obj_fun = @(df) matvFlike( mean(X,3)*(df(1)-p-1)/df(2),df(1),df(2),X);
 
     if isempty(x0)
         x0 = [2*p; 2*p];
@@ -49,7 +49,7 @@ else
     obj_fun = @(param) matvFlike([],[],[],X,param);
 
     if isempty(x0)
-        x0 = [vechchol( mean(X,3)*(p-1)/(4*p) ); 2*p; 2*p];
+        x0 = [vechchol( mean(X,3)*(p-1)/p ); 2*p; 2*p];
     end
 
     [eparam,optimoutput] = ...

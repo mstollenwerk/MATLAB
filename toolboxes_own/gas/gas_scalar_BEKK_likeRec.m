@@ -113,7 +113,7 @@ for tt=1:T
             Sigma_ = SigmaE(:,:,tt)/Y;
             dSigmaEdSigma = Y;
         elseif strcmp( dist, 'F' )
-            Y = n*nu/(nu-k-1);
+            Y = n/(nu-k-1);
             Sigma_ = SigmaE(:,:,tt)/Y;
             dSigmaEdSigma = Y;
         elseif strcmp( dist, 'Riesz' )

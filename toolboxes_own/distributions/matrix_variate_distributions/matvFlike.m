@@ -22,8 +22,9 @@ function [ nLogL, logLcontr, varargout ] = ...
 % 
 % COMMENTS:
 %
-%   This is the distribution representation as in Stollenwerk (2022), i.e.
-%   be note the nu definition.
+%   Derivatives were derived using matrixcalculus.org
+%   References [3] and [4] use slightly different definitions of the
+%   distributions.
 %
 % REFERENCES:
 %   [1] Stollenwerk (2022)
@@ -63,14 +64,13 @@ param.df_2 = nu;
 param.all = [param.chol_Sigma_; n; nu];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
-term1 = p*nu/2*log(nu);
-term2 = -mvbetaln(n/2, nu/2, p);
-term3 = nu/2 * logdet(Sigma_);
-log_normalizing_constant = term1 + term2 + term3;
+term1 = -mvbetaln(n/2, nu/2, p);
+term2 = nu/2 * logdet(Sigma_);
+log_normalizing_constant = term1 + term2;
 
 for ii = 1:N
     term3 = (n - p - 1)/2*logdet( X(:,:,ii) );
-    term4 = -(n + nu)/2*logdet (nu*Sigma_ + X(:,:,ii) );
+    term4 = -(n + nu)/2*logdet (Sigma_ + X(:,:,ii) );
     log_kernel = term3 + term4;
 
     logLcontr(ii) = log_normalizing_constant + log_kernel;
@@ -86,7 +86,11 @@ if nargout >= 3
     
     for ii = 1:N
         
-        S = nu/2*invSig - (n + nu)/2*inv( Sigma_ + X(:,:,ii)/nu );
+        % General matrix derivative (ignoring symmetry of Sigma_): [ enter to matrixcalculus.org: (df2 + p - 1)/2 * log(det(Sigma))-(df1 + df2 + p - 1)/2*log(det (Sigma + X )) ]
+        S = nu/2*invSig - (n + nu)/2*inv( Sigma_ + X(:,:,ii) );
+%         S = - df_1/2*invSig ...
+%             + (df_1+df_2)/2 ...
+%               *invSig/(eye(p) + X(:,:,ii)*invSig)*X(:,:,ii)*invSig;
 
         % Accounting for symmetry of Sigma_:
         S = 2*S - diag(diag(S));

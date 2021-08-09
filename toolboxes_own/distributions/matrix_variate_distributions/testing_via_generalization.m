@@ -14,7 +14,7 @@ nu = ones(5,1)*nu_;
 
 %%
 [ nLogL, logLcontr, Score, ~, param] = matvFRieszlike(Sigma_, n, nu, X);
-[ nLogL_, logLcontr_, Score_, ~, param_] = matvFlike(Sigma_/nu_, n_, nu_, X);
+[ nLogL_, logLcontr_, Score_, ~, param_] = matvFlike(Sigma_, n_, nu_, X);
 nLogL-nLogL_
 logLcontr-logLcontr_
 Score.Sigma_ - Score_.Sigma_
