@@ -94,7 +94,7 @@ for tt=1:T
         elseif strcmp( dist, 'itWish')
             Sigma_ = SigmaE(:,:,tt)*(n-k-1);
         elseif strcmp( dist, 'F' )
-            Sigma_ = SigmaE(:,:,tt)*(nu-k-1)/n;
+            Sigma_ = SigmaE(:,:,tt)*(nu-k-1)/n/nu;
         elseif strcmp( dist, 'Riesz' )
             cholSigE = chol(SigmaE(:,:,tt),'lower');
             Sigma_ = cholSigE/diag(n)*cholSigE';
