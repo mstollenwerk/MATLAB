@@ -119,9 +119,9 @@ if nargout >= 6
     c_3 = (n-p-1)/(n+nu)*((n-p-2)*c_2 - c_1)-(n+nu+1)*c_4;
     
     G = Dmatrix(p);
-    ckron2 = (nu+(n+nu)*(c_3+c_4));
+    ckron2 = (nu-(n+nu)*(c_3+c_4));
     cvec2 = (n+nu)*c_4;
-    fisherinfo.Sigma_ = 1/2*G'*(ckron2*kron2(invSig) + cvec2*vec2(invSig))*G;
+    fisherinfo.Sigma_ = 1/2*G'*(ckron2*kron2(invSig) - cvec2*vec2(invSig))*G;
     fisherinfo.df_1 = NaN;
     fisherinfo.df_2 = NaN;
     
