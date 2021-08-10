@@ -93,7 +93,8 @@ if nargout >= 3
         A = X(:,:,ii);
         
         C_sigplusa = chol(Sigma_ + A, 'lower');
-        S = C'\diag(nu)/C + C_sigplusa'\diag(nu+n)/C_sigplusa;
+        S = C'\diag(nu)/C - C_sigplusa'\diag(nu+n)/C_sigplusa;
+        S = .5*S;
         
         % Accounting for symmetry of Sigma_:
         S = 2*S - diag(diag(S));
@@ -119,12 +120,12 @@ if nargout >= 6
     c_2 = (n_*(nu_-p-2)+n_^2+n_)/((nu_-p)*(nu_-p-1)*(nu_-p-3));
     c_4 = (n_-p-1)/((n_+nu_-1)*(n_+nu_+2))*((n_-p-2+1/(nu_+n_))*c_2-(1+(n_-p-1)/(n_+nu_))*c_1);
     c_3 = (n_-p-1)/(n_+nu_)*((n_-p-2)*c_2 - c_1)-(n_+nu_+1)*c_4;
-    invSignu = inv(Sigma_)/nu_;
+    invSigF = inv(Sigma_);
     
     G = Dmatrix(p);
     ckron2 = (nu_-(n_+nu_)*(c_3+c_4));
     cvec2 = (n_+nu_)*c_4;
-    fisherinfo.Sigma_ = 1/2*G'*(ckron2*kron2(invSignu) - cvec2*vec2(invSignu))*G;
+    fisherinfo.Sigma_ = 1/2*G'*(ckron2*kron2(invSigF) - cvec2*vec2(invSigF))*G;
     fisherinfo.df_1 = NaN;
     fisherinfo.df_2 = NaN;
     
