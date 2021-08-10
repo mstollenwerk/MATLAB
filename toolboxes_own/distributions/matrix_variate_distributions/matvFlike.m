@@ -106,10 +106,6 @@ if nargout >= 3
 
 end
 %% Hessian (Optional Output)
-%% Optional Parameter Vector Output
-if nargout >= 5  
-    varargout{3} = param;
-end
 %% Fisher Info (Optional Output)
 if nargout >= 6
     
@@ -127,5 +123,8 @@ if nargout >= 6
     
     varargout{4} = fisherinfo;
 end
-
+%% Optional Parameter Vector Output
+if nargout >= 5  
+    varargout{3} = param;
+end
 end
