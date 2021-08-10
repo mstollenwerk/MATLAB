@@ -154,6 +154,7 @@ for tt=1:T
             [logLcontr(tt), score, ~, ~, fisherinfo] = logpdf( dist, X(:,:,tt), Sigma_, n );
         end
     catch ME
+%         tt
 %         ME.message
 %         [ME.stack.line]'
 %         {ME.stack.name}'
