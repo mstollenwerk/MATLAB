@@ -114,18 +114,29 @@ end
 if nargout >= 6
     
     %%% THIS IS ONLY AN APPROXIMATION TO THE FISHER INFO WRT SIGMA!!! %%%
-    n_ = mean(n);
-    nu_ = mean(nu);    
-    c_1 = (n_^2*(nu_-p-2) + 2*n_)/((nu_-p)*(nu_-p-1)*(nu_-p-3));
-    c_2 = (n_*(nu_-p-2)+n_^2+n_)/((nu_-p)*(nu_-p-1)*(nu_-p-3));
-    c_4 = (n_-p-1)/((n_+nu_-1)*(n_+nu_+2))*((n_-p-2+1/(nu_+n_))*c_2-(1+(n_-p-1)/(n_+nu_))*c_1);
-    c_3 = (n_-p-1)/(n_+nu_)*((n_-p-2)*c_2 - c_1)-(n_+nu_+1)*c_4;
-    invSigF = inv(Sigma_);
-    
+%     n_ = mean(n);
+%     nu_ = mean(nu);    
+%     c_1 = (n_^2*(nu_-p-2) + 2*n_)/((nu_-p)*(nu_-p-1)*(nu_-p-3));
+%     c_2 = (n_*(nu_-p-2)+n_^2+n_)/((nu_-p)*(nu_-p-1)*(nu_-p-3));
+%     c_4 = (n_-p-1)/((n_+nu_-1)*(n_+nu_+2))*((n_-p-2+1/(nu_+n_))*c_2-(1+(n_-p-1)/(n_+nu_))*c_1);
+%     c_3 = (n_-p-1)/(n_+nu_)*((n_-p-2)*c_2 - c_1)-(n_+nu_+1)*c_4;
+%     invSigF = inv(Sigma_);
+%     
+%     G = Dmatrix(p);
+%     ckron2 = (nu_-(n_+nu_)*(c_3+c_4));
+%     cvec2 = (n_+nu_)*c_4;
+%     fisherinfo.Sigma_ = 1/2*G'*(ckron2*kron2(invSigF) - cvec2*vec2(invSigF))*G;
     G = Dmatrix(p);
-    ckron2 = (nu_-(n_+nu_)*(c_3+c_4));
-    cvec2 = (n_+nu_)*c_4;
-    fisherinfo.Sigma_ = 1/2*G'*(ckron2*kron2(invSigF) - cvec2*vec2(invSigF))*G;
+    L = ELmatrix(p);
+    I = speye(p);
+    
+    iC = inv(C);
+    
+    %%% THIS IS ONLY AN APPROXIMATION TO THE FISHER INFO WRT SIGMA!!! %%%
+    fishSig = .5*G'*kron(iC',C'\diag(nu)/C)*L'/(G'*kron(C,I)*L')*(G'*G) ...
+              - G'*kron(iC',C'\diag(nu + n)/C)*L'/(G'*kron(C,I)*L')*(G'*G);
+    
+    fisherinfo.Sigma_ = fishSig;
     fisherinfo.df_1 = NaN;
     fisherinfo.df_2 = NaN;
     
