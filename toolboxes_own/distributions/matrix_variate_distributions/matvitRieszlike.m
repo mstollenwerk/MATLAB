@@ -52,15 +52,15 @@ if nargin == 5 %%%%%%%
     end
     all_param = varargin{1};
     Sigma_ = ivechchol(all_param(1 : p_));
-    nu = all_param(p_ + 1);
-    n = all_param(p_ + 1 + 1 : p_ + 1 + p);
+    n = all_param(p_ +  1 : p_ + p);
+    nu = all_param(p_ + p + 1);    
 end
 % Checking if Sigma_ is symmetric p.d.
 param.Sigma_ = Sigma_;
 param.chol_Sigma_ = vechchol(Sigma_);
 param.df_1 = nu;
 param.df_2 = n;
-param.all = [param.chol_Sigma_; nu; n];
+param.all = [param.chol_Sigma_; n; nu];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
 
