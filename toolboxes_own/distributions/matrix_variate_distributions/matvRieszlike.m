@@ -43,21 +43,20 @@ function [ nLogL, logLcontr, varargout ] = ...
 
 [p,~,N] = size(X);
 p_ = p*(p+1)/2;
-narginchk(3,5);
+narginchk(3,4);
 nargoutchk(0,6);
 %% Param
-if nargin >= 4 && ~isempty(varargin{1})
+if nargin == 4
+    if ~(isempty(Sigma_) && isempty(n))
+        error('Cannot input all_param and any of the parameters individually!')
+    end
     all_param = varargin{1};
     Sigma_ = ivechchol(all_param(1 : p_));
     n = all_param(p_ + 1 : p_ + p);
 end
-if nargin >= 5
-    C = varargin{2};
-else
-    % also checks if Sigma_ is symmetric p.d.
-    C = chol(Sigma_,'lower');
-end
+% Checking if Sigma_ is symmetric p.d.
 param.Sigma_ = Sigma_;
+C = chol(Sigma_,'lower');
 param.chol_Sigma_ = vech(C);
 param.n = n;
 param.all = [param.chol_Sigma_; n];
