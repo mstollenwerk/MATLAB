@@ -123,7 +123,7 @@ for tt=1:T
             Sigma_ = C*C';
             dSigmaEdSigma = iG*kron(C*Y,I)*L'/(iG*kron(C,I)*L');
         elseif strcmp( dist, 'iRiesz' )
-            Y = inv(diag(n-k-1));
+            Y = matviRieszexpmat(n);
             iCdotSigE = inv(chol(inv(SigmaE(:,:,tt)),'lower'));
             iCdot = iCdotSigE/sqrtm(Y);
             Sigma_ = iCdot'*iCdot;
@@ -135,7 +135,7 @@ for tt=1:T
             Sigma_ = C*C';
             dSigmaEdSigma = iG*kron(C*Y,I)*L'/(iG*kron(C,I)*L');
         elseif strcmp( dist, 'itRiesz' )
-            Y = inv(diag(n-k-1));
+            Y = matviRieszexpmat(n);
             iCdotSigE = inv(chol(inv(SigmaE(:,:,tt)),'lower'));
             iCdot = iCdotSigE/sqrtm(Y);
             Sigma_ = iCdot'*iCdot;
