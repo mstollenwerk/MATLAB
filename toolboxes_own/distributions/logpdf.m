@@ -23,33 +23,30 @@ if nargout == 1
         y = matvFRieszlike(varargin{:}, dta);
     end
 y = -y;
-elseif nargout>=2
+elseif nargout==2
     if strcmp( dist, 'Wish' )
-        [y, ~, score, hessian, param, fisherinfo] = matvWishlike(varargin{:}, dta);
+        [y, ~, score] = matvWishlike(varargin{:}, dta);
     elseif strcmp( dist, 'iWish' )
-        [y, ~, score, hessian, param, fisherinfo] = matviWishlike(varargin{:}, dta);
+        [y, ~, score] = matviWishlike(varargin{:}, dta);
     elseif strcmp( dist, 'tWish' )
-        [y, ~, score, hessian, param, fisherinfo] = matvtWishlike(varargin{:}, dta);
+        [y, ~, score] = matvtWishlike(varargin{:}, dta);
     elseif strcmp( dist, 'itWish' )
-        [y, ~, score, hessian, param, fisherinfo] = matvitWishlike(varargin{:}, dta);
+        [y, ~, score] = matvitWishlike(varargin{:}, dta);
     elseif strcmp( dist, 'F' )
-        [y, ~, score, hessian, param, fisherinfo] = matvFlike(varargin{:}, dta);
+        [y, ~, score] = matvFlike(varargin{:}, dta);
     elseif strcmp( dist, 'Riesz' )
-        [y, ~, score, hessian, param, fisherinfo] = matvRieszlike(varargin{:}, dta);
+        [y, ~, score] = matvRieszlike(varargin{:}, dta);
     elseif strcmp( dist, 'iRiesz' )
-        [y, ~, score, hessian, param, fisherinfo] = matviRieszlike(varargin{:}, dta);
+        [y, ~, score] = matviRieszlike(varargin{:}, dta);
     elseif strcmp( dist, 'tRiesz' )
-        [y, ~, score, hessian, param, fisherinfo] = matvtRieszlike(varargin{:}, dta);
+        [y, ~, score] = matvtRieszlike(varargin{:}, dta);
     elseif strcmp( dist, 'itRiesz' )
-        [y, ~, score, hessian, param, fisherinfo] = matvitRieszlike(varargin{:}, dta);
+        [y, ~, score] = matvitRieszlike(varargin{:}, dta);
     elseif strcmp( dist, 'FRiesz' )
-        [y, ~, score, hessian, param, fisherinfo] = matvFRieszlike(varargin{:}, dta);
+        [y, ~, score] = matvFRieszlike(varargin{:}, dta);
     end
     y = -y;
     varargout{1} = score;
-    varargout{2} = hessian;
-    varargout{3} = param;
-    varargout{4} = fisherinfo;
 end
 
 end
