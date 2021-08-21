@@ -1,4 +1,4 @@
-function [D, EL] = Dmatrix(n)
+function [D, iD] = Dmatrix(n)
 %DELmat Creates Duplication and Elimination Matrix as in Magnus and
 %Neudecker (1988).
 %
@@ -11,7 +11,7 @@ function [D, EL] = Dmatrix(n)
 %
 % OUTPUTS:
 %   D            - Duplication Matrix
-%   EL           - Elimination Matrix
+%   iD           - Elimination Matrix based on pseudo-inverse of D.
 %
 % COMMENTS:
 %
@@ -46,8 +46,8 @@ function [D, EL] = Dmatrix(n)
 % Not my code. See Reference [2]
 persistent C_Dmatrix
 if isempty(C_Dmatrix)
-   nCache = 1000;  % Set according to your needs
-   C_Dmatrix      = cell(1, nCache);
+   nCache = 100;  % Set according to your needs
+   C_Dmatrix = cell(1, nCache);
 end
 if n <= numel(C_Dmatrix) && ~isempty(C_Dmatrix{n})
    D = C_Dmatrix{n};
@@ -73,7 +73,19 @@ else
 end
 
 %% Elimination Matrix
-% The Moore-Penrose inverse is an Elimination matrix, but not the canonical
-% one! E = (D'*D)\D'
-
+if nargout >= 2
+    persistent C_iDmatrix
+    if isempty(C_iDmatrix)
+       C_iDmatrix = cell(1, nCache);
+    end
+    if n <= numel(C_iDmatrix) && ~isempty(C_iDmatrix{n})
+       iD = C_iDmatrix{n};
+    else
+        % The Moore-Penrose inverse is an Elimination matrix, but not the canonical
+        % one! E = (D'*D)\D'
+        iD = (D'*D)\D';
+        if n <= numel(C_iDmatrix)
+          C_iDmatrix{n} = iD;
+       end
+    end
 end
