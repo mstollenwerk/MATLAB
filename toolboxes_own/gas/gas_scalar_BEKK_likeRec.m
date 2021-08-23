@@ -149,9 +149,9 @@ for tt=1:T
         end
         % Likelihood Evaluation    
         if exist('nu','var')
-            [logLcontr(tt), score] = logpdf( dist, X(:,:,tt), Sigma_, n, nu );                           %%%%%%%%%%%%%%%%%%%%%%%
+            [logLcontr(tt), score, ~, ~, fisherinfo] = logpdf( dist, X(:,:,tt), Sigma_, n, nu );                           %%%%%%%%%%%%%%%%%%%%%%%
         else
-            [logLcontr(tt), score] = logpdf( dist, X(:,:,tt), Sigma_, n );
+            [logLcontr(tt), score, ~, ~, fisherinfo] = logpdf( dist, X(:,:,tt), Sigma_, n );
         end
     catch ME
 %         tt
@@ -166,7 +166,7 @@ for tt=1:T
     end
     
     % Scaled Score 
-    ScaledScore(:,:,tt) = ivech(score.OmegaScaledByItsInvFish);
+    ScaledScore(:,:,tt) = ivech(dSigmaEdSigma*inv(fisherinfo.Sigma_)*score.Sigma_');
     
 end
 %% Fcst

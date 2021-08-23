@@ -47,14 +47,6 @@ end
 nLogL = -sum(logLcontr);
 %% Score computation
 if nargout >= 3
-
-    [G, iG] = Dmatrix(p);
-    I = speye(p);
-    L = ELmatrix(p);
-    M = matviRieszexpmat(n);
-    iCdot = inv(Cdot);
-    scalefactor_Omega_score = ...
-        iG*kron(iCdot',iCdot'*M*iCdot')*L/(G'*kron(Cdot*diag(n),I)*L');
     
     score.Sigma_ = NaN(N,p_);
     score.n = NaN(N,p);
@@ -73,8 +65,7 @@ if nargout >= 3
         S = (S+S')./2;
                 
         score.Sigma_(ii,:) = vech(S);
-        score.OmegaScaledByItsInvFish = -scalefactor_Omega_score*S(:);
-        
+
         % Score nu
         score.n(ii,:) = NaN(p,1);
 
@@ -87,6 +78,10 @@ end
 
 %% Fisher Info (Optional Output)
 if nargout >= 6
+    
+    G = Dmatrix(p);
+    I = speye(p);
+    L = ELmatrix(p);
     
     fishSig = G'*kron(Cdot*diag(n),I)*L'/(G'*kron(Cdot,I)*L')*G'*kron2(invSig)*G;
     fishSig = -.5*fishSig;

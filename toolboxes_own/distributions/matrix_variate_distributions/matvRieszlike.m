@@ -98,8 +98,6 @@ if nargout >= 3
         S = (S+S')./2;
                 
         score.Sigma_(ii,:) = vech(S);
-        
-        score.OmegaScaledByItsInvFish = vech(A - C*diag(n)*C');
 
         % Score nu
         score.n(ii,:) = NaN(p,1);
