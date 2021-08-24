@@ -166,7 +166,11 @@ for tt=1:T
     end
     
     % Scaled Score 
-    ScaledScore(:,:,tt) = ivech(dSigmaEdSigma*inv(fisherinfo.Sigma_)*score.Sigma_');
+    if isscalar(dSigmaEdSigma)
+        ScaledScore(:,:,tt) = ivech(dSigmaEdSigma*(fisherinfo.Sigma_\score.Sigma_'));
+    else
+        ScaledScore(:,:,tt) = ivech((dSigmaEdSigma/fisherinfo.Sigma_)*score.Sigma_');
+    end
     
 end
 %% Fcst
