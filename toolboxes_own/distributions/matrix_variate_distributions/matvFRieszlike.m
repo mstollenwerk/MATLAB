@@ -65,7 +65,7 @@ param.all = [param.chol_Sigma_; n; nu];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
 
-term1 = ugmvgammaln((n + nu)./2,p);
+term1 = ugmvgammaln((n + nu)./2);
 term2 = -ugmvgammaln(nu./2);
 term3 = -lgmvgammaln(n./2);
 term4 = loglpwdet([],nu./2,diag(C));
