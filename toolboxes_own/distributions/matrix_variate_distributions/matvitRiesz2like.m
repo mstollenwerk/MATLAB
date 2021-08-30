@@ -75,6 +75,8 @@ log_normalizing_constant = term1 + term2 + term3 + term4 + term5;
 
 for ii = 1:N
     
+    A = X(:,:,ii);
+    
     term6 = loglpwdet(A,-(n-p-1)./2); % upwdet(invS,-n) = lpwdet(S,n)
     term7 = -(nu + sum(n))/2*log(1 + trace(Sigma_/A)/nu);
     term8 = -(p+1)*logdet(A);
