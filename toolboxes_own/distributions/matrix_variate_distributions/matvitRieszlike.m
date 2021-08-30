@@ -70,7 +70,7 @@ term1 = gammaln((nu + sum(n))/2);
 term2 = -gammaln(nu/2);
 term3 = -lgmvgammaln(n./2);
 term4 = -sum(n)/2*log(nu);
-term5 = -loglpwdet([],n./2,diag(Cdot));
+term5 = -loglpwdet([],n./2,diag(Cdot)); % -loglpwdet(x,n) = loglpwdet(x,-n)
 
 log_normalizing_constant = term1 + term2 + term3 + term4 + term5;
 
@@ -93,8 +93,6 @@ if nargout >= 3
     score.n = NaN(N,p);
     score.nu = NaN(N,1);
     
-    invSig = inv(Sigma_);
-    Cdot = chol(invSig,'lower');
     q = Cdot*diag(n)*Cdot';
     
     for ii = 1:N
@@ -132,7 +130,7 @@ if nargout >= 6
     term1 = G'*kron(Cdot*diag(n),I)*L'/(G'*kron(Cdot,I)*L')*G'*kron2(invSig)*G;
     term2 = -1/(nu+sum(n)+2)*G'*(2*kron(q,invSig) + vec2(q))*G;
     
-    fisherinfo.Sigma_ = -.5*(term1+term2);
+    fisherinfo.Sigma_ = .5*(term1+term2);
     fisherinfo.n = NaN;
     
     varargout{4} = fisherinfo;
