@@ -59,8 +59,8 @@ end
 param.Sigma_ = Sigma_;
 C = chol(Sigma_,'lower');
 param.chol_Sigma_ = vech(C);
-param.df_1 = nu;
-param.df_2 = n;
+param.nu = nu;
+param.n = n;
 param.all = [param.chol_Sigma_; n; nu];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
