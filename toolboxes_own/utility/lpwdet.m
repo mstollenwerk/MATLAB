@@ -4,6 +4,7 @@ function [y] = lpwdet(X,powers)
 if size(powers,1)<size(powers,2)
     powers = powers';
 end
+
 diagL = diag(chol(X,'lower'));
 y = prod(diagL.^(2*powers));
 
@@ -12,6 +13,10 @@ y = prod(diagL.^(2*powers));
 % for ii = 1:(size(powers,1)-1)
 %     y = y*det(X(1:ii,1:ii))^(powers(ii)-powers(ii+1));
 % end
+
+% % This is a wrong definition following Diaz-Garcia 2013 Riesz.
+% eigs = flipud(eig(X));
+% y = prod(eigs.^powers);
 
 end
 
