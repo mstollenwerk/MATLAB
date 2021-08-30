@@ -95,7 +95,7 @@ end
 if nargout >= 6
     
     G = Dmatrix(p);
-    fisherinfo.Sigma_ = -df/2*G'*kron(invSig,invSig)*G;
+    fisherinfo.Sigma_ = df/2*G'*kron(invSig,invSig)*G;
     
     fisherinfo.df = NaN;
     
