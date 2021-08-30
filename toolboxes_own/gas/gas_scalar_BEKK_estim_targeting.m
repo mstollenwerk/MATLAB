@@ -42,7 +42,9 @@ if isempty(x0)
     elseif strcmp( dist, 'tRiesz' )
 		x0 = [ x0, ones(1,k).*(2*k), 5 ]'; 
     elseif strcmp( dist, 'itRiesz' )
-		x0 = [ x0, ones(1,k).*(2*k), 5 ]';    
+		x0 = [ x0, ones(1,k).*(2*k), 5 ]';
+    elseif strcmp( dist, 'itRiesz2' )
+		x0 = [ x0, ones(1,k).*(2*k), 5 ]';
     elseif strcmp( dist, 'FRiesz' )
 		x0 = [ x0, ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]';        
     end
@@ -67,6 +69,8 @@ elseif strcmp( dist, 'iRiesz' )
 elseif strcmp( dist, 'tRiesz' )
     lb = [-inf(p+q,1)', 0:k-1, 2]'; 
 elseif strcmp( dist, 'itRiesz' )
+    lb = [-inf(p+q,1)', 0:k-1, 2]';
+elseif strcmp( dist, 'itRiesz2' )
     lb = [-inf(p+q,1)', 0:k-1, 2]';
 elseif strcmp( dist, 'FRiesz' )
     lb = [-inf(p+q,1)', (0:k-1), (k-(1:k)+2)]';    
