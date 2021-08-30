@@ -1,4 +1,4 @@
-function [ nLogL, logLcontr, SigmaE, ScaledScore, varargout ] = ...
+function [ nLogL, logLcontr, Omega_, ScaledScore, varargout ] = ...
     gas_scalar_BEKK_likeRec( param, p, q, X, dist )
 %
 % Michael Stollenwerk
@@ -13,33 +13,45 @@ scoreparam = param(k_ + 1 : k_ + p);
 garchparam = param(k_ + p + 1 : k_+ p + q);
 
 if strcmp( dist, 'Wish' )
-    n = param(k_+ p + q + 1);    
+    n = param(k_+ p + q + 1);
+    loglike = @(x1,x2,x3) matvsWishlike(x1,x2,x3);
 elseif strcmp( dist, 'iWish' )
     n = param(k_+ p + q + 1);
-elseif strcmp( dist, 'LaplaceWish' )
-    n = param(k_+ p + q + 1);      
+    loglike = @(x1,x2,x3) matvsiWishlike(x1,x2,x3);   
 elseif strcmp( dist, 'tWish' )
     n = param(k_+ p + q + 1); 
     nu = param(k_+ p + q + 2);
+    loglike = @(x1,x2,x3,x4) matvstWishlike(x1,x2,x3,x4);    
 elseif strcmp( dist, 'itWish' )
     n = param(k_+ p + q + 1); 
     nu = param(k_+ p + q + 2);
+    loglike = @(x1,x2,x3,x4) matvsitWishlike(x1,x2,x3,x4);
 elseif strcmp( dist, 'F' )
     n = param(k_+ p + q + 1); 
     nu = param(k_+ p + q + 2);
+    loglike = @(x1,x2,x3,x4) matvsFlike(x1,x2,x3,x4);    
 elseif strcmp( dist, 'Riesz' )
-    n = param(k_+ p + q + 1 : k_+ p + q + k);    
+    n = param(k_+ p + q + 1 : k_+ p + q + k);
+    loglike = @(x1,x2,x3) matvsRieszlike(x1,x2,x3);    
 elseif strcmp( dist, 'iRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);  
+    loglike = @(x1,x2,x3) matvsiRieszlike(x1,x2,x3);    
 elseif strcmp( dist, 'tRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1);
+    loglike = @(x1,x2,x3,x4) matvstRieszlike(x1,x2,x3,x4);    
 elseif strcmp( dist, 'itRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1);
+    loglike = @(x1,x2,x3,x4) matvsitRieszlike(x1,x2,x3,x4); 
+elseif strcmp( dist, 'itRiesz2' )
+    n = param(k_+ p + q + 1 : k_+ p + q + k); 
+    nu = param(k_+ p + q + k + 1);
+    loglike = @(x1,x2,x3,x4) matvsitRiesz2like(x1,x2,x3,x4); 
 elseif strcmp( dist, 'FRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k);        
+    loglike = @(x1,x2,x3,x4) matvsFRieszlike(x1,x2,x3,x4);    
 end
 
 if nargout >= 5
@@ -57,7 +69,7 @@ if nargout >= 5
     varargout{1} = param_out;
 end
 %% Data Storage
-SigmaE = NaN(k,k,T+22);
+Omega_ = NaN(k,k,T+22);
 ScaledScore = NaN(k,k,T);
 logLcontr = NaN(T,1);
 %% Recursion
@@ -69,89 +81,30 @@ backCast = sum(bsxfun(@times,w,X(:,:,1:m)),3);
 ini = backCast;
 % Initialize recursion at unconditional mean (stationarity assumed).
 % ini = intrcpt./(1 - sum(garchparam));
-G = Dmatrix(k);
-iG = (G'*G)\G';
-L = ELmatrix(k);
-I = eye(k);
 for tt=1:T
-    SigmaE(:,:,tt) = intrcpt;
+    
+    Omega_(:,:,tt) = intrcpt;
     for jj = 1:p
         if (tt-jj) <= 0
-            SigmaE(:,:,tt) = SigmaE(:,:,tt) + scoreparam(jj)*zeros(k);
+            Omega_(:,:,tt) = Omega_(:,:,tt) + scoreparam(jj)*zeros(k);
         else
-            SigmaE(:,:,tt) = SigmaE(:,:,tt) + scoreparam(jj)*ScaledScore(:,:,tt-jj);
+            Omega_(:,:,tt) = Omega_(:,:,tt) + scoreparam(jj)*ScaledScore(:,:,tt-jj);
         end
     end
     for jj = 1:q
         if (tt-jj) <= 0
-            SigmaE(:,:,tt) = SigmaE(:,:,tt) + garchparam(jj)*ini;
+            Omega_(:,:,tt) = Omega_(:,:,tt) + garchparam(jj)*ini;
         else
-            SigmaE(:,:,tt) = SigmaE(:,:,tt) + garchparam(jj)*SigmaE(:,:,tt-jj);
+            Omega_(:,:,tt) = Omega_(:,:,tt) + garchparam(jj)*Omega_(:,:,tt-jj);
         end
     end
     
     try
-        % Centering distributions
-        if strcmp( dist, 'Wish' )
-            Y = n;
-            Sigma_ = SigmaE(:,:,tt)/Y;
-            dSigmaEdSigma = Y;
-        elseif strcmp( dist, 'LaplaceWish' )
-            Y = n;
-            Sigma_ = SigmaE(:,:,tt)/Y;
-            dSigmaEdSigma = Y;
-        elseif strcmp( dist, 'iWish' )
-            Y = 1/(n-k-1);
-            Sigma_ = SigmaE(:,:,tt)/Y;
-            dSigmaEdSigma = Y;
-        elseif strcmp( dist, 'tWish')
-            Y = n*nu/(nu-2);
-            Sigma_ = SigmaE(:,:,tt)/Y;
-            dSigmaEdSigma = Y;
-        elseif strcmp( dist, 'itWish')
-            Y = 1/(n-k-1);
-            Sigma_ = SigmaE(:,:,tt)/Y;
-            dSigmaEdSigma = Y;
-        elseif strcmp( dist, 'F' )
-            Y = n*nu/(nu-k-1);
-            Sigma_ = SigmaE(:,:,tt)/Y;
-            dSigmaEdSigma = Y;
-        elseif strcmp( dist, 'Riesz' )
-            Y = diag(n);
-            CsigE = chol(SigmaE(:,:,tt),'lower');
-            C = CsigE/sqrtm(Y);
-            Sigma_ = C*C';
-            dSigmaEdSigma = iG*kron(C*Y,I)*L'/(iG*kron(C,I)*L');
-        elseif strcmp( dist, 'iRiesz' )
-            Y = matviRieszexpmat(n);
-            iCdotSigE = inv(chol(inv(SigmaE(:,:,tt)),'lower'));
-            iCdot = iCdotSigE/sqrtm(Y);
-            Sigma_ = iCdot'*iCdot;
-            dSigmaEdSigma = iG*kron(iCdot',iCdot'*Y*iCdot)*L'/(iG*kron(iCdot',Sigma_)*L');
-        elseif strcmp( dist, 'tRiesz' )
-            Y = diag(n).*nu./(nu - 2);
-            CsigE = chol(SigmaE(:,:,tt),'lower');
-            C = CsigE/sqrtm(Y);
-            Sigma_ = C*C';
-            dSigmaEdSigma = iG*kron(C*Y,I)*L'/(iG*kron(C,I)*L');
-        elseif strcmp( dist, 'itRiesz' )
-            Y = matviRieszexpmat(n);
-            iCdotSigE = inv(chol(inv(SigmaE(:,:,tt)),'lower'));
-            iCdot = iCdotSigE/sqrtm(Y);
-            Sigma_ = iCdot'*iCdot;
-            dSigmaEdSigma = iG*kron(iCdot',iCdot'*Y*iCdot)*L'/(iG*kron(iCdot',Sigma_)*L');
-        elseif strcmp( dist, 'FRiesz' )
-            Y = matvFRieszexpmat(n,nu);
-            CsigE = chol(SigmaE(:,:,tt),'lower');
-            C = CsigE/sqrtm(Y);
-            Sigma_ = C*C';
-            dSigmaEdSigma = iG*kron(C*Y,I)*L'/(iG*kron(C,I)*L');
-        end
         % Likelihood Evaluation    
         if exist('nu','var')
-            [logLcontr(tt), score, ~, ~, fisherinfo] = logpdf( dist, X(:,:,tt), Sigma_, n, nu );                           %%%%%%%%%%%%%%%%%%%%%%%
+            [logLcontr(tt), ~, score] = loglike( Omega_(:,:,tt), n, nu, X(:,:,tt) );
         else
-            [logLcontr(tt), score, ~, ~, fisherinfo] = logpdf( dist, X(:,:,tt), Sigma_, n );
+            [logLcontr(tt), ~, score] = loglike( Omega_(:,:,tt), n, X(:,:,tt) );
         end
     catch ME
 %         tt
@@ -166,25 +119,21 @@ for tt=1:T
     end
     
     % Scaled Score 
-    if isscalar(dSigmaEdSigma)
-        ScaledScore(:,:,tt) = ivech(dSigmaEdSigma*(fisherinfo.Sigma_\score.Sigma_'));
-    else
-        ScaledScore(:,:,tt) = ivech((dSigmaEdSigma/fisherinfo.Sigma_)*score.Sigma_');
-    end
+    ScaledScore(:,:,tt) = score.Omega_scaledbyiFish;
     
 end
 %% Fcst
 for tt=T+1:T+22
-    SigmaE(:,:,tt) = intrcpt;
+    Omega_(:,:,tt) = intrcpt;
     for jj = 1:p
         if (tt-jj) > T
-            SigmaE(:,:,tt) = SigmaE(:,:,tt) + scoreparam(jj)*zeros(k);
+            Omega_(:,:,tt) = Omega_(:,:,tt) + scoreparam(jj)*zeros(k);
         else
-            SigmaE(:,:,tt) = SigmaE(:,:,tt) + scoreparam(jj)*ScaledScore(:,:,tt-jj);
+            Omega_(:,:,tt) = Omega_(:,:,tt) + scoreparam(jj)*ScaledScore(:,:,tt-jj);
         end
     end
     for jj = 1:q
-        SigmaE(:,:,tt) = SigmaE(:,:,tt) + garchparam(jj)*SigmaE(:,:,tt-jj);
+        Omega_(:,:,tt) = Omega_(:,:,tt) + garchparam(jj)*Omega_(:,:,tt-jj);
     end
 end
 %% Log-Likelihood
