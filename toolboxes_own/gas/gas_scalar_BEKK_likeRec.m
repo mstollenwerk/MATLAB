@@ -33,13 +33,23 @@ elseif strcmp( dist, 'F' )
 elseif strcmp( dist, 'Riesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);
     loglike = @(x1,x2,x3) matvsRieszlike(x1,x2,x3);    
+elseif strcmp( dist, 'Riesz2' )
+    n = param(k_+ p + q + 1 : k_+ p + q + k);
+    loglike = @(x1,x2,x3) matvsRiesz2like(x1,x2,x3);        
 elseif strcmp( dist, 'iRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);  
-    loglike = @(x1,x2,x3) matvsiRieszlike(x1,x2,x3);    
+    loglike = @(x1,x2,x3) matvsiRieszlike(x1,x2,x3); 
+elseif strcmp( dist, 'iRiesz2' )
+    n = param(k_+ p + q + 1 : k_+ p + q + k);  
+    loglike = @(x1,x2,x3) matvsiRiesz2like(x1,x2,x3); 
 elseif strcmp( dist, 'tRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1);
-    loglike = @(x1,x2,x3,x4) matvstRieszlike(x1,x2,x3,x4);    
+    loglike = @(x1,x2,x3,x4) matvstRieszlike(x1,x2,x3,x4); 
+elseif strcmp( dist, 'tRiesz2' )
+    n = param(k_+ p + q + 1 : k_+ p + q + k); 
+    nu = param(k_+ p + q + k + 1);
+    loglike = @(x1,x2,x3,x4) matvstRiesz2like(x1,x2,x3,x4); 
 elseif strcmp( dist, 'itRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1);
@@ -51,7 +61,11 @@ elseif strcmp( dist, 'itRiesz2' )
 elseif strcmp( dist, 'FRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k);        
-    loglike = @(x1,x2,x3,x4) matvsFRieszlike(x1,x2,x3,x4);    
+    loglike = @(x1,x2,x3,x4) matvsFRieszlike(x1,x2,x3,x4); 
+elseif strcmp( dist, 'FRiesz2' )
+    n = param(k_+ p + q + 1 : k_+ p + q + k); 
+    nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k);        
+    loglike = @(x1,x2,x3,x4) matvsFRiesz2like(x1,x2,x3,x4); 
 end
 
 if nargout >= 5
@@ -102,10 +116,11 @@ for tt=1:T
     try
         % Likelihood Evaluation    
         if exist('nu','var')
-            [logLcontr(tt), ~, score] = loglike( Omega_(:,:,tt), n, nu, X(:,:,tt) );
+            [nLogLcontr, ~, score] = loglike( Omega_(:,:,tt), n, nu, X(:,:,tt) );
         else
-            [logLcontr(tt), ~, score] = loglike( Omega_(:,:,tt), n, X(:,:,tt) );
+            [nLogLcontr, ~, score] = loglike( Omega_(:,:,tt), n, X(:,:,tt) );
         end
+    logLcontr(tt) = -nLogLcontr;
     catch ME
 %         tt
 %         ME.message
