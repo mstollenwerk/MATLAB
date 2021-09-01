@@ -206,10 +206,84 @@ function [ nLogL, logLcontr, Sigma_, ScaledScore, param, fitplot ] = obj_fun_wra
         return
     end
     
-    vechcholSig = vechchol( mean(X,3)*(1-sum(param(p+1:p+q))) );
+    meanX = mean(X,3);
+    k = size(X,1);
+    if strcmp( dist, 'Wish' )
+        n = param(p+q+1);
+        meanSig = meanX/n;
+    elseif strcmp( dist, 'iWish' )
+        n = param(p+q+1);
+        meanSig = meanX*(n-k-1); 
+    elseif strcmp( dist, 'tWish' )
+        n = param(p+q+1);
+        nu = param(p+q+2);
+        meanSig = meanX/n/nu*(nu-2);   
+    elseif strcmp( dist, 'itWish' )
+        n = param(p+q+1);
+        meanSig = meanX*(n-k-1); 
+    elseif strcmp( dist, 'F' )
+        n = param(p+q+1);
+        nu = param(p+q+2);
+        meanSig = meanX/n/nu*(n-k-1);    
+    elseif strcmp( dist, 'Riesz' )
+        n = param(p+q+1:p+q+k);
+        cholmeanX = chol(meanX,'lower');
+        cholmeanSig = cholmeanX/sqrtm(diag(n));
+        meanSig = cholmeanSig*cholmeanSig';  
+    elseif strcmp( dist, 'Riesz2' )
+        n = param(p+q+1:p+q+k);
+        cholmeanX = cholU(meanX);
+        cholmeanSig = cholmeanX/sqrtm(diag(n));
+        meanSig = cholmeanSig*cholmeanSig';        
+    elseif strcmp( dist, 'iRiesz' )
+        n = param(p+q+1:p+q+k);
+        cholmeanX = cholU(meanX);
+        cholmeanSig = cholmeanX/sqrtm(matviRieszexpmat(n));
+        meanSig = cholmeanSig*cholmeanSig';   
+    elseif strcmp( dist, 'iRiesz2' )
+        n = param(p+q+1:p+q+k);
+        cholmeanX = chol(meanX,'lower');
+        cholmeanSig = cholmeanX/sqrtm(matviRiesz2expmat(n));
+        meanSig = cholmeanSig*cholmeanSig';   
+    elseif strcmp( dist, 'tRiesz' )
+        n = param(p+q+1:p+q+k);
+        nu = param(p+q+k+1);
+        cholmeanX = chol(meanX,'lower');
+        cholmeanSig = cholmeanX/sqrtm(diag(n)*nu/(nu-2));
+        meanSig = cholmeanSig*cholmeanSig';
+    elseif strcmp( dist, 'tRiesz2' )
+        n = param(p+q+1:p+q+k);
+        nu = param(p+q+k+1);
+        cholmeanX = cholU(meanX);
+        cholmeanSig = cholmeanX/sqrtm(diag(n)*nu/(nu-2));
+        meanSig = cholmeanSig*cholmeanSig';   
+    elseif strcmp( dist, 'itRiesz' )
+        n = param(p+q+1:p+q+k);
+        cholmeanX = cholU(meanX);
+        cholmeanSig = cholmeanX/sqrtm(matviRieszexpmat(n));
+        meanSig = cholmeanSig*cholmeanSig';   
+    elseif strcmp( dist, 'itRiesz2' )
+        n = param(p+q+1:p+q+k);
+        cholmeanX = chol(meanX,'lower');
+        cholmeanSig = cholmeanX/sqrtm(matviRiesz2expmat(n));
+        meanSig = cholmeanSig*cholmeanSig';
+    elseif strcmp( dist, 'FRiesz' )
+        n = param(p+q+1:p+q+k);
+        nu = param(p+q+k+1:p+q+k+k);
+        cholmeanX = chol(meanX,'lower');
+        cholmeanSig = cholmeanX/sqrtm(matvFRieszexpmat(n,nu));
+        meanSig = cholmeanSig*cholmeanSig';
+    elseif strcmp( dist, 'FRiesz2' )
+        n = param(p+q+1:p+q+k);
+        nu = param(p+q+k+1:p+q+k+k);
+        cholmeanX = cholU(meanX);
+        cholmeanSig = cholmeanX/sqrtm(matvFRiesz2expmat(n,nu));
+        meanSig = cholmeanSig*cholmeanSig';
+    end
+    vechcholIntrcpt = vechchol( meanSig*(1-sum(param(p+1:p+q))) );  
     
     [ nLogL, logLcontr, Sigma_, ScaledScore, param, fitplot ] = gas_scalar_BEKK_likeRec( ...
-        [vechcholSig; param], ...
+        [vechcholIntrcpt; param], ...
         p, ...
         q, ...
         X, ...

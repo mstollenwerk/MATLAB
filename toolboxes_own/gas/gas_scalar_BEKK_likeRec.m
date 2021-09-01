@@ -1,4 +1,4 @@
-function [ nLogL, logLcontr, Omega_, ScaledScore, varargout ] = ...
+function [ nLogL, logLcontr, Sigma_, ScaledScore, varargout ] = ...
     gas_scalar_BEKK_likeRec( param, p, q, X, dist )
 %
 % Michael Stollenwerk
@@ -8,64 +8,109 @@ function [ nLogL, logLcontr, Omega_, ScaledScore, varargout ] = ...
 [k,~,T] = size(X);
 k_ = k*(k+1)/2;
 %% Parameters
+% Initialize with Backcast. Code copied from Sheppard MFE Toolbox.
+m = ceil(sqrt(T));
+w = .06 * .94.^(0:(m-1));
+w = reshape(w/sum(w),[1 1 m]);
+backCast = sum(bsxfun(@times,w,X(:,:,1:m)),3);
+% Initialize recursion at unconditional mean (stationarity assumed).
+% ini = intrcpt./(1 - sum(garchparam));
+
 intrcpt = ivechchol(param(1:k_));
 scoreparam = param(k_ + 1 : k_ + p);
 garchparam = param(k_ + p + 1 : k_+ p + q);
 
 if strcmp( dist, 'Wish' )
     n = param(k_+ p + q + 1);
-    loglike = @(x1,x2,x3) matvsWishlike(x1,x2,x3);
+    ini = backCast/n;
+    loglike = @(x1,x2,x3) matvWishlike(x1,x2,x3);
 elseif strcmp( dist, 'iWish' )
     n = param(k_+ p + q + 1);
-    loglike = @(x1,x2,x3) matvsiWishlike(x1,x2,x3);   
+    ini = backCast*(n-k-1); 
+    loglike = @(x1,x2,x3) matviWishlike(x1,x2,x3);   
 elseif strcmp( dist, 'tWish' )
     n = param(k_+ p + q + 1); 
     nu = param(k_+ p + q + 2);
-    loglike = @(x1,x2,x3,x4) matvstWishlike(x1,x2,x3,x4);    
+    ini = backCast/n/nu*(nu-2);  
+    loglike = @(x1,x2,x3,x4) matvtWishlike(x1,x2,x3,x4);    
 elseif strcmp( dist, 'itWish' )
     n = param(k_+ p + q + 1); 
     nu = param(k_+ p + q + 2);
-    loglike = @(x1,x2,x3,x4) matvsitWishlike(x1,x2,x3,x4);
+    ini = backCast*(n-k-1); 
+    loglike = @(x1,x2,x3,x4) matvitWishlike(x1,x2,x3,x4);
 elseif strcmp( dist, 'F' )
     n = param(k_+ p + q + 1); 
     nu = param(k_+ p + q + 2);
-    loglike = @(x1,x2,x3,x4) matvsFlike(x1,x2,x3,x4);    
+    ini = backCast/n/nu*(n-k-1);
+    loglike = @(x1,x2,x3,x4) matvFlike(x1,x2,x3,x4);    
 elseif strcmp( dist, 'Riesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);
-    loglike = @(x1,x2,x3) matvsRieszlike(x1,x2,x3);    
+    cholbackCast = chol(backCast,'lower');
+    choliniSig = cholbackCast/sqrtm(diag(n));
+    ini = choliniSig*choliniSig'; 
+    loglike = @(x1,x2,x3) matvRieszlike(x1,x2,x3);    
 elseif strcmp( dist, 'Riesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);
-    loglike = @(x1,x2,x3) matvsRiesz2like(x1,x2,x3);        
+    cholbackCast = cholU(backCast);
+    choliniSig = cholbackCast/sqrtm(diag(n));
+    ini = choliniSig*choliniSig'; 
+    loglike = @(x1,x2,x3) matvRiesz2like(x1,x2,x3);        
 elseif strcmp( dist, 'iRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);  
-    loglike = @(x1,x2,x3) matvsiRieszlike(x1,x2,x3); 
+    cholbackCast = cholU(backCast);
+    choliniSig = cholbackCast/sqrtm(matviRieszexpmat(n));
+    ini = choliniSig*choliniSig';   
+    loglike = @(x1,x2,x3) matviRieszlike(x1,x2,x3); 
 elseif strcmp( dist, 'iRiesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);  
-    loglike = @(x1,x2,x3) matvsiRiesz2like(x1,x2,x3); 
+    cholbackCast = chol(backCast,'lower');
+    choliniSig = cholbackCast/sqrtm(matviRiesz2expmat(n));
+    ini = choliniSig*choliniSig';       
+    loglike = @(x1,x2,x3) matviRiesz2like(x1,x2,x3); 
 elseif strcmp( dist, 'tRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1);
-    loglike = @(x1,x2,x3,x4) matvstRieszlike(x1,x2,x3,x4); 
+    ini = zeros(k);
+    for ii = 1:m
+        CCC = chol(X(:,:,ii),'lower')/sqrtm(diag(n)*nu/(nu-2));
+        ini = ini + w(ii)*(CCC*CCC');
+    end
+    loglike = @(x1,x2,x3,x4) matvtRieszlike(x1,x2,x3,x4); 
 elseif strcmp( dist, 'tRiesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1);
-    loglike = @(x1,x2,x3,x4) matvstRiesz2like(x1,x2,x3,x4); 
+    cholbackCast = cholU(backCast);
+    choliniSig = cholbackCast/sqrtm(diag(n)*nu/(nu-2));
+    ini = choliniSig*choliniSig';       
+    loglike = @(x1,x2,x3,x4) matvtRiesz2like(x1,x2,x3,x4); 
 elseif strcmp( dist, 'itRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1);
-    loglike = @(x1,x2,x3,x4) matvsitRieszlike(x1,x2,x3,x4); 
+    cholbackCast = cholU(backCast);
+    choliniSig = cholbackCast/sqrtm(matviRieszexpmat(n));
+    ini = choliniSig*choliniSig';     
+    loglike = @(x1,x2,x3,x4) matvitRieszlike(x1,x2,x3,x4); 
 elseif strcmp( dist, 'itRiesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1);
-    loglike = @(x1,x2,x3,x4) matvsitRiesz2like(x1,x2,x3,x4); 
+    cholbackCast = chol(backCast,'lower');
+    choliniSig = cholbackCast/sqrtm(matviRiesz2expmat(n));
+    ini = choliniSig*choliniSig';    
+    loglike = @(x1,x2,x3,x4) matvitRiesz2like(x1,x2,x3,x4); 
 elseif strcmp( dist, 'FRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
-    nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k);        
-    loglike = @(x1,x2,x3,x4) matvsFRieszlike(x1,x2,x3,x4); 
+    nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k); 
+    cholbackCast = chol(backCast,'lower');
+    choliniSig = cholbackCast/sqrtm(matvFRieszexpmat(n,nu));
+    ini = choliniSig*choliniSig';    
+    loglike = @(x1,x2,x3,x4) matvFRieszlike(x1,x2,x3,x4); 
 elseif strcmp( dist, 'FRiesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
-    nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k);        
-    loglike = @(x1,x2,x3,x4) matvsFRiesz2like(x1,x2,x3,x4); 
+    nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k);  
+    cholbackCast = cholU(backCast);
+    choliniSig = cholbackCast/sqrtm(matvFRiesz2expmat(n,nu));
+    ini = choliniSig*choliniSig';    
+    loglike = @(x1,x2,x3,x4) matvFRiesz2like(x1,x2,x3,x4); 
 end
 
 if nargout >= 5
@@ -83,42 +128,34 @@ if nargout >= 5
     varargout{1} = param_out;
 end
 %% Data Storage
-Omega_ = NaN(k,k,T+22);
+Sigma_ = NaN(k,k,T+22);
 ScaledScore = NaN(k,k,T);
 logLcontr = NaN(T,1);
 %% Recursion
-% Initialize with Backcast. Code copied from Sheppard MFE Toolbox.
-m = ceil(sqrt(T));
-w = .06 * .94.^(0:(m-1));
-w = reshape(w/sum(w),[1 1 m]);
-backCast = sum(bsxfun(@times,w,X(:,:,1:m)),3);
-ini = backCast;
-% Initialize recursion at unconditional mean (stationarity assumed).
-% ini = intrcpt./(1 - sum(garchparam));
 for tt=1:T
     
-    Omega_(:,:,tt) = intrcpt;
+    Sigma_(:,:,tt) = intrcpt;
     for jj = 1:p
         if (tt-jj) <= 0
-            Omega_(:,:,tt) = Omega_(:,:,tt) + scoreparam(jj)*zeros(k);
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) + scoreparam(jj)*zeros(k);
         else
-            Omega_(:,:,tt) = Omega_(:,:,tt) + scoreparam(jj)*ScaledScore(:,:,tt-jj);
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) + scoreparam(jj)*ScaledScore(:,:,tt-jj);
         end
     end
     for jj = 1:q
         if (tt-jj) <= 0
-            Omega_(:,:,tt) = Omega_(:,:,tt) + garchparam(jj)*ini;
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*ini;
         else
-            Omega_(:,:,tt) = Omega_(:,:,tt) + garchparam(jj)*Omega_(:,:,tt-jj);
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*Sigma_(:,:,tt-jj);
         end
     end
     
     try
         % Likelihood Evaluation    
         if exist('nu','var')
-            [nLogLcontr, ~, score] = loglike( Omega_(:,:,tt), n, nu, X(:,:,tt) );
+            [nLogLcontr, ~, score, ~, ~, fisherinfo] = loglike( Sigma_(:,:,tt), n, nu, X(:,:,tt) );
         else
-            [nLogLcontr, ~, score] = loglike( Omega_(:,:,tt), n, X(:,:,tt) );
+            [nLogLcontr, ~, score, ~, ~, fisherinfo] = loglike( Sigma_(:,:,tt), n, X(:,:,tt) );
         end
     logLcontr(tt) = -nLogLcontr;
     catch ME
@@ -134,21 +171,21 @@ for tt=1:T
     end
     
     % Scaled Score 
-    ScaledScore(:,:,tt) = score.Omega_scaledbyiFish;
+    ScaledScore(:,:,tt) = ivech(fisherinfo.Sigma_\score.Sigma_');
     
 end
 %% Fcst
 for tt=T+1:T+22
-    Omega_(:,:,tt) = intrcpt;
+    Sigma_(:,:,tt) = intrcpt;
     for jj = 1:p
         if (tt-jj) > T
-            Omega_(:,:,tt) = Omega_(:,:,tt) + scoreparam(jj)*zeros(k);
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) + scoreparam(jj)*zeros(k);
         else
-            Omega_(:,:,tt) = Omega_(:,:,tt) + scoreparam(jj)*ScaledScore(:,:,tt-jj);
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) + scoreparam(jj)*ScaledScore(:,:,tt-jj);
         end
     end
     for jj = 1:q
-        Omega_(:,:,tt) = Omega_(:,:,tt) + garchparam(jj)*Omega_(:,:,tt-jj);
+        Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*Sigma_(:,:,tt-jj);
     end
 end
 %% Log-Likelihood
