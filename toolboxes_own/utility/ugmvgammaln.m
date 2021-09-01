@@ -1,4 +1,4 @@
-function y = ugmvgammaln(x,d)
+function y = ugmvgammaln(x)
 %MVGAMMALC computes the natural logarithm of the upper generalized multivariate gamma function 
 %
 % USAGE:
