@@ -64,10 +64,10 @@ param.all = [param.chol_Sigma_; n];
 logLcontr = NaN(N,1);
 
 term1 = -sum(n)/2*log(2);
-S = -lgmvgammaln(n./2);
+term2 = -lgmvgammaln(n./2);
 term3 = -loglpwdet([],n./2, diag(C));
 
-log_normalizing_constant = term1 + S + term3;
+log_normalizing_constant = term1 + term2 + term3;
 
 for ii = 1:N
     term4 = loglpwdet(X(:,:,ii),(n-p-1)./2);
@@ -89,15 +89,15 @@ if nargout >= 3
         A = X(:,:,ii);
         
         % General matrix derivative (ignoring symmetry of Sigma_):
-        S = 1/2*(Sigma_\A/Sigma_ - C'\diag(n)/C);
+        term2 = 1/2*(Sigma_\A/Sigma_ - C'\diag(n)/C);
         
         % Accounting for symmetry of Sigma_:
-        S = 2*S - diag(diag(S));
+        term2 = 2*term2 - diag(diag(term2));
         
         % Numerical inaccuracies make S not exactly symmetric
-        S = (S+S')./2;
+        term2 = (term2+term2')./2;
                 
-        score.Sigma_(ii,:) = vech(S);
+        score.Sigma_(ii,:) = vech(term2);
 
         % Score nu
         score.n(ii,:) = NaN(p,1);
