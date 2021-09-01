@@ -37,16 +37,24 @@ if isempty(x0)
 		x0 = [ x0, 2*k+3, 2*k+3 ]';  % nu > p - 3 for Fisher Info to exist.      
     elseif strcmp( dist, 'Riesz' )
 		x0 = [ x0, ones(1,k).*(2*k) ]';
+    elseif strcmp( dist, 'Riesz2' )
+		x0 = [ x0, ones(1,k).*(2*k) ]';
     elseif strcmp( dist, 'iRiesz' )
-		x0 = [ x0, ones(1,k).*(2*k) ]';         
+		x0 = [ x0, ones(1,k).*(2*k) ]';   
+    elseif strcmp( dist, 'iRiesz2' )
+		x0 = [ x0, ones(1,k).*(2*k) ]';   
     elseif strcmp( dist, 'tRiesz' )
+		x0 = [ x0, ones(1,k).*(2*k), 5 ]'; 
+    elseif strcmp( dist, 'tRiesz2' )
 		x0 = [ x0, ones(1,k).*(2*k), 5 ]'; 
     elseif strcmp( dist, 'itRiesz' )
 		x0 = [ x0, ones(1,k).*(2*k), 5 ]';
     elseif strcmp( dist, 'itRiesz2' )
 		x0 = [ x0, ones(1,k).*(2*k), 5 ]';
     elseif strcmp( dist, 'FRiesz' )
-		x0 = [ x0, ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]';        
+		x0 = [ x0, ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]';
+    elseif strcmp( dist, 'FRiesz2' )
+		x0 = [ x0, ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]'; 
     end
 end
 % Restrictions-------------------------------------------------------------
@@ -64,19 +72,27 @@ elseif strcmp( dist, 'itWish' )
     lb = [-inf(p+q,1); k+1; 0];    
 elseif strcmp( dist, 'Riesz' )
     lb = [-inf(p+q,1)', 0:k-1]';  
+elseif strcmp( dist, 'Riesz2' )
+    lb = [-inf(p+q,1)', fliplr(0:k-1)]'; %see stochstic representation
 elseif strcmp( dist, 'iRiesz' )
-    lb = [-inf(p+q,1)', 2:k+1]';  
+    lb = [-inf(p+q,1)', 2:k+1]';
+elseif strcmp( dist, 'iRiesz2' )
+    lb = [-inf(p+q,1)', fliplr(2:k+1)]'; %conjectured
 elseif strcmp( dist, 'tRiesz' )
     lb = [-inf(p+q,1)', 0:k-1, 2]'; 
+elseif strcmp( dist, 'tRiesz2' )
+    lb = [-inf(p+q,1)', fliplr(0:k-1), 2]'; %see stochstic representation
 elseif strcmp( dist, 'itRiesz' )
-    lb = [-inf(p+q,1)', 0:k-1, 2]';
+    lb = [-inf(p+q,1)', 2:k+1, 2]'; %conjectured
 elseif strcmp( dist, 'itRiesz2' )
-    lb = [-inf(p+q,1)', 0:k-1, 2]';
+    lb = [-inf(p+q,1)', fliplr(2:k+1), 2]'; %conjectured
 elseif strcmp( dist, 'FRiesz' )
-    lb = [-inf(p+q,1)', (0:k-1), (k-(1:k)+2)]';    
+    lb = [-inf(p+q,1)', (0:k-1), (k-(1:k)+2)]';
+elseif strcmp( dist, 'FRiesz2' )
+    lb = [-inf(p+q,1)', (k-(1:k)+2), (0:k-1) ]'; %conjectured
 end
-A = [ zeros(1,p) ones(1,q) zeros(1, length(x0)-p-q) ];   % Stationarity
-b = 1;                                                   % Stationarity
+% A = [ zeros(1,p) ones(1,q) zeros(1, length(x0)-p-q) ];   % Stationarity
+% b = 1;                                                   % Stationarity
 % Optimization-------------------------------------------------------------
 disp('-------------------------------------------------------------------')
 disp('-------------------------------------------------------------------')
