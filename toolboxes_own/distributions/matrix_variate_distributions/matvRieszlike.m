@@ -89,15 +89,15 @@ if nargout >= 3
         A = X(:,:,ii);
         
         % General matrix derivative (ignoring symmetry of Sigma_):
-        term2 = 1/2*(Sigma_\A/Sigma_ - C'\diag(n)/C);
+        S = 1/2*(Sigma_\A/Sigma_ - C'\diag(n)/C);
         
         % Accounting for symmetry of Sigma_:
-        term2 = 2*term2 - diag(diag(term2));
+        S = 2*S - diag(diag(S));
         
         % Numerical inaccuracies make S not exactly symmetric
-        term2 = (term2+term2')./2;
+        S = (S+S')./2;
                 
-        score.Sigma_(ii,:) = vech(term2);
+        score.Sigma_(ii,:) = vech(S);
 
         % Score nu
         score.n(ii,:) = NaN(p,1);
@@ -111,13 +111,13 @@ end
 %% Fisher Info (Optional Output)
 if nargout >= 6
     
-    G = Dmatrix(p);
+    [G, iG] = Dmatrix(p);
     I = speye(p);
     L = ELmatrix(p);
     
     invSig = inv(Sigma_);
     
-    fisherinfo.Sigma_ = 1/2*G'*kron2(invSig)*kron(C*diag(n),I)*L'/(G'*kron(C,I)*L')*(G'*G);
+    fisherinfo.Sigma_ = 1/2*G'*kron(C'\diag(n),invSig)*L'/(iG*kron(C,I)*L');
     fisherinfo.n = NaN;
     
     varargout{4} = fisherinfo;
