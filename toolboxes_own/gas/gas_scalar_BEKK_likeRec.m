@@ -45,27 +45,34 @@ elseif strcmp( dist, 'F' )
     loglike = @(x1,x2,x3,x4) matvFlike(x1,x2,x3,x4);    
 elseif strcmp( dist, 'Riesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);
-    cholbackCast = chol(backCast,'lower');
-    choliniSig = cholbackCast/sqrtm(diag(n));
-    ini = choliniSig*choliniSig'; 
+    ini = zeros(k);
+    for ii = 1:m
+        CCC = chol(X(:,:,ii),'lower')/sqrtm(diag(n));
+        ini = ini + w(ii)*(CCC*CCC');
+    end
     loglike = @(x1,x2,x3) matvRieszlike(x1,x2,x3);    
 elseif strcmp( dist, 'Riesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);
-    cholbackCast = cholU(backCast);
-    choliniSig = cholbackCast/sqrtm(diag(n));
-    ini = choliniSig*choliniSig'; 
+    for ii = 1:m
+        CCC = cholU(X(:,:,ii),'lower')/sqrtm(diag(n));
+        ini = ini + w(ii)*(CCC*CCC');
+    end
     loglike = @(x1,x2,x3) matvRiesz2like(x1,x2,x3);        
 elseif strcmp( dist, 'iRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);  
-    cholbackCast = cholU(backCast);
-    choliniSig = cholbackCast/sqrtm(matviRieszexpmat(n));
-    ini = choliniSig*choliniSig';   
+    ini = zeros(k);
+    for ii = 1:m
+        CCC = chol(X(:,:,ii),'lower')/sqrtm(matviRieszexpmat(n));
+        ini = ini + w(ii)*(CCC*CCC');
+    end
     loglike = @(x1,x2,x3) matviRieszlike(x1,x2,x3); 
 elseif strcmp( dist, 'iRiesz2' )
-    n = param(k_+ p + q + 1 : k_+ p + q + k);  
-    cholbackCast = chol(backCast,'lower');
-    choliniSig = cholbackCast/sqrtm(matviRiesz2expmat(n));
-    ini = choliniSig*choliniSig';       
+    n = param(k_+ p + q + 1 : k_+ p + q + k); 
+    ini = zeros(k);
+    for ii = 1:m
+        CCC = chol(X(:,:,ii),'lower')/sqrtm(matviRiesz2expmat(n));
+        ini = ini + w(ii)*(CCC*CCC');
+    end
     loglike = @(x1,x2,x3) matviRiesz2like(x1,x2,x3); 
 elseif strcmp( dist, 'tRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
@@ -79,37 +86,45 @@ elseif strcmp( dist, 'tRiesz' )
 elseif strcmp( dist, 'tRiesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1);
-    cholbackCast = cholU(backCast);
-    choliniSig = cholbackCast/sqrtm(diag(n)*nu/(nu-2));
-    ini = choliniSig*choliniSig';       
+    ini = zeros(k);
+    for ii = 1:m
+        CCC = cholU(X(:,:,ii),'lower')/sqrtm(diag(n)*nu/(nu-2));
+        ini = ini + w(ii)*(CCC*CCC');
+    end    
     loglike = @(x1,x2,x3,x4) matvtRiesz2like(x1,x2,x3,x4); 
 elseif strcmp( dist, 'itRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1);
-    cholbackCast = cholU(backCast);
-    choliniSig = cholbackCast/sqrtm(matviRieszexpmat(n));
-    ini = choliniSig*choliniSig';     
+    ini = zeros(k);
+    for ii = 1:m
+        CCC = cholU(X(:,:,ii),'lower')/sqrtm(matviRieszexpmat(n));
+        ini = ini + w(ii)*(CCC*CCC');
+    end   
     loglike = @(x1,x2,x3,x4) matvitRieszlike(x1,x2,x3,x4); 
 elseif strcmp( dist, 'itRiesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1);
-    cholbackCast = chol(backCast,'lower');
-    choliniSig = cholbackCast/sqrtm(matviRiesz2expmat(n));
-    ini = choliniSig*choliniSig';    
+    ini = zeros(k);
+    for ii = 1:m
+        CCC = chol(X(:,:,ii),'lower')/sqrtm(matviRiesz2expmat(n));
+        ini = ini + w(ii)*(CCC*CCC');
+    end
     loglike = @(x1,x2,x3,x4) matvitRiesz2like(x1,x2,x3,x4); 
 elseif strcmp( dist, 'FRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k); 
-    cholbackCast = chol(backCast,'lower');
-    choliniSig = cholbackCast/sqrtm(matvFRieszexpmat(n,nu));
-    ini = choliniSig*choliniSig';    
+    for ii = 1:m
+        CCC = chol(X(:,:,ii),'lower')/sqrtm(matvFRieszexpmat(n,nu));
+        ini = ini + w(ii)*(CCC*CCC');
+    end
     loglike = @(x1,x2,x3,x4) matvFRieszlike(x1,x2,x3,x4); 
 elseif strcmp( dist, 'FRiesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k);  
-    cholbackCast = cholU(backCast);
-    choliniSig = cholbackCast/sqrtm(matvFRiesz2expmat(n,nu));
-    ini = choliniSig*choliniSig';    
+    for ii = 1:m
+        CCC = cholU(X(:,:,ii),'lower')/sqrtm(matvFRiesz2expmat(n,nu));
+        ini = ini + w(ii)*(CCC*CCC');
+    end
     loglike = @(x1,x2,x3,x4) matvFRiesz2like(x1,x2,x3,x4); 
 end
 
