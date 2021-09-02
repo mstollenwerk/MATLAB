@@ -125,10 +125,10 @@ if nargout >= 6
     invSig = inv(Sigma_);
     q = C'\diag(n)/C;
     
-    term1 = G'*kron2(invSig)*kron(C*diag(n),I)*L'/(G'*kron(C,I)*L')*(G'*G);
-    term2 = -1/(nu+sum(n)+2)*G'*(2*kron(q,invSig) + vec2(q))*G;
+    term1 = kron(C'\diag(n),invSig)*L'/(G'*kron(C,I)*L')*G';
+    term2 = -1/(nu+sum(n)+2)*(2*kron(q,invSig) + vec2(q));
     
-    fisherinfo.Sigma_ = .5*(term1+term2);
+    fisherinfo.Sigma_ = .5*G'*(term1+term2)*G;
     fisherinfo.n = NaN;
     
     varargout{4} = fisherinfo;
