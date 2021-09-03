@@ -22,46 +22,55 @@ end
 obj_fun = @(param) obj_fun_wrapper(param, X, p, q, dist);
 % x0-----------------------------------------------------------------------
 if isempty(x0)
-    x0 = [zeros(1,p) ones(1,q)*.75/q];
     if strcmp( dist, 'Wish' )
-		x0 = [ x0, 2*k ]';
-    elseif strcmp( dist, 'LaplaceWish' )
-		x0 = [ x0, 2*k ]';        
+		x0_df = 2*k;
     elseif strcmp( dist, 'iWish' )
-		x0 = [ x0, 2*k ]';  
+		x0_df = 2*k;  
     elseif strcmp( dist, 'tWish' )
-		x0 = [ x0, 2*k, 5 ]';
+		x0_df = [ 2*k, 5 ];
     elseif strcmp( dist, 'itWish' )
-		x0 = [ x0, 2*k, 5 ]';
+		x0_df = [ 2*k, 5 ];
     elseif strcmp( dist, 'F' )
-		x0 = [ x0, 2*k+3, 2*k+3 ]';  % nu > p - 3 for Fisher Info to exist.      
+		x0_df = [ 2*k+3, 2*k+3 ];  % nu > p - 3 for Fisher Info to exist.      
     elseif strcmp( dist, 'Riesz' )
-		x0 = [ x0, ones(1,k).*(2*k) ]';
+		x0_df = ones(1,k).*(2*k);
     elseif strcmp( dist, 'Riesz2' )
-		x0 = [ x0, ones(1,k).*(2*k) ]';
+		x0_df = ones(1,k).*(2*k);
     elseif strcmp( dist, 'iRiesz' )
-		x0 = [ x0, ones(1,k).*(2*k) ]';   
+		x0_df = ones(1,k).*(2*k);   
     elseif strcmp( dist, 'iRiesz2' )
-		x0 = [ x0, ones(1,k).*(2*k) ]';   
+		x0_df = ones(1,k).*(2*k);   
     elseif strcmp( dist, 'tRiesz' )
-		x0 = [ x0, ones(1,k).*(2*k), 5 ]'; 
+		x0_df = [ ones(1,k).*(2*k), 5 ]; 
     elseif strcmp( dist, 'tRiesz2' )
-		x0 = [ x0, ones(1,k).*(2*k), 5 ]'; 
+		x0_df = [ ones(1,k).*(2*k), 5 ]; 
     elseif strcmp( dist, 'itRiesz' )
-		x0 = [ x0, ones(1,k).*(2*k), 5 ]';
+		x0_df = [ ones(1,k).*(2*k), 5 ];
     elseif strcmp( dist, 'itRiesz2' )
-		x0 = [ x0, ones(1,k).*(2*k), 5 ]';
+		x0_df = [ ones(1,k).*(2*k), 5 ];
     elseif strcmp( dist, 'FRiesz' )
-		x0 = [ x0, ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]';
+		x0_df = [ ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ];
     elseif strcmp( dist, 'FRiesz2' )
-		x0 = [ x0, ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]'; 
+		x0_df = [ ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]; 
+    end
+    % Candidate Starting Points for Optimization:
+    x0_1 = [ones(1,p)*.1/p, ones(1,q)*.75/q, x0_df]';
+    x0_2 = [ones(1,p)*.01/p, ones(1,q)*.75/q, x0_df]';
+    x0_3 = [zeros(1,p), ones(1,q)*.75/q, x0_df]';
+    x0_4 = [zeros(1,p+q), x0_df]';    
+    if ~isinf(obj_fun(x0_1)) && ~isnan(obj_fun(x0_1))
+        x0 = x0_1;
+    elseif ~isinf(obj_fun(x0_2)) && ~isnan(obj_fun(x0_2))
+        x0 = x0_2;
+    elseif ~isinf(obj_fun(x0_3)) && ~isnan(obj_fun(x0_3))
+        x0 = x0_3;
+    elseif ~isinf(obj_fun(x0_4)) && ~isnan(obj_fun(x0_4))
+        x0 = x0_4;
     end
 end
 % Restrictions-------------------------------------------------------------
 if strcmp( dist, 'Wish' )
     lb = [-inf(p+q,1); k-1];
-elseif strcmp( dist, 'LaplaceWish' )
-    lb = [-inf(p+q,1); k-1];    
 elseif strcmp( dist, 'iWish' )
     lb = [-inf(p+q,1); k+1];
 elseif strcmp( dist, 'F' )
@@ -96,6 +105,7 @@ end
 % Optimization-------------------------------------------------------------
 disp('-------------------------------------------------------------------')
 disp('-------------------------------------------------------------------')
+disp(strcat("Optimization Starting Point for Recursion Parameters: p = (", num2str(x0(1:p)'), "), q = (", num2str(x0(p+1:p+q)), ")."))
 disp(strcat("Starting gas scalar BEKK(",num2str(p),",",num2str(q),")-",dist," estimation, targeting."))
 disp('-------------------------------------------------------------------')
 disp('-------------------------------------------------------------------')
@@ -114,7 +124,7 @@ if optimize_ordering
     
     perm_improvement = inf;
     while perm_improvement > 0
-        rng(1)        
+        rng(1) % Always try the same permutations
         for ii = 1:100
             perm_(ii,:) = randperm(k);
         end
