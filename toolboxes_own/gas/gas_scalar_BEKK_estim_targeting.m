@@ -21,7 +21,7 @@ end
 %% Optimization
 obj_fun = @(param) obj_fun_wrapper(param, X, p, q, dist);
 % x0-----------------------------------------------------------------------
-if isempty(x0)
+if isempty(x0) || (~isempty(x0) && (isinf(obj_fun(x0)) || isnan(obj_fun(x0))))
     if strcmp( dist, 'Wish' )
 		x0_df = 2*k;
     elseif strcmp( dist, 'iWish' )
@@ -31,7 +31,7 @@ if isempty(x0)
     elseif strcmp( dist, 'itWish' )
 		x0_df = [ 2*k, 5 ];
     elseif strcmp( dist, 'F' )
-		x0_df = [ 2*k+3, 2*k+3 ];  % nu > p - 3 for Fisher Info to exist.      
+		x0_df = [ 2*k+3, 2*k+3 ];  % nu > p - 3 for Fisher Info to exist.
     elseif strcmp( dist, 'Riesz' )
 		x0_df = ones(1,k).*(2*k);
     elseif strcmp( dist, 'Riesz2' )
@@ -120,7 +120,7 @@ disp('-------------------------------------------------------------------')
 	);
 % Implementing an algo for permuting order of assets akin to Blasques et
 % al.
-if optimize_ordering
+if optimize_ordering && contains(dist,'Riesz')
     
     perm_improvement = inf;
     while perm_improvement > 0
