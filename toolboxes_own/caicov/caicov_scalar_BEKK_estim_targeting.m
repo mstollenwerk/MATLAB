@@ -106,7 +106,7 @@ end
 disp('-------------------------------------------------------------------')
 disp('-------------------------------------------------------------------')
 disp(strcat("Optimization Starting Point for Recursion Parameters: p = (", num2str(x0(1:p)'), "), q = (", num2str(x0(p+1:p+q)'), ")."))
-disp(strcat('Starting caicov scalar BEKK(',num2str(p),',',num2str(q),')-',dist,' estimation, targeting.'))
+disp(strcat("Starting caicov scalar BEKK(",num2str(p),",",num2str(q),")-",dist," estimation, targeting."))
 disp('-------------------------------------------------------------------')
 disp('-------------------------------------------------------------------')
 [eparam,optimoutput] = ...
@@ -161,7 +161,7 @@ if ~isfield(optimoutput{end},'perm_')
 end
 disp('-------------------------------------------------------------------')
 disp('-------------------------------------------------------------------')
-disp(strcat('Finished caicov scalar BEKK(',num2str(p),',',num2str(q),')-',dist,' estimation, targeting.'))
+disp(strcat("Finished caicov scalar BEKK(",num2str(p),",",num2str(q),")-",dist," estimation, targeting."))
 disp('-------------------------------------------------------------------')
 disp('-------------------------------------------------------------------')
 % [eparam,optimoutput] = ...
