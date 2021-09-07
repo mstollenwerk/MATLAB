@@ -53,6 +53,7 @@ elseif strcmp( dist, 'Riesz' )
     loglike = @(x1,x2,x3) matvRieszlike(x1,x2,x3);    
 elseif strcmp( dist, 'Riesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);
+    ini = zeros(k);
     for ii = 1:m
         CCC = cholU(X(:,:,ii))/sqrtm(diag(n));
         ini = ini + w(ii)*(CCC*CCC');
