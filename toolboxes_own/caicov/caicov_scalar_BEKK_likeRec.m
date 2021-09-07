@@ -54,7 +54,7 @@ elseif strcmp( dist, 'Riesz' )
 elseif strcmp( dist, 'Riesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);
     for ii = 1:m
-        CCC = cholU(X(:,:,ii),'lower')/sqrtm(diag(n));
+        CCC = cholU(X(:,:,ii))/sqrtm(diag(n));
         ini = ini + w(ii)*(CCC*CCC');
     end
     loglike = @(x1,x2,x3) matvRiesz2like(x1,x2,x3);        
@@ -88,7 +88,7 @@ elseif strcmp( dist, 'tRiesz2' )
     nu = param(k_+ p + q + k + 1);
     ini = zeros(k);
     for ii = 1:m
-        CCC = cholU(X(:,:,ii),'lower')/sqrtm(diag(n)*nu/(nu-2));
+        CCC = cholU(X(:,:,ii))/sqrtm(diag(n)*nu/(nu-2));
         ini = ini + w(ii)*(CCC*CCC');
     end    
     loglike = @(x1,x2,x3,x4) matvtRiesz2like(x1,x2,x3,x4); 
@@ -97,7 +97,7 @@ elseif strcmp( dist, 'itRiesz' )
     nu = param(k_+ p + q + k + 1);
     ini = zeros(k);
     for ii = 1:m
-        CCC = cholU(X(:,:,ii),'lower')/sqrtm(matviRieszexpmat(n));
+        CCC = cholU(X(:,:,ii))/sqrtm(matviRieszexpmat(n));
         ini = ini + w(ii)*(CCC*CCC');
     end   
     loglike = @(x1,x2,x3,x4) matvitRieszlike(x1,x2,x3,x4); 
@@ -122,7 +122,7 @@ elseif strcmp( dist, 'FRiesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k);  
     for ii = 1:m
-        CCC = cholU(X(:,:,ii),'lower')/sqrtm(matvFRiesz2expmat(n,nu));
+        CCC = cholU(X(:,:,ii))/sqrtm(matvFRiesz2expmat(n,nu));
         ini = ini + w(ii)*(CCC*CCC');
     end
     loglike = @(x1,x2,x3,x4) matvFRiesz2like(x1,x2,x3,x4); 
