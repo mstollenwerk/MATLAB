@@ -44,9 +44,10 @@ function [D, iD] = Dmatrix(n)
 % end
 
 % Not my code. See Reference [2]
+
+nCache = 100;  % Set according to your needs
 persistent C_Dmatrix
 if isempty(C_Dmatrix)
-   nCache = 100;  % Set according to your needs
    C_Dmatrix = cell(1, nCache);
 end
 if n <= numel(C_Dmatrix) && ~isempty(C_Dmatrix{n})
