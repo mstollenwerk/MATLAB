@@ -1,5 +1,5 @@
 function [ eparam, tstats, logL, optimoutput ] = ...
-    matviRieszest( data_mat, x0, varargin )
+    matviRiesz2est( data_mat, x0, varargin )
 %BESSELWISHEST
 %
 % USAGE:
@@ -30,15 +30,15 @@ if ~isempty(varargin) && strcmp(varargin{1},'EstimationStrategy:MethodOfMoments'
     %% Optimization
     
     mean_data_mat = mean(data_mat,3);
-    U = cholU(mean_data_mat);
+    L = chol(mean_data_mat,'lower');
     
-    obj_fun = @(n) matviRieszlike( U/matviRieszexpmat(n)*U', n, data_mat );
+    obj_fun = @(n) matviRiesz2like( L/matviRiesz2expmat(n)*L', n, data_mat );
     
     if isempty(x0)  
         x0 = 2*p.*ones(p,1);
     end
 
-    lb = (2:p+1)';
+    lb = flipud((2:p+1)');
 
     [eparam,optimoutput] = ...
         my_fmincon(...
@@ -60,23 +60,23 @@ if ~isempty(varargin) && strcmp(varargin{1},'EstimationStrategy:MethodOfMoments'
         perm_ = setdiff(perm_, optimoutput.perm_, 'rows'); %remove previously optimized 
         for ii = 1:size(perm_,1)
             nLogL_permuted_assets(ii) = ...
-                matviRieszlike( ...
-                    cholU(mean(data_mat(perm_(ii,:),perm_(ii,:),:),3))/matviRieszexpmat(eparam)*cholU(mean(data_mat(perm_(ii,:),perm_(ii,:),:),3))', ...
+                matviRiesz2like( ...
+                    chol(mean(data_mat(perm_(ii,:),perm_(ii,:),:),3),'lower')/matviRiesz2expmat(eparam)*chol(mean(data_mat(perm_(ii,:),perm_(ii,:),:),3),'lower')', ...
                     eparam, data_mat(perm_(ii,:),perm_(ii,:),:) ...
                 );
         end
         [~,min_ii] = min(nLogL_permuted_assets);
         
         disp(strcat("Optimizing over asset permutation (",num2str(perm_(min_ii,:)),")"))
-        obj_fun_min_ii = @(df) matviRieszlike( ...
-            cholU(mean(data_mat(perm_(min_ii,:),perm_(min_ii,:),:),3))/matviRieszexpmat(df)*cholU(mean(data_mat(perm_(min_ii,:),perm_(min_ii,:),:),3))', ...
+        obj_fun_min_ii = @(df) matviRiesz2like( ...
+            chol(mean(data_mat(perm_(min_ii,:),perm_(min_ii,:),:),3),'lower')/matviRiesz2expmat(df)*chol(mean(data_mat(perm_(min_ii,:),perm_(min_ii,:),:),3),'lower')', ...
             df, data_mat(perm_(min_ii,:),perm_(min_ii,:),:) );
         [eparam_min_ii,optimoutput_min_ii] = ...
             my_fmincon(...
                 obj_fun_min_ii, ...
                 eparam, ...
                 [],[],[],[],lb,[],[],varargin{2:end} ...
-            );        
+            );
         
         perm_improvement = -optimoutput_min_ii.history.fval(end) + optimoutput.history.fval(end);
         if perm_improvement > 0
@@ -89,7 +89,7 @@ if ~isempty(varargin) && strcmp(varargin{1},'EstimationStrategy:MethodOfMoments'
             disp("No likelihood improvement with new asset permuatation.")
         end
         clear perm_ nLogL_permuted_assets
-    end    
+    end        
     %% tstats
     %[VCV,A,B,scores,hess,gross_scores] = robustvcv(fun, eparam, 3);
     [VCV,scores,gross_scores] = vcv(obj_fun, eparam);
@@ -115,13 +115,13 @@ if ~isempty(varargin) && strcmp(varargin{1},'EstimationStrategy:MethodOfMoments'
 else
     %% Optimization
     warning("Optimization over all parameters is done without optimization over asset ordering!")
-    obj_fun = @(param) matviRieszlike( [], [], data_mat, param );
+    obj_fun = @(param) matviRiesz2like( [], [], data_mat, param );
 
     if isempty(x0)  
         x0 = [ vech(chol(mean(data_mat,3)*2*p, 'lower')); 2*p.*ones(p,1) ];
     end
 
-    lb = [-inf(p_,1);(2:p+1)'];
+    lb = [-inf(p_,1);flipud((2:p+1)')];
 
     [eparam,optimoutput] = ...
         my_fmincon(...
