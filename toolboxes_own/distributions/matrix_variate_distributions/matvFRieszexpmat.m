@@ -1,6 +1,6 @@
 function M = matvFRieszexpmat( df_1, df_2 )
-%
-%
+
+
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
 % 16.02.2021
