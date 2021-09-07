@@ -122,7 +122,7 @@ end
 %% Fisher Info (Optional Output)
 if nargout >= 6
     
-    G = Dmatrix(p);
+    [G, iG] = Dmatrix(p);
     L = ELmatrix(p);
     
     invSig = inv(Sigma_);
