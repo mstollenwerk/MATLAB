@@ -98,7 +98,7 @@ elseif strcmp( dist, 'itRiesz2' )
 elseif strcmp( dist, 'FRiesz' )
     lb = [-inf(p+q,1)', (0:k-1), (k-(1:k)+2)]';
 elseif strcmp( dist, 'FRiesz2' )
-    lb = [-inf(p+q,1)', (k-(1:k)+2), (0:k-1) ]'; %conjectured
+    lb = [-inf(p+q,1)', (k-(1:k)), (2:k+1) ]'; %conjectured
 end
 % A = [ zeros(1,p) ones(1,q) zeros(1, length(x0)-p-q) ];   % Stationarity
 % b = 1;                                                   % Stationarity
