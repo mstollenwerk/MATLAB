@@ -170,9 +170,9 @@ for tt=1:T
     try
         % Likelihood Evaluation    
         if exist('nu','var')
-            [nLogLcontr, ~, score, ~, ~, fisherinfo] = loglike( Sigma_(:,:,tt), n, nu, X(:,:,tt) );
+            nLogLcontr = loglike( Sigma_(:,:,tt), n, nu, X(:,:,tt) );
         else
-            [nLogLcontr, ~, score, ~, ~, fisherinfo] = loglike( Sigma_(:,:,tt), n, X(:,:,tt) );
+            nLogLcontr = loglike( Sigma_(:,:,tt), n, X(:,:,tt) );
         end
     logLcontr(tt) = -nLogLcontr;
     catch ME
