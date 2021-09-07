@@ -21,6 +21,16 @@ elseif strcmp( dist, 'itRiesz' )
     [ eparam, tstats, logL, optimoutput ] = matvitRieszest(X,x0,varargin{:});
 elseif strcmp( dist, 'FRiesz' )
     [ eparam, tstats, logL, optimoutput ] = matvFRieszest(X,x0,varargin{:});
+elseif strcmp( dist, 'Riesz2' )
+    [ eparam, tstats, logL, optimoutput ] = matvRiesz2est(X,x0,varargin{:});
+elseif strcmp( dist, 'iRiesz2' )
+    [ eparam, tstats, logL, optimoutput ] = matviRiesz2est(X,x0,varargin{:});
+elseif strcmp( dist, 'tRiesz2' )
+    [ eparam, tstats, logL, optimoutput ] = matvtRiesz2est(X,x0,varargin{:});
+elseif strcmp( dist, 'itRiesz2' )
+    [ eparam, tstats, logL, optimoutput ] = matvitRiesz2est(X,x0,varargin{:});
+elseif strcmp( dist, 'FRiesz2' )
+    [ eparam, tstats, logL, optimoutput ] = matvFRiesz2est(X,x0,varargin{:});    
 end
 
 end
