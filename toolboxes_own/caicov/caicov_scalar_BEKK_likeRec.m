@@ -41,7 +41,7 @@ elseif strcmp( dist, 'itWish' )
 elseif strcmp( dist, 'F' )
     n = param(k_+ p + q + 1); 
     nu = param(k_+ p + q + 2);
-    ini = backCast/n/nu*(n-k-1);
+    ini = backCast/n/nu*(nu-k-1);
     loglike = @(x1,x2,x3,x4) matvFlike(x1,x2,x3,x4);    
 elseif strcmp( dist, 'Riesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);
