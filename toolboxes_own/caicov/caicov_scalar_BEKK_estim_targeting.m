@@ -74,7 +74,7 @@ if strcmp( dist, 'Wish' )
 elseif strcmp( dist, 'iWish' )
     lb = [-inf(p+q,1); k+1];
 elseif strcmp( dist, 'F' )
-    lb = [-inf(p+q,1); k+1; k-1];
+    lb = [-inf(p+q,1); k-1; k+1];
 elseif strcmp( dist, 'tWish' )
     lb = [-inf(p+q,1); k-1; 2];
 elseif strcmp( dist, 'itWish' )
@@ -233,7 +233,7 @@ function [ nLogL, logLcontr, Sigma_, param, fitplot ] = obj_fun_wrapper(param, X
     elseif strcmp( dist, 'F' )
         n = param(p+q+1);
         nu = param(p+q+2);
-        meanSig = meanX/n/nu*(n-k-1);    
+        meanSig = meanX/n/nu*(nu-k-1);    
     elseif strcmp( dist, 'Riesz' )
         n = param(p+q+1:p+q+k);
         cholmeanX = chol(meanX,'lower');
