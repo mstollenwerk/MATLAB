@@ -1,4 +1,4 @@
-function [ nLogL, logLcontr, Sigma_, varargout ] = ...
+function [ nLogL, logLcontr, SigmaE, varargout ] = ...
     caicov_scalar_BEKK_likeRec( param, p, q, X, dist )
 %
 % Michael Stollenwerk
@@ -152,7 +152,7 @@ for tt=1:T
             Sigma_ = C/M*C';
         elseif strcmp( dist, 'itRiesz2' )
             C = chol(SigmaE(:,:,tt),'lower');
-            M = matvitRieszexpmat(n);
+            M = matviRieszexpmat(n);
             Sigma_ = C/M*C';            
         elseif strcmp( dist, 'FRiesz' )
             C = chol(SigmaE(:,:,tt),'lower');
