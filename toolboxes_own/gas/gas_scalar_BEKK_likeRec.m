@@ -1,5 +1,5 @@
 function [ nLogL, logLcontr, Sigma_, ScaledScore, varargout ] = ...
-    gas_scalar_BEKK_likeRec( param, p, q, X, dist )
+    gas_scalar_BEKK_likeRec( param, p, q, X, dist, scalingtype )
 %
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
@@ -171,9 +171,21 @@ for tt=1:T
     try
         % Likelihood Evaluation    
         if exist('nu','var')
-            [nLogLcontr, ~, score, ~, ~, fisherinfo] = loglike( Sigma_(:,:,tt), n, nu, X(:,:,tt) );
+            if scalingtype == 1
+                [nLogLcontr, ~, score, ~, ~, fisherinfo] = loglike( Sigma_(:,:,tt), n, nu, X(:,:,tt) );
+            elseif scalingtype == 2
+                [nLogLcontr, ~, score ] = loglike( Sigma_(:,:,tt), n, nu, X(:,:,tt) );
+            else
+                error('Invalid scalingtype input. Must be 1 or 2.')
+            end
         else
-            [nLogLcontr, ~, score, ~, ~, fisherinfo] = loglike( Sigma_(:,:,tt), n, X(:,:,tt) );
+            if scalingtype == 1
+                [nLogLcontr, ~, score, ~, ~, fisherinfo] = loglike( Sigma_(:,:,tt), n, X(:,:,tt) );
+            elseif scalingtype == 2
+                [nLogLcontr, ~, score ] = loglike( Sigma_(:,:,tt), n, X(:,:,tt) );
+            else
+                error('Invalid scalingtype input. Must be 1 or 2.')
+            end
         end
     logLcontr(tt) = -nLogLcontr;
     catch ME
@@ -189,7 +201,13 @@ for tt=1:T
     end
     
     % Scaled Score 
-    ScaledScore(:,:,tt) = ivech(fisherinfo.Sigma_\score.Sigma_');
+    if scalingtype == 1
+        ScaledScore(:,:,tt) = ivech(fisherinfo.Sigma_\score.Sigma_');
+    elseif scalingtype == 2
+        ScaledScore(:,:,tt) = score.Sigma_WishFishScaling;
+    else
+        error('Invalid scalingtype input. Must be 1 or 2.')
+    end
     
 end
 %% Fcst

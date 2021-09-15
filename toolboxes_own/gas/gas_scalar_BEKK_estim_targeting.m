@@ -1,5 +1,5 @@
 function [eparam, tstats, logL, fit, fcst, optimoutput] = ...
-	gas_scalar_BEKK_estim_targeting( X, p, q, dist, x0, varargin )
+	gas_scalar_BEKK_estim_targeting( X, p, q, dist, scalingtype, x0, varargin )
 %
 %
 % Michael Stollenwerk
@@ -10,16 +10,8 @@ function [eparam, tstats, logL, fit, fcst, optimoutput] = ...
 % Will be added later
 [k,~,T] = size(X);
 k_ = k*(k+1)/2;
-if ~isempty(varargin) && strcmp(varargin{1},'OptimizeOrdering')
-    optimize_ordering = 1;
-    if numel(varargin)~=1
-        varargin = varargin(2:end);
-    end
-else
-    optimize_ordering = 0;
-end
 %% Optimization
-obj_fun = @(param) obj_fun_wrapper(param, X, p, q, dist);
+obj_fun = @(param) obj_fun_wrapper(param, X, p, q, dist, scalingtype);
 % x0-----------------------------------------------------------------------
 if isempty(x0) || (~isempty(x0) && (isinf(obj_fun(x0)) || isnan(obj_fun(x0))))
     if strcmp( dist, 'Wish' )
@@ -118,69 +110,11 @@ disp('-------------------------------------------------------------------')
         1e-2,...
 		varargin{:} ...
 	);
-% Implementing an algo for permuting order of assets akin to Blasques et
-% al.
-if optimize_ordering && contains(dist,'Riesz')
-    
-    perm_improvement = inf;
-    while perm_improvement > 0
-        rng(1) % Always try the same permutations
-        for ii = 1:100
-            perm_(ii,:) = randperm(k);
-        end
-        perm_ = unique(perm_, 'rows', 'stable');
-        for ii = 1:size(perm_,1)
-            nLogL_permuted_assets(ii) = ...
-                obj_fun_wrapper( eparam, X(perm_(ii,:),perm_(ii,:),:), p, q, dist);
-        end
-        [perm_min_nLogL,min_ii] = min(nLogL_permuted_assets);
-        % If min is smaller than current nLogL, permute assets and let
-        % solver run again, update current nLogL, save permutation.
-        perm_improvement = -perm_min_nLogL + optimoutput{end}.history.fval(end);
-        if perm_improvement > 0
-            perm_improvement
-            obj_fun = @(param) obj_fun_wrapper( param, X(perm_(min_ii,:),perm_(min_ii,:),:), p, q, dist);
-            [eparam,optimoutput] = ...
-                my_fmincon_robust(...
-                    obj_fun, ...
-                    eparam, ...
-                    lb,[], ...
-                    [p+q, numel(x0)]', ...
-                    1e-2,...
-                    varargin{:} ...
-                );
-            optimoutput{end}.perm_ = perm_(min_ii,:);
-        end
-        clear perm_ nLogL_permuted_assets
-    end
-    
-end
-if ~isfield(optimoutput{end},'perm_')
-    optimoutput{end}.perm_ = 1:k;
-end
 disp('-------------------------------------------------------------------')
 disp('-------------------------------------------------------------------')
 disp(strcat("Finished gas scalar BEKK(",num2str(p),",",num2str(q),")-",dist," estimation, targeting."))
 disp('-------------------------------------------------------------------')
 disp('-------------------------------------------------------------------')
-% [eparam,optimoutput] = ...
-% 	my_fmincon(...
-% 		obj_fun, ...
-% 		x0, ...
-%         A,b,[],[],lb,[],[], ...
-% 		varargin{:} ...
-% 	);
-% while strcmp(optimoutput.message(50:111),'fmincon stopped because the gradient calculation is undefined.')
-%     x0_new = eparam.all;
-%     x0_new(p+1:q) = x0_new(p+1:q)*.9;
-%     [eparam,optimoutput] = ...
-%         my_fmincon(...
-%             obj_fun, ...
-%             x0_new, ...
-%             A,b,[],[],lb,[],[], ...
-%             varargin{:} ...
-%         );
-% end
 % Tstats-------------------------------------------------------------------
 %[VCV,A,B,scores,hess,gross_scores] = robustvcv(fun, eparam, 3);
 [VCV,scores,gross_scores] = vcv( obj_fun, eparam );
@@ -198,9 +132,6 @@ logL = struct(...
     'logLcontr', logLcontr...
 );
 
-iperm_ = iperm(optimoutput{end}.perm_);
-Sigma_ = Sigma_(iperm_,iperm_,:);
-ScaledScore = ScaledScore(iperm_,iperm_,:);
 fit = struct( ...
     'Sigma_', Sigma_(:,:,1:T), ...
     'ScaledScore', ScaledScore ...
@@ -209,7 +140,7 @@ fcst = struct('Sigma_', Sigma_(:,:,T+1:end));
 
 end
 
-function [ nLogL, logLcontr, Sigma_, ScaledScore, param, fitplot ] = obj_fun_wrapper(param, X, p, q, dist) 
+function [ nLogL, logLcontr, Sigma_, ScaledScore, param, fitplot ] = obj_fun_wrapper(param, X, p, q, dist, scalingtype) 
 
     if sum(param(p+1:p+q)) >= 1
         nLogL = inf;   
@@ -297,7 +228,8 @@ function [ nLogL, logLcontr, Sigma_, ScaledScore, param, fitplot ] = obj_fun_wra
         p, ...
         q, ...
         X, ...
-        dist ...
+        dist, ...
+        scalingtype ...
     );
 
 end
