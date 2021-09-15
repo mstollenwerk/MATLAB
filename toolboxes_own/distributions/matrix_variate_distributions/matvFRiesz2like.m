@@ -47,7 +47,7 @@ end
 nLogL = -sum(logLcontr);
 %% Score computation
 if nargout >= 3
-    
+    error('There might be a mistake either in score or in fisher info')
     score.Sigma_ = NaN(N,p_);
     score.n = NaN(N,p);
     score.nu = NaN(N,p);
@@ -76,7 +76,7 @@ end
 %% Hessian (Optional Output)
 %% Fisher Info (Optional Output)
 if nargout >= 6
-    
+    error('There might be a mistake either in score or in fisher info')
     %%% THIS IS ONLY AN APPROXIMATION TO THE FISHER INFO WRT SIGMA!!! %%%
 %     n_ = mean(n);
 %     nu_ = mean(nu);    
