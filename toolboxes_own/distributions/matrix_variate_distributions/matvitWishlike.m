@@ -75,6 +75,8 @@ if nargout >= 3
         S = n/2*invSig ...
             - (nu + p*n)/ 2 / (nu + trace(Sigma_*B)) * B;
         
+        score.Sigma_WishFishScaling(:,:,ii) = 2/n*Sigma_*S*Sigma_;
+        
         % Accounting for symmetry of Sigma_:
         S = 2*S - diag(diag(S));
         

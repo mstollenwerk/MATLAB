@@ -96,6 +96,8 @@ if nargout >= 3
         S = C'\diag(nu)/C - C_sigplusa'\diag(nu+n)/C_sigplusa;
         S = .5*S;
         
+        score.Sigma_WishFishScaling(:,:,ii) = 2/mean(n)*Sigma_*S*Sigma_;
+        
         % Accounting for symmetry of Sigma_:
         S = 2*S - diag(diag(S));
         

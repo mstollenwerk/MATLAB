@@ -73,6 +73,7 @@ nLogL = -sum(logLcontr);
 if nargout >= 3
     
     score.Sigma_ = NaN(N,p_);
+    score.Sigma_WishFishScaling = NaN(p,p,N);
     score.cholSigma = NaN;
     score.n = NaN;
     score.nu = NaN;
@@ -86,6 +87,8 @@ if nargout >= 3
         S = - n*invSig ...
             + (nu + p*n) / (nu + trace(Sigma_\A)) * (Sigma_\A/Sigma_);
         S = .5*S;
+        
+        score.Sigma_WishFishScaling(:,:,ii) = 2/n*Sigma_*S*Sigma_;
         
         % Accounting for symmetry of Sigma_:
         S = 2*S - diag(diag(S));

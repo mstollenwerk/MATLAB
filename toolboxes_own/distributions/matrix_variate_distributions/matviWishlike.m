@@ -59,6 +59,7 @@ if nargout >= 3
     invSig = inv(Sigma_);    
     
     score.Sigma_ = NaN(N,p_);
+    score.Sigma_WishFishScaling = NaN(p,p,N);
     score.df = NaN(N,1);
     for ii = 1:N
         
@@ -66,6 +67,8 @@ if nargout >= 3
        
         % General matrix derivative (ignoring symmetry of Sigma_):
         S = .5*( df*invSig - invA );
+        
+        score.Sigma_WishFishScaling(:,:,ii) = 2/df*Sigma_*S*Sigma_;
 
         % Accounting for symmetry of Sigma_:
         S = 2*S - diag(diag(S));

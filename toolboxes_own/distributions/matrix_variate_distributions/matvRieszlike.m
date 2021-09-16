@@ -91,6 +91,8 @@ if nargout >= 3
         % General matrix derivative (ignoring symmetry of Sigma_):
         S = 1/2*(Sigma_\A/Sigma_ - C'\diag(n)/C);
         
+        score.Sigma_WishFishScaling(:,:,ii) = 2/mean(n)*Sigma_*S*Sigma_;
+        
         % Accounting for symmetry of Sigma_:
         S = 2*S - diag(diag(S));
         
