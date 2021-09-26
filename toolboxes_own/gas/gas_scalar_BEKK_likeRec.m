@@ -231,10 +231,13 @@ if nargout >= 6
     fitplot = NaN;
 %     fitplot = figure("Visible",false,"WindowState",'fullscreen');
 %     y1 = sum(diag3d(X),2);
-%     y2 = sum(diag3d(SigmaE(:,:,1:T)),2);
+%     for tt = 1:T
+%         y2(tt) = sum(diag(cholU(Sigma_(:,:,tt))*matviRieszexpmat(n)*cholU(Sigma_(:,:,tt))'));
+%     end
+% %     y2 = sum(diag3d(SigmaE(:,:,1:T)),2);
 %     plot(y1);
 %     hold on
 %     plot(y2,'LineWidth',2)
-%     text(T/2,max(y1)*3/4,strcat(num2str(sum(logLcontr))," | Score-Parameters:", num2str(scoreparam), " | Garch-Parameters:", num2str(garchparam), " | Matrix Euclidean Distance:", num2str(mean(matrix_euclidean_loss(X,SigmaE(:,:,1:T))))));
+%     text(T/2,max(y1)*3/4,strcat(num2str(sum(logLcontr))," | Score-Parameters:", num2str(scoreparam), " | Garch-Parameters:", num2str(garchparam)));%, " | Matrix Euclidean Distance:", num2str(mean(matrix_euclidean_loss(X,SigmaE(:,:,1:T))))));
     varargout{2} = fitplot;
 end
