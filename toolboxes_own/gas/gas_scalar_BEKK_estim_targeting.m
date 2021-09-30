@@ -13,7 +13,7 @@ k_ = k*(k+1)/2;
 %% Optimization
 obj_fun = @(param) obj_fun_wrapper(param, X, p, q, dist, scalingtype);
 % x0-----------------------------------------------------------------------
-if isempty(x0) || (~isempty(x0) && (isinf(obj_fun(x0)) || isnan(obj_fun(x0))))
+if isempty(x0) %|| (~isempty(x0) && (isinf(obj_fun(x0)) || isnan(obj_fun(x0))))
     if strcmp( dist, 'Wish' )
 		x0_df = 2*k;
     elseif strcmp( dist, 'iWish' )
