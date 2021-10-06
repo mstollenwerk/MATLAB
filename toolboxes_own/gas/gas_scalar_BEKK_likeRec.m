@@ -8,126 +8,73 @@ function [ nLogL, logLcontr, Sigma_, ScaledScore, varargout ] = ...
 [k,~,T] = size(X);
 k_ = k*(k+1)/2;
 %% Parameters
-% Initialize with Backcast. Code copied from Sheppard MFE Toolbox.
-m = ceil(sqrt(T));
-w = .06 * .94.^(0:(m-1));
-w = reshape(w/sum(w),[1 1 m]);
-backCast = sum(bsxfun(@times,w,X(:,:,1:m)),3);
-% Initialize recursion at unconditional mean (stationarity assumed).
-% ini = intrcpt./(1 - sum(garchparam));
-
 intrcpt = ivechchol(param(1:k_));
 scoreparam = param(k_ + 1 : k_ + p);
 garchparam = param(k_ + p + 1 : k_+ p + q);
 
+% Initialize with Backcast. Inspired by Sheppard MFE Toolbox.
+m = ceil(sqrt(T));
+w = .06 * .94.^(0:(m-1));
+w = reshape(w/sum(w),[1 1 m]);
+backCast_data = matvStandardize(dist, X(:,:,1:m), param(k_+p+q+1:end));
+backCast = sum(bsxfun(@times,w,backCast_data(:,:,1:m)),3);
+% Initialize recursion at unconditional mean (stationarity assumed).
+% ini = intrcpt./(1 - sum(garchparam));
+
+
 if strcmp( dist, 'Wish' )
     n = param(k_+ p + q + 1);
-    ini = backCast/n;
     loglike = @(x1,x2,x3) matvWishlike(x1,x2,x3);
 elseif strcmp( dist, 'iWish' )
     n = param(k_+ p + q + 1);
-    ini = backCast*(n-k-1); 
     loglike = @(x1,x2,x3) matviWishlike(x1,x2,x3);   
 elseif strcmp( dist, 'tWish' )
     n = param(k_+ p + q + 1); 
-    nu = param(k_+ p + q + 2);
-    ini = backCast/n/nu*(nu-2);  
+    nu = param(k_+ p + q + 2); 
     loglike = @(x1,x2,x3,x4) matvtWishlike(x1,x2,x3,x4);    
 elseif strcmp( dist, 'itWish' )
     n = param(k_+ p + q + 1); 
     nu = param(k_+ p + q + 2);
-    ini = backCast*(n-k-1); 
     loglike = @(x1,x2,x3,x4) matvitWishlike(x1,x2,x3,x4);
 elseif strcmp( dist, 'F' )
     n = param(k_+ p + q + 1); 
     nu = param(k_+ p + q + 2);
-    ini = backCast/n/nu*(nu-k-1);
     loglike = @(x1,x2,x3,x4) matvFlike(x1,x2,x3,x4);    
 elseif strcmp( dist, 'Riesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);
-    ini = zeros(k);
-    for ii = 1:m
-        CCC = chol(X(:,:,ii),'lower')/sqrtm(diag(n));
-        ini = ini + w(ii)*(CCC*CCC');
-    end
     loglike = @(x1,x2,x3) matvRieszlike(x1,x2,x3);    
 elseif strcmp( dist, 'Riesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);
-    ini = zeros(k);
-    for ii = 1:m
-        CCC = cholU(X(:,:,ii))/sqrtm(diag(n));
-        ini = ini + w(ii)*(CCC*CCC');
-    end
     loglike = @(x1,x2,x3) matvRiesz2like(x1,x2,x3);        
 elseif strcmp( dist, 'iRiesz' )
-    n = param(k_+ p + q + 1 : k_+ p + q + k);  
-    ini = zeros(k);
-    for ii = 1:m
-        CCC = cholU(X(:,:,ii))/sqrtm(matviRieszexpmat(n));
-        ini = ini + w(ii)*(CCC*CCC');
-    end
+    n = param(k_+ p + q + 1 : k_+ p + q + k);
     loglike = @(x1,x2,x3) matviRieszlike(x1,x2,x3); 
 elseif strcmp( dist, 'iRiesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
-    ini = zeros(k);
-    for ii = 1:m
-        CCC = chol(X(:,:,ii),'lower')/sqrtm(matviRiesz2expmat(n));
-        ini = ini + w(ii)*(CCC*CCC');
-    end
     loglike = @(x1,x2,x3) matviRiesz2like(x1,x2,x3); 
 elseif strcmp( dist, 'tRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1);
-    ini = zeros(k);
-    for ii = 1:m
-        CCC = chol(X(:,:,ii),'lower')/sqrtm(diag(n)*nu/(nu-2));
-        ini = ini + w(ii)*(CCC*CCC');
-    end
     loglike = @(x1,x2,x3,x4) matvtRieszlike(x1,x2,x3,x4); 
 elseif strcmp( dist, 'tRiesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
-    nu = param(k_+ p + q + k + 1);
-    ini = zeros(k);
-    for ii = 1:m
-        CCC = cholU(X(:,:,ii))/sqrtm(diag(n)*nu/(nu-2));
-        ini = ini + w(ii)*(CCC*CCC');
-    end    
+    nu = param(k_+ p + q + k + 1); 
     loglike = @(x1,x2,x3,x4) matvtRiesz2like(x1,x2,x3,x4); 
 elseif strcmp( dist, 'itRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1);
-    ini = zeros(k);
-    for ii = 1:m
-        CCC = cholU(X(:,:,ii))/sqrtm(matviRieszexpmat(n));
-        ini = ini + w(ii)*(CCC*CCC');
-    end   
     loglike = @(x1,x2,x3,x4) matvitRieszlike(x1,x2,x3,x4); 
 elseif strcmp( dist, 'itRiesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
     nu = param(k_+ p + q + k + 1);
-    ini = zeros(k);
-    for ii = 1:m
-        CCC = chol(X(:,:,ii),'lower')/sqrtm(matviRiesz2expmat(n));
-        ini = ini + w(ii)*(CCC*CCC');
-    end
     loglike = @(x1,x2,x3,x4) matvitRiesz2like(x1,x2,x3,x4); 
 elseif strcmp( dist, 'FRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
-    nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k); 
-    ini = zeros(k);    
-    for ii = 1:m
-        CCC = chol(X(:,:,ii),'lower')/sqrtm(matvFRieszexpmat(n,nu));
-        ini = ini + w(ii)*(CCC*CCC');
-    end
+    nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k);
     loglike = @(x1,x2,x3,x4) matvFRieszlike(x1,x2,x3,x4); 
 elseif strcmp( dist, 'FRiesz2' )
     n = param(k_+ p + q + 1 : k_+ p + q + k); 
-    nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k);  
-    ini = zeros(k);    
-    for ii = 1:m
-        CCC = cholU(X(:,:,ii))/sqrtm(matvFRiesz2expmat(n,nu));
-        ini = ini + w(ii)*(CCC*CCC');
-    end
+    nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k);
     loglike = @(x1,x2,x3,x4) matvFRiesz2like(x1,x2,x3,x4); 
 end
 
@@ -162,7 +109,7 @@ for tt=1:T
     end
     for jj = 1:q
         if (tt-jj) <= 0
-            Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*ini;
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*backCast;
         else
             Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*Sigma_(:,:,tt-jj);
         end
