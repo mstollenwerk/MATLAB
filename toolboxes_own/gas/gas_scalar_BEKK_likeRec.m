@@ -63,7 +63,7 @@ elseif strcmp( dist, 'iRiesz' )
     n = param(k_+ p + q + 1 : k_+ p + q + k);  
     ini = zeros(k);
     for ii = 1:m
-        CCC = chol(X(:,:,ii),'lower')/sqrtm(matviRieszexpmat(n));
+        CCC = cholU(X(:,:,ii))/sqrtm(matviRieszexpmat(n));
         ini = ini + w(ii)*(CCC*CCC');
     end
     loglike = @(x1,x2,x3) matviRieszlike(x1,x2,x3); 
