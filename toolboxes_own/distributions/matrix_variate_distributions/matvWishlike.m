@@ -1,4 +1,4 @@
-function [ nLogL, logLcontr, varargout ] = matvWishlike( Sigma_, df, X, varargin )
+function [ nLogL, logLcontr, varargout ] = matvWishlike( Sigma_, n, X, varargin )
 %MATVWISHLIKE
 %
 % USAGE:
@@ -32,27 +32,27 @@ p_ = p*(p+1)/2;
 if nargin == 4
     all_param = varargin{1};
     Sigma_ = ivechchol(all_param(1:p_));
-    df = all_param(p_ + 1);
+    n = all_param(p_ + 1);
 end
 
 % Checking if Sigma_ is symmetric p.d.
 param.Sigma_ = Sigma_;
-param.df = df;
-param.all = [vechchol(Sigma_); df];
+param.n = n;
+param.all = [vechchol(Sigma_); n];
 %% Log-Likelihood
 logLcontr = NaN(N,1);
 
 log_norm_const = ...
-  - df*p/2*log(2) ...
-  - mvgammaln(df/2, p) ...
-  - df/2*logdet(Sigma_);
+  - n*p/2*log(2) ...
+  - mvgammaln(n/2, p) ...
+  - n/2*logdet(Sigma_);
 	  
 for ii = 1:N
     A = X(:,:,ii);
  
     log_kernel = ...
       -  trace(Sigma_\A) ...
-      + (df-p-1)*logdet(A);
+      + (n-p-1)*logdet(A);
 		
     logLcontr(ii) = log_norm_const + .5*log_kernel;
 end
@@ -70,10 +70,10 @@ if nargout >= 3
         A = X(:,:,ii);
         
         % General matrix derivative (ignoring symmetry of Sigma_): [ enter to matrixcalculus.org: -df/2*log(det(Sigma))-tr(inv(Sigma)*A) ]
-        S = - df/2*invSig ...
+        S = - n/2*invSig ...
             + 1/2*(Sigma_\A/Sigma_);
         
-        score.Sigma_WishFishScaling(:,:,ii) = 2/df*Sigma_*S*Sigma_;
+        score.Sigma_WishFishScaling(:,:,ii) = 2/n*Sigma_*S*Sigma_;
         
         % Accounting for symmetry of Sigma_:
         S = 2*S - diag(diag(S));
@@ -104,7 +104,7 @@ if nargout >= 6
     
     G = Dmatrix(p);
     
-    fisherinfo.Sigma_ = df/2*G'*kron(invSig,invSig)*G;
+    fisherinfo.Sigma_ = n/2*G'*kron(invSig,invSig)*G;
     
     varargout{4} = fisherinfo;
 end

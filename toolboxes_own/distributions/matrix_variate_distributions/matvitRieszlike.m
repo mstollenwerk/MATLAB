@@ -58,8 +58,8 @@ end
 % Checking if Sigma_ is symmetric p.d.
 param.Sigma_ = Sigma_;
 param.chol_Sigma_ = vechchol(Sigma_);
-param.df_1 = nu;
-param.df_2 = n;
+param.n = n;
+param.nu = nu;
 param.all = [param.chol_Sigma_; n; nu];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
