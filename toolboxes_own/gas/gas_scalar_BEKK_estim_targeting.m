@@ -121,7 +121,7 @@ disp('-------------------------------------------------------------------')
 tstats = eparam./sqrt(diag(VCV));
 
 % Output Creation----------------------------------------------------------
-[ nLogL, logLcontr, Sigma_, ScaledScore, eparam ] = obj_fun( eparam );
+[ nLogL, logLcontr, SigmaE, ScaledScore, eparam ] = obj_fun( eparam );
 
 aic = 2*nLogL + 2*(numel(x0)+k_);
 bic = 2*nLogL + log(T)*(numel(x0)+k_); % see Yu, Li and Ng (2017) 
@@ -133,14 +133,14 @@ logL = struct(...
 );
 
 fit = struct( ...
-    'Sigma_', Sigma_(:,:,1:T), ...
+    'SigmaE', SigmaE(:,:,1:T), ...
     'ScaledScore', ScaledScore ...
 );
-fcst = struct('Sigma_', Sigma_(:,:,T+1:end));
+fcst = struct('SigmaE', SigmaE(:,:,T+1:end));
 
 end
 
-function [ nLogL, logLcontr, Sigma_, ScaledScore, param, fitplot ] = obj_fun_wrapper(param, X, p, q, dist, scalingtype) 
+function [ nLogL, logLcontr, SigmaE, ScaledScore, param_out, fitplot ] = obj_fun_wrapper(param, X, p, q, dist, scalingtype) 
 
     if sum(param(p+1:p+q)) >= 1
         nLogL = inf;   
@@ -151,7 +151,7 @@ function [ nLogL, logLcontr, Sigma_, ScaledScore, param, fitplot ] = obj_fun_wra
     
     vechcholIntrcpt = vechchol( meanSig*(1-sum(param(p+1:p+q))) );  
     
-    [ nLogL, logLcontr, Sigma_, ScaledScore, param, fitplot ] = gas_scalar_BEKK_likeRec( ...
+    [ nLogL, logLcontr, SigmaE, ScaledScore, param_out, fitplot ] = gas_scalar_BEKK_likeRec( ...
         [vechcholIntrcpt; param], ...
         p, ...
         q, ...
@@ -159,7 +159,5 @@ function [ nLogL, logLcontr, Sigma_, ScaledScore, param, fitplot ] = obj_fun_wra
         dist, ...
         scalingtype ...
     );
-
-    Sigma_ = matvEV(dist, Sigma_, param(p+q+1:end));
 
 end
