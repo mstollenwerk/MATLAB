@@ -1,4 +1,4 @@
-function [ nLogL, logLcontr, Sigma_, ScaledScore, varargout ] = ...
+function [ nLogL, logLcontr, SigmaE, ScaledScore, varargout ] = ...
     gas_scalar_BEKK_likeRec( param, p, q, X, dist, scalingtype )
 %
 % Michael Stollenwerk
@@ -20,78 +20,6 @@ backCast_data = matvStandardize(dist, X(:,:,1:m), param(k_+p+q+1:end));
 backCast = sum(bsxfun(@times,w,backCast_data(:,:,1:m)),3);
 % Initialize recursion at unconditional mean (stationarity assumed).
 % ini = intrcpt./(1 - sum(garchparam));
-
-
-if strcmp( dist, 'Wish' )
-    n = param(k_+ p + q + 1);
-    loglike = @(x1,x2,x3) matvWishlike(x1,x2,x3);
-elseif strcmp( dist, 'iWish' )
-    n = param(k_+ p + q + 1);
-    loglike = @(x1,x2,x3) matviWishlike(x1,x2,x3);   
-elseif strcmp( dist, 'tWish' )
-    n = param(k_+ p + q + 1); 
-    nu = param(k_+ p + q + 2); 
-    loglike = @(x1,x2,x3,x4) matvtWishlike(x1,x2,x3,x4);    
-elseif strcmp( dist, 'itWish' )
-    n = param(k_+ p + q + 1); 
-    nu = param(k_+ p + q + 2);
-    loglike = @(x1,x2,x3,x4) matvitWishlike(x1,x2,x3,x4);
-elseif strcmp( dist, 'F' )
-    n = param(k_+ p + q + 1); 
-    nu = param(k_+ p + q + 2);
-    loglike = @(x1,x2,x3,x4) matvFlike(x1,x2,x3,x4);    
-elseif strcmp( dist, 'Riesz' )
-    n = param(k_+ p + q + 1 : k_+ p + q + k);
-    loglike = @(x1,x2,x3) matvRieszlike(x1,x2,x3);    
-elseif strcmp( dist, 'Riesz2' )
-    n = param(k_+ p + q + 1 : k_+ p + q + k);
-    loglike = @(x1,x2,x3) matvRiesz2like(x1,x2,x3);        
-elseif strcmp( dist, 'iRiesz' )
-    n = param(k_+ p + q + 1 : k_+ p + q + k);
-    loglike = @(x1,x2,x3) matviRieszlike(x1,x2,x3); 
-elseif strcmp( dist, 'iRiesz2' )
-    n = param(k_+ p + q + 1 : k_+ p + q + k); 
-    loglike = @(x1,x2,x3) matviRiesz2like(x1,x2,x3); 
-elseif strcmp( dist, 'tRiesz' )
-    n = param(k_+ p + q + 1 : k_+ p + q + k); 
-    nu = param(k_+ p + q + k + 1);
-    loglike = @(x1,x2,x3,x4) matvtRieszlike(x1,x2,x3,x4); 
-elseif strcmp( dist, 'tRiesz2' )
-    n = param(k_+ p + q + 1 : k_+ p + q + k); 
-    nu = param(k_+ p + q + k + 1); 
-    loglike = @(x1,x2,x3,x4) matvtRiesz2like(x1,x2,x3,x4); 
-elseif strcmp( dist, 'itRiesz' )
-    n = param(k_+ p + q + 1 : k_+ p + q + k); 
-    nu = param(k_+ p + q + k + 1);
-    loglike = @(x1,x2,x3,x4) matvitRieszlike(x1,x2,x3,x4); 
-elseif strcmp( dist, 'itRiesz2' )
-    n = param(k_+ p + q + 1 : k_+ p + q + k); 
-    nu = param(k_+ p + q + k + 1);
-    loglike = @(x1,x2,x3,x4) matvitRiesz2like(x1,x2,x3,x4); 
-elseif strcmp( dist, 'FRiesz' )
-    n = param(k_+ p + q + 1 : k_+ p + q + k); 
-    nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k);
-    loglike = @(x1,x2,x3,x4) matvFRieszlike(x1,x2,x3,x4); 
-elseif strcmp( dist, 'FRiesz2' )
-    n = param(k_+ p + q + 1 : k_+ p + q + k); 
-    nu = param(k_+ p + q + k + 1 : k_+ p + q + k + k);
-    loglike = @(x1,x2,x3,x4) matvFRiesz2like(x1,x2,x3,x4); 
-end
-
-if nargout >= 5
-    param_out.intrcpt = intrcpt;
-    param_out.scoreparam = scoreparam;
-    param_out.garch_param = garchparam;
-    param_out.n = n;
-    
-    if exist('nu','var')
-        param_out.nu = nu;
-    end
-
-    param_out.all = param;
-    
-    varargout{1} = param_out;
-end
 %% Data Storage
 Sigma_ = NaN(k,k,T+22);
 ScaledScore = NaN(k,k,T);
@@ -116,25 +44,9 @@ for tt=1:T
     end
     
     try
-        % Likelihood Evaluation    
-        if exist('nu','var')
-            if scalingtype == 1
-                [nLogLcontr, ~, score, ~, ~, fisherinfo] = loglike( Sigma_(:,:,tt), n, nu, X(:,:,tt) );
-            elseif scalingtype == 2
-                [nLogLcontr, ~, score ] = loglike( Sigma_(:,:,tt), n, nu, X(:,:,tt) );
-            else
-                error('Invalid scalingtype input. Must be 1 or 2.')
-            end
-        else
-            if scalingtype == 1
-                [nLogLcontr, ~, score, ~, ~, fisherinfo] = loglike( Sigma_(:,:,tt), n, X(:,:,tt) );
-            elseif scalingtype == 2
-                [nLogLcontr, ~, score ] = loglike( Sigma_(:,:,tt), n, X(:,:,tt) );
-            else
-                error('Invalid scalingtype input. Must be 1 or 2.')
-            end
-        end
-    logLcontr(tt) = -nLogLcontr;
+        % Likelihood Evaluation         
+        [~, logLcontr(tt), score, ~, param_dist, fisherinfo] = ...
+            matvLogLike( dist, Sigma_(:,:,tt), param(k_+p+q+1:end), X(:,:,tt) );   
     catch ME
 %         tt
 %         ME.message
@@ -142,6 +54,7 @@ for tt=1:T
 %         {ME.stack.name}'
         nLogL = inf;
         logLcontr = NaN;
+        SigmaE = NaN;
         varargout{1} = NaN;      
         varargout{2} = NaN;
         return
@@ -171,8 +84,24 @@ for tt=T+1:T+22
         Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*Sigma_(:,:,tt-jj);
     end
 end
+SigmaE = matvEV(dist, Sigma_, param(k_+p+q+1:end));
 %% Log-Likelihood
 nLogL = -sum(logLcontr);
+%% Parameter Output
+if nargout >= 5
+    param_out.intrcpt = intrcpt;
+    param_out.scoreparam = scoreparam;
+    param_out.garch_param = garchparam;
+    param_out.n = param_dist.n;
+    
+    if isfield(param_dist,'nu')
+        param_out.nu = param_dist.nu;
+    end
+
+    param_out.all = param;
+    
+    varargout{1} = param_out;
+end
 %% Fit-Plot(s)
 if nargout >= 6
     fitplot = NaN;
