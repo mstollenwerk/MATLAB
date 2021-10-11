@@ -83,6 +83,14 @@ for tt=T+1:T+22
     for jj = 1:q
         Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*Sigma_(:,:,tt-jj);
     end
+    if any(eig(Sigma_(:,:,tt))<0) %This is if the forecasted Sigmas are not pd, which can happen despite all in-sample sigmas being pd. in this case likely the estimated scoreparam is too high for stationarity.
+        nLogL = inf;
+        logLcontr = NaN;
+        SigmaE = NaN;
+        varargout{1} = NaN;      
+        varargout{2} = NaN;
+        return
+    end
 end
 SigmaE = matvEV(dist, Sigma_, param(k_+p+q+1:end));
 %% Log-Likelihood
