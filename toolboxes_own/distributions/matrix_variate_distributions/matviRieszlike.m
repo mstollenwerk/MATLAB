@@ -86,7 +86,7 @@ if nargout >= 6
     L = ELmatrix(p);
     
     fishSig = G'*kron(Cdot*diag(n),I)*L'/(G'*kron(Cdot,I)*L')*G'*kron2(invSig)*G;
-    fishSig = -.5*fishSig;
+    fishSig = .5*fishSig;
     fisherinfo.Sigma_ = fishSig;
     fisherinfo.n = NaN;
     
