@@ -5,6 +5,7 @@ function [ nLogL, logLcontr, SigmaE, varargout ] = ...
 % michael.stollenwerk@live.com
 % 05.04.2021
 
+t_ahead = 220;
 [k,~,T] = size(X);
 k_ = k*(k+1)/2;
 %% Parameters
@@ -91,7 +92,7 @@ if nargout >= 4
     varargout{1} = param_out;
 end
 %% Data Storage
-SigmaE = NaN(k,k,T+22);
+SigmaE = NaN(k,k,T+t_ahead);
 logLcontr = NaN(T,1);
 %% Recursion
 
@@ -184,7 +185,7 @@ for tt=1:T
     
 end
 %% Fcst
-for tt=T+1:T+22
+for tt=T+1:T+t_ahead
     Sigma_(:,:,tt) = intrcpt;
     for jj = 1:p
         if (tt-jj) > T
