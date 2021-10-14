@@ -66,7 +66,7 @@ if strcmp( dist, 'Wish' )
 elseif strcmp( dist, 'iWish' )
     lb = [-inf(p+q,1); k+1];
 elseif strcmp( dist, 'F' )
-    lb = [-ones(p+q,1)*3; k-1; k+1];
+    lb = [-ones(p+q,1)*2; k-1; k+1];
 elseif strcmp( dist, 'tWish' )
     lb = [-inf(p+q,1); k-1; 2];
 elseif strcmp( dist, 'itWish' )
