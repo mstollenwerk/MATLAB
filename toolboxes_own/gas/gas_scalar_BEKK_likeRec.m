@@ -5,6 +5,8 @@ function [ nLogL, logLcontr, SigmaE, ScaledScore, varargout ] = ...
 % michael.stollenwerk@live.com
 % 11.08.2020
 
+t_ahead = 220;
+
 [k,~,T] = size(X);
 k_ = k*(k+1)/2;
 %% Parameters
@@ -21,7 +23,7 @@ backCast = sum(bsxfun(@times,w,backCast_data(:,:,1:m)),3);
 % Initialize recursion at unconditional mean (stationarity assumed).
 % ini = intrcpt./(1 - sum(garchparam));
 %% Data Storage
-Sigma_ = NaN(k,k,T+22);
+Sigma_ = NaN(k,k,T+t_ahead);
 ScaledScore = NaN(k,k,T);
 logLcontr = NaN(T,1);
 %% Recursion
@@ -71,7 +73,7 @@ for tt=1:T
     
 end
 %% Fcst
-for tt=T+1:T+22
+for tt=T+1:T+t_ahead
     Sigma_(:,:,tt) = intrcpt;
     for jj = 1:p
         if (tt-jj) > T
