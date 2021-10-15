@@ -10,14 +10,7 @@ function [eparam, tstats, logL, fit, fcst, optimoutput] = ...
 % Will be added later
 [k,~,T] = size(X);
 k_ = k*(k+1)/2;
-if ~isempty(varargin) && strcmp(varargin{1},'OptimizeOrdering')
-    optimize_ordering = 1;
-    if numel(varargin)~=1
-        varargin = varargin(2:end);
-    end
-else
-    optimize_ordering = 0;    
-end
+
 %% Optimization
 obj_fun = @(param) obj_fun_wrapper(param, X, p, q, dist);
 % x0-----------------------------------------------------------------------
@@ -118,47 +111,6 @@ disp('-------------------------------------------------------------------')
         1e-2,...
 		varargin{:} ...
  	);
-% Implementing an algo for permuting order of assets akin to Blasques et
-% al.
-if optimize_ordering && contains(dist,'Riesz')
-    
-    perm_improvement = inf;
-    while perm_improvement > 0
-        % Try Loglike values for 100 random asset permutations, find Min.  
-        rng(1) % Always try the same permutations
-        for ii = 1:100
-            perm_(ii,:) = randperm(k);
-        end
-        perm_ = unique(perm_, 'rows', 'stable');
-        for ii = 1:size(perm_,1)
-            nLogL_permuted_assets(ii) = ...
-                obj_fun_wrapper( eparam, X(perm_(ii,:),perm_(ii,:),:), p, q, dist);
-        end
-        [perm_min_nLogL,min_ii] = min(nLogL_permuted_assets);
-        % If min is smaller than current nLogL, permute assets and let
-        % solver run again, update current nLogL, save permutation.
-        perm_improvement = -perm_min_nLogL + optimoutput{end}.history.fval(end);
-        if perm_improvement > 0
-            perm_improvement
-            obj_fun = @(param) obj_fun_wrapper( param, X(perm_(min_ii,:),perm_(min_ii,:),:), p, q, dist);
-            [eparam,optimoutput] = ...
-                my_fmincon_robust(...
-                    obj_fun, ...
-                    eparam, ...
-                    lb,[], ...
-                    [p+q, numel(x0)]', ...
-                    1e-2,...
-                    varargin{:} ...
-                );
-            optimoutput{end}.perm_ = perm_(min_ii,:);
-        end
-        clear perm_ nLogL_permuted_assets
-    end
-    
-end
-if ~isfield(optimoutput{end},'perm_')
-    optimoutput{end}.perm_ = 1:k;
-end
 disp('-------------------------------------------------------------------')
 disp('-------------------------------------------------------------------')
 disp(strcat("Finished caicov scalar BEKK(",num2str(p),",",num2str(q),")-",dist," estimation, targeting."))
@@ -199,8 +151,6 @@ logL = struct(...
     'logLcontr', logLcontr...
 );
 
-iperm_ = iperm(optimoutput{end}.perm_);
-Sigma_ = Sigma_(iperm_,iperm_,:);
 fit = struct( ...
     'Sigma_', Sigma_(:,:,1:T) ...
 );
