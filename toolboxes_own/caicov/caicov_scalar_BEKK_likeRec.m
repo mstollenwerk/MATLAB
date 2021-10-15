@@ -186,16 +186,16 @@ for tt=1:T
 end
 %% Fcst
 for tt=T+1:T+t_ahead
-    Sigma_(:,:,tt) = intrcpt;
+    SigmaE(:,:,tt) = intrcpt;
     for jj = 1:p
         if (tt-jj) > T
-            Sigma_(:,:,tt) = Sigma_(:,:,tt) + archparam(jj)*Sigma_(:,:,tt-jj);
+            SigmaE(:,:,tt) = SigmaE(:,:,tt) + archparam(jj)*SigmaE(:,:,tt-jj);
         else
-            Sigma_(:,:,tt) = Sigma_(:,:,tt) + archparam(jj)*X(:,:,tt-jj);
+            SigmaE(:,:,tt) = SigmaE(:,:,tt) + archparam(jj)*X(:,:,tt-jj);
         end
     end
     for jj = 1:q
-        Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*Sigma_(:,:,tt-jj);
+        SigmaE(:,:,tt) = SigmaE(:,:,tt) + garchparam(jj)*SigmaE(:,:,tt-jj);
     end
 end
 %% Log-Likelihood
