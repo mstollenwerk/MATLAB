@@ -108,8 +108,8 @@ if nargout == 6
     varargout{1} = logLcontr;
     varargout{2} = score;
     varargout{3} = hessian;
-    varargout{5} = param ;
-    varargout{6} = fisherinfo;
+    varargout{4} = param;
+    varargout{5} = fisherinfo;
 elseif nargout == 1
     if strcmp( dist, 'Wish' )
         if length(dfs) ~= 1

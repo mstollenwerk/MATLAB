@@ -145,7 +145,7 @@ if nargout >= 6
     varargout{4} = fisherinfo;
 end
 %% Optional Parameter Vector Output
-if nargout == 5
+if nargout >= 5
     varargout{3} = param;
 end
 end
