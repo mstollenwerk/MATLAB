@@ -49,19 +49,10 @@ if isempty(x0)
 		x0_df = [ ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]; 
     end
     % Candidate Starting Points for Optimization:
-    x0_1 = [ones(1,p)*.1/p, ones(1,q)*.75/q, x0_df]';
-    x0_2 = [ones(1,p)*.01/p, ones(1,q)*.75/q, x0_df]';
-    x0_3 = [zeros(1,p), ones(1,q)*.75/q, x0_df]';
-    x0_4 = [zeros(1,p+q), x0_df]';    
-    if ~isinf(obj_fun(x0_1)) && ~isnan(obj_fun(x0_1))
-        x0 = x0_1;
-    elseif ~isinf(obj_fun(x0_2)) && ~isnan(obj_fun(x0_2))
-        x0 = x0_2;
-    elseif ~isinf(obj_fun(x0_3)) && ~isnan(obj_fun(x0_3))
-        x0 = x0_3;
-    elseif ~isinf(obj_fun(x0_4)) && ~isnan(obj_fun(x0_4))
-        x0 = x0_4;
-    end
+    x0 = [ones(1,p)*.1/p, ones(1,q)*.75/q, x0_df;
+          ones(1,p)*.01/p, ones(1,q)*.75/q, x0_df;
+          zeros(1,p), ones(1,q)*.75/q, x0_df;
+          zeros(1,p+q), x0_df]';    
 end
 % Restrictions-------------------------------------------------------------
 if strcmp( dist, 'Wish' )
@@ -98,26 +89,39 @@ end
 % A = [ zeros(1,p) ones(1,q) zeros(1, length(x0)-p-q) ];   % Stationarity
 % b = 1;                                                   % Stationarity
 % Optimization-------------------------------------------------------------
-disp('-------------------------------------------------------------------')
-disp('-------------------------------------------------------------------')
-disp(strcat("Optimization Starting Point for Recursion Parameters: p = (", num2str(x0(1:p)'), "), q = (", num2str(x0(p+1:p+q)'), ")."))
-disp(strcat("Starting gas scalar BEKK(",num2str(p),",",num2str(q),")-",dist," estimation, targeting."))
-disp('-------------------------------------------------------------------')
-disp('-------------------------------------------------------------------')
-[eparam,optimoutput] = ...
-	my_fmincon_robust(...
-		obj_fun, ...
-		x0, ...
-        lb,[], ...
-        [p+q, numel(x0)]', ...
-        1e-2,...
-		varargin{:} ...
-	);
-disp('-------------------------------------------------------------------')
-disp('-------------------------------------------------------------------')
-disp(strcat("Finished gas scalar BEKK(",num2str(p),",",num2str(q),")-",dist," estimation, targeting."))
-disp('-------------------------------------------------------------------')
-disp('-------------------------------------------------------------------')
+for ii = 1:size(x0,2) % Looping through candidate starting points, until one works.
+    try
+        disp('-------------------------------------------------------------------')
+        disp('-------------------------------------------------------------------')
+        disp(strcat("Optimization Starting Point for Recursion Parameters: p = (", num2str(x0(1:p,ii)'), "), q = (", num2str(x0(p+1:p+q,ii)'), ")."))
+        disp(strcat("Starting gas scalar BEKK(",num2str(p),",",num2str(q),")-",dist," estimation, targeting."))
+        disp('-------------------------------------------------------------------')
+        disp('-------------------------------------------------------------------')
+        [eparam,optimoutput] = ...
+            my_fmincon_robust(...
+                obj_fun, ...
+                x0(:,ii), ...
+                lb,[], ...
+                [p+q, numel(x0(:,ii))]', ...
+                1e-2,...
+                varargin{:} ...
+            );
+        disp('-------------------------------------------------------------------')
+        disp('-------------------------------------------------------------------')
+        disp(strcat("Finished gas scalar BEKK(",num2str(p),",",num2str(q),")-",dist," estimation, targeting."))
+        disp('-------------------------------------------------------------------')
+        disp('-------------------------------------------------------------------')
+        break
+    catch
+        disp('-------------------------------------------------------------------')
+        disp('-------------------------------------------------------------------')
+        disp(strcat("Optimization Starting Point for Recursion Parameters: p = (", num2str(x0(1:p,ii)'), "), q = (", num2str(x0(p+1:p+q,ii)'), ") didn't work."))
+        disp('-------------------------------------------------------------------')
+        disp('-------------------------------------------------------------------')        
+    end
+end
+    
+    
 % Tstats-------------------------------------------------------------------
 %[VCV,A,B,scores,hess,gross_scores] = robustvcv(fun, eparam, 3);
 [VCV,scores,gross_scores] = vcv( obj_fun, eparam );
