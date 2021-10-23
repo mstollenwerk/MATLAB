@@ -49,7 +49,9 @@ if isempty(x0)
 		x0_df = [ ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]; 
     end
     % Candidate Starting Points for Optimization:
-    x0 = [ones(1,p)*.1/p, ones(1,q)*.75/q, x0_df;
+    x0 = [ones(1,p)*.1/p, ones(1,q)*.99/q, x0_df;
+          ones(1,p)*.1/p, ones(1,q)*.9/q, x0_df;
+          ones(1,p)*.1/p, ones(1,q)*.75/q, x0_df;
           ones(1,p)*.01/p, ones(1,q)*.75/q, x0_df;
           zeros(1,p), ones(1,q)*.75/q, x0_df;
           zeros(1,p+q), x0_df]';    
