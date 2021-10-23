@@ -56,35 +56,35 @@ if isempty(x0)
 end
 % Restrictions-------------------------------------------------------------
 if strcmp( dist, 'Wish' )
-    lb = [-inf(p+q,1); k-1];
+    lb = [0,-inf(p+q-1,1); k-1];
 elseif strcmp( dist, 'iWish' )
-    lb = [-inf(p+q,1); k+1];
+    lb = [0,-inf(p+q-1,1); k+1];
 elseif strcmp( dist, 'F' )
-    lb = [-ones(p+q,1)*2; k-1; k+1];
+    lb = [0,-inf(p+q-1,1); k-1; k+1];
 elseif strcmp( dist, 'tWish' )
-    lb = [-inf(p+q,1); k-1; 2];
+    lb = [0,-inf(p+q-1,1); k-1; 2];
 elseif strcmp( dist, 'itWish' )
-    lb = [-inf(p+q,1); k+1; 0];    
+    lb = [0,-inf(p+q-1,1); k+1; 0];    
 elseif strcmp( dist, 'Riesz' )
-    lb = [-inf(p+q,1)', 0:k-1]';  
+    lb = [0,-inf(p+q-1,1)', 0:k-1]';  
 elseif strcmp( dist, 'Riesz2' )
-    lb = [-inf(p+q,1)', fliplr(0:k-1)]'; %see stochstic representation
+    lb = [0,-inf(p+q-1,1)', fliplr(0:k-1)]'; %see stochstic representation
 elseif strcmp( dist, 'iRiesz' )
-    lb = [-inf(p+q,1)', 2:k+1]';
+    lb = [0,-inf(p+q-1,1)', 2:k+1]';
 elseif strcmp( dist, 'iRiesz2' )
-    lb = [-inf(p+q,1)', fliplr(2:k+1)]'; %conjectured
+    lb = [0,-inf(p+q-1,1)', fliplr(2:k+1)]'; %conjectured
 elseif strcmp( dist, 'tRiesz' )
-    lb = [-inf(p+q,1)', 0:k-1, 2]'; 
+    lb = [0,-inf(p+q-1,1)', 0:k-1, 2]'; 
 elseif strcmp( dist, 'tRiesz2' )
-    lb = [-inf(p+q,1)', fliplr(0:k-1), 2]'; %see stochstic representation
+    lb = [0,-inf(p+q-1,1)', fliplr(0:k-1), 2]'; %see stochstic representation
 elseif strcmp( dist, 'itRiesz' )
-    lb = [-inf(p+q,1)', 2:k+1, 2]'; %conjectured
+    lb = [0,-inf(p+q-1,1)', 2:k+1, 2]'; %conjectured
 elseif strcmp( dist, 'itRiesz2' )
-    lb = [-inf(p+q,1)', fliplr(2:k+1), 2]'; %conjectured
+    lb = [0,-inf(p+q-1,1)', fliplr(2:k+1), 2]'; %conjectured
 elseif strcmp( dist, 'FRiesz' )
-    lb = [-inf(p+q,1)', (0:k-1), (k-(1:k)+2)]';
+    lb = [0,-inf(p+q-1,1)', (0:k-1), (k-(1:k)+2)]';
 elseif strcmp( dist, 'FRiesz2' )
-    lb = [-inf(p+q,1)', (k-(1:k)), (2:k+1) ]'; %conjectured
+    lb = [0,-inf(p+q-1,1)', (k-(1:k)), (2:k+1) ]'; %conjectured
 end
 % A = [ zeros(1,p) ones(1,q) zeros(1, length(x0)-p-q) ];   % Stationarity
 % b = 1;                                                   % Stationarity
