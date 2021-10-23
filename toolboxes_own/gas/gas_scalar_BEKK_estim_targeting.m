@@ -58,15 +58,15 @@ if isempty(x0)
 end
 % Restrictions-------------------------------------------------------------
 if strcmp( dist, 'Wish' )
-    lb = [0,-inf(p+q-1,1); k-1];
+    lb = [0;-inf(p+q-1,1); k-1];
 elseif strcmp( dist, 'iWish' )
-    lb = [0,-inf(p+q-1,1); k+1];
+    lb = [0;-inf(p+q-1,1); k+1];
 elseif strcmp( dist, 'F' )
-    lb = [0,-inf(p+q-1,1); k-1; k+1];
+    lb = [0;-inf(p+q-1,1); k-1; k+1];
 elseif strcmp( dist, 'tWish' )
-    lb = [0,-inf(p+q-1,1); k-1; 2];
+    lb = [0;-inf(p+q-1,1); k-1; 2];
 elseif strcmp( dist, 'itWish' )
-    lb = [0,-inf(p+q-1,1); k+1; 0];    
+    lb = [0;-inf(p+q-1,1); k+1; 0];    
 elseif strcmp( dist, 'Riesz' )
     lb = [0,-inf(p+q-1,1)', 0:k-1]';  
 elseif strcmp( dist, 'Riesz2' )
