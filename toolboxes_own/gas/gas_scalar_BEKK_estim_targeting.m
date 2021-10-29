@@ -49,44 +49,40 @@ if isempty(x0)
 		x0_df = [ ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]; 
     end
     % Candidate Starting Points for Optimization:
-    x0 = [ones(1,p)*.1/p, ones(1,q)*.99/q, x0_df;
-          ones(1,p)*.1/p, ones(1,q)*.9/q, x0_df;
-          ones(1,p)*.1/p, ones(1,q)*.75/q, x0_df;
-          ones(1,p)*.01/p, ones(1,q)*.75/q, x0_df;
-          zeros(1,p), ones(1,q)*.75/q, x0_df;
-          zeros(1,p+q), x0_df]';    
+    x0 = [zeros(1,p+q), x0_df; % This x0 should always work, so you can get rid of all the other ones and the try/catch around the optimization.
+          ones(1,p)*.05/p, ones(1,q)*.98/q, x0_df]';    
 end
 % Restrictions-------------------------------------------------------------
 if strcmp( dist, 'Wish' )
-    lb = [0.001; -inf(p+q-1,1); k-1];
+    lb = [-0.001; -inf(p+q-1,1); k-1];
 elseif strcmp( dist, 'iWish' )
-    lb = [0.001; -inf(p+q-1,1); k+1];
+    lb = [-0.001; -inf(p+q-1,1); k+1];
 elseif strcmp( dist, 'F' )
-    lb = [0.001; -inf(p+q-1,1); k-1; k+1];
+    lb = [-0.001; -inf(p+q-1,1); k-1; k+1];
 elseif strcmp( dist, 'tWish' )
-    lb = [0.001; -inf(p+q-1,1); k-1; 2];
+    lb = [-0.001; -inf(p+q-1,1); k-1; 2];
 elseif strcmp( dist, 'itWish' )
-    lb = [0.001; -inf(p+q-1,1); k+1; 0];    
+    lb = [-0.001; -inf(p+q-1,1); k+1; 0];    
 elseif strcmp( dist, 'Riesz' )
-    lb = [0.001, -inf(p+q-1,1)', 0:k-1]';  
+    lb = [-0.001, -inf(p+q-1,1)', 0:k-1]';  
 elseif strcmp( dist, 'Riesz2' )
-    lb = [0.001, -inf(p+q-1,1)', fliplr(0:k-1)]'; %see stochstic representation
+    lb = [-0.001, -inf(p+q-1,1)', fliplr(0:k-1)]'; %see stochstic representation
 elseif strcmp( dist, 'iRiesz' )
-    lb = [0.001, -inf(p+q-1,1)', 2:k+1]';
+    lb = [-0.001, -inf(p+q-1,1)', 2:k+1]';
 elseif strcmp( dist, 'iRiesz2' )
-    lb = [0.001, -inf(p+q-1,1)', fliplr(2:k+1)]'; %conjectured
+    lb = [-0.001, -inf(p+q-1,1)', fliplr(2:k+1)]'; %conjectured
 elseif strcmp( dist, 'tRiesz' )
-    lb = [0.001, -inf(p+q-1,1)', 0:k-1, 2]'; 
+    lb = [-0.001, -inf(p+q-1,1)', 0:k-1, 2]'; 
 elseif strcmp( dist, 'tRiesz2' )
-    lb = [0.001, -inf(p+q-1,1)', fliplr(0:k-1), 2]'; %see stochstic representation
+    lb = [-0.001, -inf(p+q-1,1)', fliplr(0:k-1), 2]'; %see stochstic representation
 elseif strcmp( dist, 'itRiesz' )
-    lb = [0.001, -inf(p+q-1,1)', 2:k+1, 2]'; %conjectured
+    lb = [-0.001, -inf(p+q-1,1)', 2:k+1, 2]'; %conjectured
 elseif strcmp( dist, 'itRiesz2' )
-    lb = [0.001, -inf(p+q-1,1)', fliplr(2:k+1), 2]'; %conjectured
+    lb = [-0.001, -inf(p+q-1,1)', fliplr(2:k+1), 2]'; %conjectured
 elseif strcmp( dist, 'FRiesz' )
-    lb = [0.001, -inf(p+q-1,1)', (0:k-1), (k-(1:k)+2)]';
+    lb = [-0.001, -inf(p+q-1,1)', (0:k-1), (k-(1:k)+2)]'; %Note that scoreparam(1) has a high LB. Unfortunatelx FRiesz estimation seems very hard.
 elseif strcmp( dist, 'FRiesz2' )
-    lb = [0.001, -inf(p+q-1,1)', (k-(1:k)), (2:k+1) ]'; %conjectured
+    lb = [-0.001, -inf(p+q-1,1)', (k-(1:k)), (2:k+1) ]'; %conjectured %Note that scoreparam(1) has a high LB. Unfortunatelx FRiesz estimation seems very hard.
 end
 % A = [ zeros(1,p) ones(1,q) zeros(1, length(x0)-p-q) ];   % Stationarity
 % b = 1;                                                   % Stationarity
