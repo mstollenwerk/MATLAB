@@ -85,14 +85,19 @@ for tt=T+1:T+t_ahead
     for jj = 1:q
         Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*Sigma_(:,:,tt-jj);
     end
-    if any(eig(Sigma_(:,:,tt))<0) %This is if the forecasted Sigmas are not pd, which can happen despite all in-sample sigmas being pd. in this case likely the estimated scoreparam is too high for stationarity.
-        nLogL = inf;
-        logLcontr = NaN;
-        SigmaE = NaN;
-        varargout{1} = NaN;      
-        varargout{2} = NaN;
-        return
-    end
+% The commented code below is problematic, because it causes my_fmincon to 
+% fail sometimes. If the true optimal likelihood lies at a point where the
+% forecasts are non-pd, it tries to go closer and closer to this point,
+% sometimes stopping at a point where there are non-finite derivatives,
+% which causes my_fmincon to fail.
+%     if any(eig(Sigma_(:,:,tt))<0) %This is if the forecasted Sigmas are not pd, which can happen despite all in-sample sigmas being pd. in this case likely the estimated scoreparam is too high for stationarity.
+%         nLogL = inf;
+%         logLcontr = NaN;
+%         SigmaE = NaN;
+%         varargout{1} = NaN;      
+%         varargout{2} = NaN;
+%         return
+%     end
 end
 SigmaE = matvEV(dist, Sigma_, param(k_+p+q+1:end));
 %% Log-Likelihood
