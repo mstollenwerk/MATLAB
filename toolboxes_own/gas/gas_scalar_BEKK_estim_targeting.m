@@ -119,14 +119,21 @@ for ii = 1:size(x0,2) % Looping through candidate starting points, until one wor
     end
 end
     
-    
-% Tstats-------------------------------------------------------------------
-%[VCV,A,B,scores,hess,gross_scores] = robustvcv(fun, eparam, 3);
-[VCV,scores,gross_scores] = vcv( obj_fun, eparam );
-tstats = eparam./sqrt(diag(VCV));
-
 % Output Creation----------------------------------------------------------
 [ nLogL, logLcontr, SigmaE, ScaledScore, eparam ] = obj_fun( eparam );
+
+obj_fun_no_targeting = @(param) gas_scalar_BEKK_likeRec( ...
+        [eparam.all(1:k_); param], ...
+        p, ...
+        q, ...
+        X, ...
+        dist, ...
+        scalingtype ...
+    );
+%[VCV,A,B,scores,hess,gross_scores] = robustvcv(fun, eparam, 3);
+[VCV,scores,gross_scores] = vcv( obj_fun_no_targeting, eparam.all(k_+1:end) );
+tstats = eparam.all(k_+1:end)./sqrt(diag(VCV));
+
 
 aic = 2*nLogL + 2*(numel(x0)+k_);
 bic = 2*nLogL + log(T)*(numel(x0)+k_); % see Yu, Li and Ng (2017) 
