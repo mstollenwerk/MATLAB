@@ -49,8 +49,8 @@ if isempty(x0)
 		x0_df = [ ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]; 
     end
     % Candidate Starting Points for Optimization:
-    x0 = [zeros(1,p+q), x0_df; % This x0 should always work, so you can get rid of all the other ones and the try/catch around the optimization.
-          ones(1,p)*.05/p, ones(1,q)*.98/q, x0_df]';    
+    x0 = [zeros(1,p+q), x0_df]; % This x0 should always work, so you can get rid of all the other ones and the try/catch around the optimization.
+%           ones(1,p)*.05/p, ones(1,q)*.98/q, x0_df]';    
 end
 % Restrictions-------------------------------------------------------------
 if strcmp( dist, 'Wish' )
@@ -110,7 +110,10 @@ for ii = 1:size(x0,2) % Looping through candidate starting points, until one wor
         disp('-------------------------------------------------------------------')
         disp('-------------------------------------------------------------------')
         break
-    catch
+    catch ME
+        ME.message
+        [ME.stack.line]'
+        {ME.stack.name}'        
         disp('-------------------------------------------------------------------')
         disp('-------------------------------------------------------------------')
         disp(strcat("Optimization Starting Point for Recursion Parameters: p = (", num2str(x0(1:p,ii)'), "), q = (", num2str(x0(p+1:p+q,ii)'), ") didn't work."))
