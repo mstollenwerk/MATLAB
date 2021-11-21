@@ -99,6 +99,7 @@ for tt=T+1:T+t_ahead
 %         return
 %     end
 end
+[Sigma_(:,:,T+1:T+t_ahead), pdadjustments_made] = makepd(Sigma_(:,:,T+1:T+t_ahead));
 SigmaE = matvEV(dist, Sigma_, param(k_+p+q+1:end));
 %% Log-Likelihood
 nLogL = -sum(logLcontr);
