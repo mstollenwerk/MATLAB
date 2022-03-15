@@ -3,8 +3,12 @@ function logdetX = logdet3d(X)
 %   Detailed explanation goes here
 logdetX = NaN(size(X,3),1);
 for ii = 1:size(X,3)
-    L = chol(X(:,:,ii));
-    logdetX(ii) = 2*sum(log(diag(L)));
+    if all(isnan(squeeze(X(:,:,ii))))
+        logdetX(ii) = NaN;
+    else
+        L = chol(X(:,:,ii));
+        logdetX(ii) = 2*sum(log(diag(L)));
+    end
 end
 
 end
