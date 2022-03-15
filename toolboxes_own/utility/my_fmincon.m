@@ -1,6 +1,6 @@
 function [X,optimoutput] = my_fmincon(FUN,X,A,b,Aeq,beq,lb,ub,nonlcon,varargin)
-%MY_FMINCON Summary of this function goes here
-%   Detailed explanation goes here
+%MY_FMINCON Disables warnings during optimization and records optim path.
+%   path, exitflag, lambda, grad and hessian are fields in optimoutput.
 
 options = optimoptions('fmincon',... 
     'OutputFcn', @(x1,x2,x3) outfun_rec_x(x1,x2,x3,FUN), ...        
