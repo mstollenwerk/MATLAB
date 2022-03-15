@@ -30,7 +30,7 @@ end
 
 set(fig_,'PaperUnits','centimeters','PaperPosition',[0 0 cm_width cm_height],'PaperSize',[cm_width cm_height])
 set(fig_.CurrentAxes,'LooseInset',get(gca,'TightInset'))
-print(fig_,strcat(path,'\',name),'-dpdf')
+print(fig_,strcat(path,'\',name),'-dpdf','r1200')
 
 end
 
