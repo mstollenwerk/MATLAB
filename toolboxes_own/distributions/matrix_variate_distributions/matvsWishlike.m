@@ -32,4 +32,6 @@ dOmega_dSigma = df;
 score.Omega_scaledbyiFish = ...
     ivech(dOmega_dSigma*(fisherinfo.Sigma_\score.Sigma_'));
 
+score.rc_paper = score.Omega_scaledbyiFish;
+
 end
