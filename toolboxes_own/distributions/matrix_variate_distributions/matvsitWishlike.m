@@ -23,6 +23,8 @@ function [ nLogL, logLcontr, score ] = matvsitWishlike( Omega_, n, nu, X, vararg
 % michael.stollenwerk@live.com
 % 30.08.2021
 
+k = size(Omega_,1);
+
 Y = 1/(n-k-1);
 Sigma_ = Omega_/Y;
 dOmega_dSigma = Y;

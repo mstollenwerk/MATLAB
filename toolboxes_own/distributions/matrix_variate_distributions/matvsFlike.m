@@ -23,6 +23,8 @@ function [ nLogL, logLcontr, score ] = matvsFlike( Omega_, n, nu, X, varargin )
 % michael.stollenwerk@live.com
 % 30.08.2021
 
+k = size(Omega_,1);
+
 Y = n*nu/(nu-k-1);
 Sigma_ = Omega_/Y;
 dOmega_dSigma = Y;
