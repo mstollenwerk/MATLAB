@@ -1,4 +1,4 @@
-function [ nLogL, logLcontr, SigmaE, ScaledScore, varargout ] = ...
+function [ nLogL, logLcontr, Sigma_, ScaledScore, varargout ] = ...
     gas_scalar_BEKK_likeRec( param, p, q, R, dist, scalingtype )
 %
 % Michael Stollenwerk
@@ -55,7 +55,7 @@ for tt=1:T
 %         {ME.stack.name}'
         nLogL = inf;
         logLcontr = NaN;
-        SigmaE = NaN;
+        Sigma_ = NaN;
         varargout{1} = NaN;      
         varargout{2} = NaN;
         return
@@ -99,7 +99,6 @@ for tt=T+1:T+t_ahead
 %     end
 end
 [Sigma_(:,:,T+1:T+t_ahead), pdadjustments_made] = makepd(Sigma_(:,:,T+1:T+t_ahead));
-SigmaE = matvEV(dist, Sigma_, param(k_+p+q+1:end));
 %% Log-Likelihood
 nLogL = -sum(logLcontr);
 %% Parameter Output
