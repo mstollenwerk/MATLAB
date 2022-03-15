@@ -1,5 +1,5 @@
 function [ nLogL, logLcontr, SigmaE, ScaledScore, varargout ] = ...
-    gas_scalar_BEKK_likeRec( param, p, q, X, dist, scalingtype )
+    gas_scalar_BEKK_likeRec( param, p, q, R, dist, scalingtype )
 %
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
@@ -7,7 +7,7 @@ function [ nLogL, logLcontr, SigmaE, ScaledScore, varargout ] = ...
 
 t_ahead = 220;
 
-[k,~,T] = size(X);
+[k,~,T] = size(R);
 k_ = k*(k+1)/2;
 %% Parameters
 intrcpt = ivechchol(param(1:k_));
@@ -18,8 +18,7 @@ garchparam = param(k_ + p + 1 : k_+ p + q);
 m = ceil(sqrt(T));
 w = .06 * .94.^(0:(m-1));
 w = reshape(w/sum(w),[1 1 m]);
-backCast_data = matvStandardize(dist, X(:,:,1:m), param(k_+p+q+1:end));
-backCast = sum(bsxfun(@times,w,backCast_data(:,:,1:m)),3);
+backCast = sum(bsxfun(@times,w, R(:,:,1:m)),3);
 % Initialize recursion at unconditional mean (stationarity assumed).
 % ini = intrcpt./(1 - sum(garchparam));
 %% Data Storage
@@ -47,8 +46,8 @@ for tt=1:T
     
     try
         % Likelihood Evaluation         
-        [~, logLcontr(tt), score, ~, param_dist, fisherinfo] = ...
-            matvLogLike( dist, Sigma_(:,:,tt), param(k_+p+q+1:end), X(:,:,tt) );   
+        [~, logLcontr(tt), score, param_dist] = ...
+            matvsLogLike( dist, Sigma_(:,:,tt), param(k_+p+q+1:end), R(:,:,tt) );   
     catch ME
 %         tt
 %         ME.message
@@ -64,7 +63,7 @@ for tt=1:T
     
     % Scaled Score 
     if scalingtype == 1
-        ScaledScore(:,:,tt) = ivech(fisherinfo.Sigma_\score.Sigma_');
+        ScaledScore(:,:,tt) = score.rc_paper;
     elseif scalingtype == 2
         ScaledScore(:,:,tt) = score.Sigma_WishFishScaling;
     else

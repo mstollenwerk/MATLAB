@@ -29,24 +29,24 @@ if isempty(x0)
 		x0_df = [ 2*k+3, 2*k+3 ];  % nu > p - 3 for Fisher Info to exist.
     elseif strcmp( dist, 'Riesz' )
 		x0_df = ones(1,k).*(2*k);
-    elseif strcmp( dist, 'Riesz2' )
-		x0_df = ones(1,k).*(2*k);
-    elseif strcmp( dist, 'iRiesz' )
-		x0_df = ones(1,k).*(2*k);   
+%     elseif strcmp( dist, 'Riesz2' )
+% 		x0_df = ones(1,k).*(2*k);
+%     elseif strcmp( dist, 'iRiesz' )
+% 		x0_df = ones(1,k).*(2*k);   
     elseif strcmp( dist, 'iRiesz2' )
 		x0_df = ones(1,k).*(2*k);   
     elseif strcmp( dist, 'tRiesz' )
 		x0_df = [ ones(1,k).*(2*k), 5 ]; 
-    elseif strcmp( dist, 'tRiesz2' )
-		x0_df = [ ones(1,k).*(2*k), 5 ]; 
-    elseif strcmp( dist, 'itRiesz' )
-		x0_df = [ ones(1,k).*(2*k), 5 ];
+%     elseif strcmp( dist, 'tRiesz2' )
+% 		x0_df = [ ones(1,k).*(2*k), 5 ]; 
+%     elseif strcmp( dist, 'itRiesz' )
+% 		x0_df = [ ones(1,k).*(2*k), 5 ];
     elseif strcmp( dist, 'itRiesz2' )
 		x0_df = [ ones(1,k).*(2*k), 5 ];
     elseif strcmp( dist, 'FRiesz' )
 		x0_df = [ ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ];
-    elseif strcmp( dist, 'FRiesz2' )
-		x0_df = [ ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]; 
+%     elseif strcmp( dist, 'FRiesz2' )
+% 		x0_df = [ ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]; 
     end
     % Candidate Starting Points for Optimization:
     x0 = [zeros(1,p+q), x0_df]'; % This x0 should always work, so you can get rid of all the other ones and the try/catch around the optimization.
@@ -65,24 +65,24 @@ elseif strcmp( dist, 'itWish' )
     lb = [-0.001; -inf(p+q-1,1); k+1; 0];    
 elseif strcmp( dist, 'Riesz' )
     lb = [-0.001, -inf(p+q-1,1)', 0:k-1]';  
-elseif strcmp( dist, 'Riesz2' )
-    lb = [-0.001, -inf(p+q-1,1)', fliplr(0:k-1)]'; %see stochstic representation
-elseif strcmp( dist, 'iRiesz' )
-    lb = [-0.001, -inf(p+q-1,1)', 2:k+1]';
+% elseif strcmp( dist, 'Riesz2' )
+%     lb = [-0.001, -inf(p+q-1,1)', fliplr(0:k-1)]'; %see stochstic representation
+% elseif strcmp( dist, 'iRiesz' )
+%     lb = [-0.001, -inf(p+q-1,1)', 2:k+1]';
 elseif strcmp( dist, 'iRiesz2' )
     lb = [-0.001, -inf(p+q-1,1)', fliplr(2:k+1)]'; %conjectured
 elseif strcmp( dist, 'tRiesz' )
     lb = [-0.001, -inf(p+q-1,1)', 0:k-1, 2]'; 
-elseif strcmp( dist, 'tRiesz2' )
-    lb = [-0.001, -inf(p+q-1,1)', fliplr(0:k-1), 2]'; %see stochstic representation
-elseif strcmp( dist, 'itRiesz' )
-    lb = [-0.001, -inf(p+q-1,1)', 2:k+1, 2]'; %conjectured
+% elseif strcmp( dist, 'tRiesz2' )
+%     lb = [-0.001, -inf(p+q-1,1)', fliplr(0:k-1), 2]'; %see stochstic representation
+% elseif strcmp( dist, 'itRiesz' )
+%     lb = [-0.001, -inf(p+q-1,1)', 2:k+1, 2]'; %conjectured
 elseif strcmp( dist, 'itRiesz2' )
     lb = [-0.001, -inf(p+q-1,1)', fliplr(2:k+1), 2]'; %conjectured
 elseif strcmp( dist, 'FRiesz' )
     lb = [-0.001, -inf(p+q-1,1)', (0:k-1), (k-(1:k)+2)]'; %Note that scoreparam(1) has a high LB. Unfortunatelx FRiesz estimation seems very hard.
-elseif strcmp( dist, 'FRiesz2' )
-    lb = [-0.001, -inf(p+q-1,1)', (k-(1:k)), (2:k+1) ]'; %conjectured %Note that scoreparam(1) has a high LB. Unfortunatelx FRiesz estimation seems very hard.
+% elseif strcmp( dist, 'FRiesz2' )
+%     lb = [-0.001, -inf(p+q-1,1)', (k-(1:k)), (2:k+1) ]'; %conjectured %Note that scoreparam(1) has a high LB. Unfortunatelx FRiesz estimation seems very hard.
 end
 % A = [ zeros(1,p) ones(1,q) zeros(1, length(x0)-p-q) ];   % Stationarity
 % b = 1;                                                   % Stationarity
@@ -162,7 +162,7 @@ function [ nLogL, logLcontr, SigmaE, ScaledScore, param_out, fitplot ] = obj_fun
         return
     end
     
-    meanSig = matvStandardize(dist, mean(X,3), param(p+q+1:end));
+    meanSig = mean(X,3);
     
     vechcholIntrcpt = vechchol( meanSig*(1-sum(param(p+1:p+q))) );  
     
