@@ -1,4 +1,4 @@
-function [ nLogL, logLcontr, score ] = matvsFRieszlike( Omega_, n, nu, X, varargin )
+function [ nLogL, logLcontr, varargout ] = matvsFRieszlike( Omega_, n, nu, X, varargin )
 %MATVWISHLIKE
 %
 % USAGE:
@@ -28,25 +28,36 @@ C_Om = chol(Omega_,'lower');
 C_Sig = C_Om/sqrtm(Y);
 Sigma_ = C_Sig*C_Sig';
 
-[nLogL, logLcontr, score] = ...
-    matvFRieszlike(Sigma_, n, nu, X);
+if nargout <= 2
+    
+    [nLogL, logLcontr] = ...
+        matvFRieszlike(Sigma_, n, nu, X);
+    
+elseif nargout >= 3
 
-avg_n = mean(n);
-avg_nu = mean(nu);
-p = size(Omega_,1);
-c_1 = (avg_n^2*(avg_nu-p-2) + 2*avg_n)/((avg_nu-p)*(avg_nu-p-1)*(avg_nu-p-3));
-c_2 = (avg_n*(avg_nu-p-2)+avg_n^2+avg_n)/((avg_nu-p)*(avg_nu-p-1)*(avg_nu-p-3));
-c_4 = (avg_n-p-1)/((avg_n+avg_nu-1)*(avg_n+avg_nu+2))*((avg_n-p-2+1/(avg_nu+avg_n))*c_2-(1+(avg_n-p-1)/(avg_n+avg_nu))*c_1);
-c_3 = (avg_n-p-1)/(avg_n+avg_nu)*((avg_n-p-2)*c_2 - c_1)-(avg_n+avg_nu+1)*c_4;
-ckron2 = (avg_nu-(avg_n+avg_nu)*(c_3+c_4));
-cvec2 = (avg_n+avg_nu)*c_4;
+    [nLogL, logLcontr, score] = ...
+        matvFRieszlike(Sigma_, n, nu, X);
 
-G = Dmatrix(p);
-invSig = inv(Sigma_);
-fisherinfo_Sigma_F = 1/2*G'*(ckron2*kron2(invSig) - cvec2*vec2(invSig))*G;
+    avg_n = mean(n);
+    avg_nu = mean(nu);
+    p = size(Omega_,1);
+    c_1 = (avg_n^2*(avg_nu-p-2) + 2*avg_n)/((avg_nu-p)*(avg_nu-p-1)*(avg_nu-p-3));
+    c_2 = (avg_n*(avg_nu-p-2)+avg_n^2+avg_n)/((avg_nu-p)*(avg_nu-p-1)*(avg_nu-p-3));
+    c_4 = (avg_n-p-1)/((avg_n+avg_nu-1)*(avg_n+avg_nu+2))*((avg_n-p-2+1/(avg_nu+avg_n))*c_2-(1+(avg_n-p-1)/(avg_n+avg_nu))*c_1);
+    c_3 = (avg_n-p-1)/(avg_n+avg_nu)*((avg_n-p-2)*c_2 - c_1)-(avg_n+avg_nu+1)*c_4;
+    ckron2 = (avg_nu-(avg_n+avg_nu)*(c_3+c_4));
+    cvec2 = (avg_n+avg_nu)*c_4;
 
-score.rc_paper = ...
-    ivech(mean(diag(Y))*(fisherinfo_Sigma_F\score.Sigma_'));
+    G = Dmatrix(p);
+    invSig = inv(Sigma_);
+    fisherinfo_Sigma_F = 1/2*G'*(ckron2*kron2(invSig) - cvec2*vec2(invSig))*G;
+
+    score.rc_paper = ...
+        ivech(mean(diag(Y))*(fisherinfo_Sigma_F\score.Sigma_'));
+
+    varargout{1} = score;
+
+end
 
 %%
 % p = size(Omega_,1);
