@@ -1,4 +1,4 @@
-function [ eparam, tstats, logL, optimoutput ] = matvRieszest( data_mat, x0, varargin )
+function [ eparam, tstats, logL, optimoutput ] = matvRieszest( R, x0, varargin )
 %MATVRIESZEST
 %
 % USAGE:
@@ -23,75 +23,33 @@ function [ eparam, tstats, logL, optimoutput ] = matvRieszest( data_mat, x0, var
 % DEPENDENCIES:
 %
 narginchk(2,inf);
-[p,~,N] = size(data_mat);
+[p,~,N] = size(R);
 p_ = p*(p+1)/2;
 %%
 if ~isempty(varargin) && strcmp(varargin{1},'EstimationStrategy:MethodOfMoments')
     %% Optimization
-        
-    obj_fun = @(df) matvRieszlike( ...
-        chol(mean(data_mat,3),'lower')/diag(df)*chol(mean(data_mat,3),'lower')', ...
-        df, data_mat );
 
     if isempty(x0)  
         x0 = 2*p.*ones(p,1);
     end
 
     lb = [0:p-1]';
-
+    
+    avgR = mean(R,3);
+    obj_fun = @(df,perm_) matvsRieszlike( avgR(perm_,perm_,:), df, R(perm_, perm_, :) );
+    
     [eparam,optimoutput] = ...
-        my_fmincon(...
+        fmincon_Rieszperm(...
+            p, ...
             obj_fun, ...
             x0, ...
             [],[],[],[],lb,[],[],varargin{2:end} ...
         );
-    optimoutput.perm_ = 1:p;
     
-    perm_improvement = inf;
-    useless_counter = 0;
-    while perm_improvement > 0
-        useless_counter = useless_counter + 1;
-        rng(useless_counter) % For comparison, always try the same permutations, but not the same in every while loop iteration.
-        for ii = 1:100
-            perm_(ii,:) = randperm(p);
-        end
-        perm_ = unique(perm_, 'rows', 'stable');
-        perm_ = setdiff(perm_, optimoutput.perm_, 'rows'); %remove previously optimized 
-        for ii = 1:size(perm_,1)
-            nLogL_permuted_assets(ii) = ...
-                matvRieszlike( ...
-                    chol(mean(data_mat(perm_(ii,:),perm_(ii,:),:),3),'lower')/diag(eparam)*chol(mean(data_mat(perm_(ii,:),perm_(ii,:),:),3),'lower')', ...
-                    eparam, data_mat(perm_(ii,:),perm_(ii,:),:) ...
-                );
-        end
-        [~,min_ii] = min(nLogL_permuted_assets);
-        
-        disp(strcat("Optimizing over asset permutation (",num2str(perm_(min_ii,:)),")"))
-        obj_fun_min_ii = @(df) matvRieszlike( ...
-            chol(mean(data_mat(perm_(min_ii,:),perm_(min_ii,:),:),3),'lower')/diag(df)*chol(mean(data_mat(perm_(min_ii,:),perm_(min_ii,:),:),3),'lower')', ...
-            df, data_mat(perm_(min_ii,:),perm_(min_ii,:),:) );
-        [eparam_min_ii,optimoutput_min_ii] = ...
-            my_fmincon(...
-                obj_fun_min_ii, ...
-                eparam, ...
-                [],[],[],[],lb,[],[],varargin{2:end} ...
-            );
-        
-        perm_improvement = -optimoutput_min_ii.history.fval(end) + optimoutput.history.fval(end);
-        if perm_improvement > 0
-            perm_improvement
-            obj_fun = obj_fun_min_ii;
-            eparam = eparam_min_ii;
-            optimoutput = optimoutput_min_ii;
-            optimoutput.perm_ = perm_(min_ii,:);
-        else
-            disp("No likelihood improvement with new asset permuatation.")
-        end
-        clear perm_ nLogL_permuted_assets
-    end  
+    obj_fun_opt_perm = @(df) obj_fun(df,optimoutput.perm_);
     %% tstats
     %[VCV,A,B,scores,hess,gross_scores] = robustvcv(fun, eparam, 3);
-    [VCV,scores,gross_scores] = vcv(obj_fun, eparam);
+    [VCV,scores,gross_scores] = vcv(obj_fun_opt_perm, eparam);
 
     tstats = eparam./sqrt(diag(VCV));
 
@@ -101,7 +59,8 @@ if ~isempty(varargin) && strcmp(varargin{1},'EstimationStrategy:MethodOfMoments'
         'all', [NaN(p_,1); tstats] ...
     );
     %% nLogL, logLcontr and eparam
-    [nLogL, logLcontr, ~, ~, eparam ] = obj_fun( eparam );
+    [nLogL, logLcontr, ~, ~, eparam ] = obj_fun_opt_perm( eparam );
+    eparam.perm_ = optimoutput.perm_;
 
     aic = 2*nLogL + 2*(p_ + p);
     bic = 2*nLogL + log(N)*(p_ + p);
@@ -114,10 +73,10 @@ if ~isempty(varargin) && strcmp(varargin{1},'EstimationStrategy:MethodOfMoments'
 else
     %% Optimization
     warning("Optimization over all parameters is done without optimization over asset ordering!")
-    obj_fun = @(param) matvRieszlike( [], [], data_mat, param );
+    obj_fun = @(param) matvRieszlike( [], [], R, param );
 
     if isempty(x0)  
-        x0 = [ vech(chol(mean(data_mat,3)/2/p, 'lower')); 2*p.*ones(p,1) ];
+        x0 = [ vech(chol(mean(R,3)/2/p, 'lower')); 2*p.*ones(p,1) ];
     end
 
     lb = [-inf(p_,1);(0:p-1)'];

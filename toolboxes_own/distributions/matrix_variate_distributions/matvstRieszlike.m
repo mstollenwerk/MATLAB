@@ -7,15 +7,13 @@ Y = diag(n).*nu./(nu - 2);
 C_Om = chol(Omega_,'lower');
 C_Sig = C_Om/sqrtm(Y);
 Sigma_ = C_Sig*C_Sig';
-
-if nargout <= 2
     
-    [nLogL, logLcontr, score] = ...
-        matvtRieszlike(Sigma_, n, nu, X);
+[nLogL, logLcontr] = ...
+    matvtRieszlike(Sigma_, n, nu, X);
     
-elseif nargout >= 3
+if nargout >= 3
 
-    [nLogL, logLcontr, score] = ...
+    [~, ~, score] = ...
         matvtRieszlike(Sigma_, n, nu, X);
 
     avg_n = mean(n);
@@ -26,11 +24,22 @@ elseif nargout >= 3
     c2 = -avg_n^2/2/(nu+p*avg_n+2);
     fisherinfo_Sigma_tWishart = G'*(c1*kron2(invSig) + c2*vec2(invSig))*G;
 
-    score.rc_paper = ...
-        ivech(mean(diag(Y))*(fisherinfo_Sigma_tWishart\score.Sigma_'));
+    for ii = 1:size(X,3)
+        score.rc_paper(:,:,ii) = ...
+            ivech(mean(diag(Y))*(fisherinfo_Sigma_tWishart\score.Sigma_(ii,:)'));
+    end
 
     varargout{1} = score;
 
+end
+
+if nargout >= 5
+
+    [~, ~, ~, hessian, param] = ...
+        matvtRieszlike(Sigma_, n, nu, X);
+    
+    varargout{2} = hessian;
+    varargout{3} = param;
 end
 
 %%

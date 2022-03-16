@@ -27,15 +27,13 @@ Y = matvFRieszexpmat(n,nu);
 C_Om = chol(Omega_,'lower');
 C_Sig = C_Om/sqrtm(Y);
 Sigma_ = C_Sig*C_Sig';
-
-if nargout <= 2
     
-    [nLogL, logLcontr] = ...
-        matvFRieszlike(Sigma_, n, nu, X);
+[nLogL, logLcontr] = ...
+    matvFRieszlike(Sigma_, n, nu, X);
     
-elseif nargout >= 3
+if nargout >= 3
 
-    [nLogL, logLcontr, score] = ...
+    [~, ~, score] = ...
         matvFRieszlike(Sigma_, n, nu, X);
 
     avg_n = mean(n);
@@ -51,12 +49,23 @@ elseif nargout >= 3
     G = Dmatrix(p);
     invSig = inv(Sigma_);
     fisherinfo_Sigma_F = 1/2*G'*(ckron2*kron2(invSig) - cvec2*vec2(invSig))*G;
-
-    score.rc_paper = ...
-        ivech(mean(diag(Y))*(fisherinfo_Sigma_F\score.Sigma_'));
+    
+    for ii = 1:size(X,3)
+        score.rc_paper(:,:,ii) = ...
+            ivech(mean(diag(Y))*(fisherinfo_Sigma_F\score.Sigma_(ii,:)'));
+    end
 
     varargout{1} = score;
 
+end
+
+if nargout >= 5
+
+    [~, ~, ~, hessian, param] = ...
+        matvFRieszlike(Sigma_, n, nu, X);
+    
+    varargout{2} = hessian;
+    varargout{3} = param;
 end
 
 %%

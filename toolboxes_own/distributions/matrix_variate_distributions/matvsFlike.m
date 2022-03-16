@@ -1,4 +1,4 @@
-function [ nLogL, logLcontr, score ] = matvsFlike( Omega_, n, nu, X, varargin )
+function [ nLogL, logLcontr, varargout ] = matvsFlike( Omega_, n, nu, X, varargin )
 %MATVWISHLIKE
 %
 % USAGE:
@@ -29,12 +29,25 @@ Y = n*nu/(nu-k-1);
 Sigma_ = Omega_/Y;
 dOmega_dSigma = Y;
 
-[nLogL, logLcontr, score, ~, ~, fisherinfo] = ...
+[nLogL, logLcontr] = ...
     matvFlike(Sigma_, n, nu, X);
+    
+if nargout >= 3
+    
+    [nLogL, logLcontr, score, ~, param, fisherinfo] = ...
+        matvFlike(Sigma_, n, nu, X);
 
-score.Omega_scaledbyiFish = ...
-    ivech(dOmega_dSigma*(fisherinfo.Sigma_\score.Sigma_'));
+    for ii = 1:size(X,3)
+        score.Omega_scaledbyiFish(:,:,ii) = ...
+            ivech(dOmega_dSigma*(fisherinfo.Sigma_\score.Sigma_(ii,:)'));
+    end
 
-score.rc_paper = score.Omega_scaledbyiFish;
+    score.rc_paper = score.Omega_scaledbyiFish;
+    
+    varargout{1} = score;
+    varargout{3} = param;
+    varargout{4} = fisherinfo;
+
+end
 
 end

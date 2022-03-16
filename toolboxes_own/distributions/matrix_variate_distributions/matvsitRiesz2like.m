@@ -8,15 +8,13 @@ C_Om = chol(Omega_,'lower');
 C_Sig = C_Om/sqrtm(Y);
 Sigma_ = C_Sig*C_Sig';
 
-
-if nargout <= 2
     
-    [nLogL, logLcontr] = ...
-        matvitRiesz2like(Sigma_, n, nu, X);
+[nLogL, logLcontr] = ...
+    matvitRiesz2like(Sigma_, n, nu, X);
     
-elseif nargout >= 3
+if nargout >= 3
 
-    [nLogL, logLcontr, score] = ...
+    [~, ~, score] = ...
         matvitRiesz2like(Sigma_, n, nu, X);
 
     avg_n = mean(n);
@@ -26,14 +24,24 @@ elseif nargout >= 3
     c1 = avg_n/2*(nu+p*avg_n)/(nu+p*avg_n+2);
     c2 = -avg_n^2/2/(nu+p*avg_n+2);
     fisherinfo_Sigma_itWish = G'*(c1*kron2(invSig) + c2*vec2(invSig))*G;
-
-    score.rc_paper = ...
-        ivech(mean(diag(Y))*(fisherinfo_Sigma_itWish\score.Sigma_'));
+    
+    for ii = 1:size(X,3)
+        score.rc_paper(:,:,ii) = ...
+            ivech(mean(diag(Y))*(fisherinfo_Sigma_itWish\score.Sigma_(ii,:)'));
+    end
 
     varargout{1} = score;
 
 end
 
+if nargout >= 5
+
+    [~, ~, ~, hessian, param] = ...
+        matvitRiesz2like(Sigma_, n, nu, X);
+    
+    varargout{2} = hessian;
+    varargout{3} = param;
+end
 %%
 % p = size(Omega_,1);
 % 

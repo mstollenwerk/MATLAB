@@ -28,14 +28,12 @@ C_Om = chol(Omega_,'lower');
 C_Sig = C_Om/sqrtm(Y);
 Sigma_ = C_Sig*C_Sig';
 
-if nargout <= 2
+[nLogL, logLcontr] = ...
+    matvRieszlike(Sigma_, n, X);
     
-    [nLogL, logLcontr] = ...
-        matvRieszlike(Sigma_, n, X);
+if nargout >= 3
     
-elseif nargout >= 3
-    
-    [nLogL, logLcontr, score] = ...
+    [~, ~, score] = ...
         matvRieszlike(Sigma_, n, X);
 
     avg_n = mean(n);
@@ -43,11 +41,23 @@ elseif nargout >= 3
     G = Dmatrix(p);
     invSig = inv(Sigma_);
     fisherinfo_Sigma_Wishart = avg_n/2*G'*kron(invSig,invSig)*G;
-
-    score.rc_paper = ...
-        ivech(avg_n*(fisherinfo_Sigma_Wishart\score.Sigma_'));
     
+    for ii = 1:size(X,3)
+        score.rc_paper(:,:,ii) = ...
+            ivech(avg_n*(fisherinfo_Sigma_Wishart\score.Sigma_(ii,:)'));
+    end
+
     varargout{1} = score;
+
+end
+
+if nargout >= 5
+
+    [~, ~, ~, hessian, param] = ...
+        matvRieszlike(Sigma_, n, X);
+    
+    varargout{2} = hessian;
+    varargout{3} = param;
 end
 %%
 % [~,iG] = Dmatrix(p);

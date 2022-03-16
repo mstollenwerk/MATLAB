@@ -26,22 +26,25 @@ function [ nLogL, logLcontr, varargout ] = matvsWishlike( Omega_, df, X, varargi
 Sigma_ = Omega_/df;
 dOmega_dSigma = df;
 
-if nargout <= 2
+[nLogL, logLcontr] = ...
+    matvWishlike(Sigma_, df, X);
     
-    [nLogL, logLcontr] = ...
-        matvWishlike(Sigma_, df, X);
-    
-elseif nargout >= 3
+if nargout >= 3
 
-    [nLogL, logLcontr, score, ~, ~, fisherinfo] = ...
+    [nLogL, logLcontr, score, ~, param, fisherinfo] = ...
         matvWishlike(Sigma_, df, X);
 
-    score.Omega_scaledbyiFish = ...
-        ivech(dOmega_dSigma*(fisherinfo.Sigma_\score.Sigma_'));
+    for ii = 1:size(X,3)
+        score.Omega_scaledbyiFish(:,:,ii) = ...
+            ivech(dOmega_dSigma*(fisherinfo.Sigma_\score.Sigma_(ii,:)'));
+    end
 
     score.rc_paper = score.Omega_scaledbyiFish;
 
     varargout{1} = score;
+    varargout{3} = param;
+    varargout{4} = fisherinfo;
+
 end
 
 end
