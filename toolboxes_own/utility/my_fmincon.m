@@ -6,7 +6,9 @@ options = optimoptions('fmincon',...
     'OutputFcn', @(x1,x2,x3) outfun_rec_x(x1,x2,x3,FUN), ...        
     'Display', 'iter-detailed' ...
 );
-options = optimoptions(options, varargin{:});
+if ~isempty(varargin{:})
+    options = optimoptions(options, varargin{:});
+end
 
 tic
 
