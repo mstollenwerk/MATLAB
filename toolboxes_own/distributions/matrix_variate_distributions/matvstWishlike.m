@@ -1,4 +1,4 @@
-function [ nLogL, logLcontr, score ] = matvstWishlike( Omega_, n, nu, X, varargin )
+function [ nLogL, logLcontr, varargout ] = matvstWishlike( Omega_, n, nu, X, varargin )
 %MATVWISHLIKE
 %
 % USAGE:
@@ -27,12 +27,22 @@ Y = n*nu/(nu-2);
 Sigma_ = Omega_/Y;
 dOmega_dSigma = Y;
 
-[nLogL, logLcontr, score, ~, ~, fisherinfo] = ...
-    matvtWishlike(Sigma_, n, nu, X);
+if nargout <= 2
+    
+    [nLogL, logLcontr] = ...
+        matvtWishlike(Sigma_, n, nu, X);
+    
+elseif nargout >= 3
+    
+    [nLogL, logLcontr, score, ~, ~, fisherinfo] = ...
+        matvtWishlike(Sigma_, n, nu, X);
 
-score.Omega_scaledbyiFish = ...
-    ivech(dOmega_dSigma*(fisherinfo.Sigma_\score.Sigma_'));
+    score.Omega_scaledbyiFish = ...
+        ivech(dOmega_dSigma*(fisherinfo.Sigma_\score.Sigma_'));
 
-score.rc_paper = score.Omega_scaledbyiFish;
+    score.rc_paper = score.Omega_scaledbyiFish;
+
+    varargout{1} = score;
+end
 
 end

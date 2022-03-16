@@ -28,17 +28,18 @@ p_ = p*(p+1)/2;
 if ~isempty(varargin) && strcmp(varargin{1},'EstimationStrategy:MethodOfMoments')
     %% Optimization
     
-    mean_data_mat = mean(data_mat,3);
-    U = cholU(mean_data_mat);
-    
-    obj_fun = @(df) matvtRiesz2like( U/matvtRieszexpmat(df(1:p),df(p+1))*U', df(1:p), df(p+1), data_mat );
-
     if isempty(x0)  
         x0 = [ 2*p.*ones(p,1); 2*p ];
     end
 
     lb = [ flipud((0:p-1)'); 2 ];
 
+    
+    
+    mean_data_mat = mean(data_mat,3);
+    U = cholU(mean_data_mat);
+    
+    obj_fun = @(df) matvtRiesz2like( U/matvtRieszexpmat(df(1:p),df(p+1))*U', df(1:p), df(p+1), data_mat );    
     [eparam,optimoutput] = ...
         my_fmincon(...
             obj_fun, ...

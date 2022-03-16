@@ -1,4 +1,4 @@
-function [ nLogL, logLcontr, score ] = matvsitRiesz2like( Omega_, n, nu, X, varargin )
+function [ nLogL, logLcontr, varargout ] = matvsitRiesz2like( Omega_, n, nu, X, varargin )
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
 % 15.03.2022
@@ -8,19 +8,31 @@ C_Om = chol(Omega_,'lower');
 C_Sig = C_Om/sqrtm(Y);
 Sigma_ = C_Sig*C_Sig';
 
-[nLogL, logLcontr, score] = ...
-    matvitRiesz2like(Sigma_, n, nu, X);
 
-avg_n = mean(n);
-p = size(Omega_,1);
-G = Dmatrix(p);
-invSig = inv(Sigma_);
-c1 = avg_n/2*(nu+p*avg_n)/(nu+p*avg_n+2);
-c2 = -avg_n^2/2/(nu+p*avg_n+2);
-fisherinfo_Sigma_itWish = G'*(c1*kron2(invSig) + c2*vec2(invSig))*G;
+if nargout <= 2
+    
+    [nLogL, logLcontr] = ...
+        matvitRiesz2like(Sigma_, n, nu, X);
+    
+elseif nargout >= 3
 
-score.rc_paper = ...
-    ivech(mean(diag(Y))*(fisherinfo_Sigma_itWish\score.Sigma_'));
+    [nLogL, logLcontr, score] = ...
+        matvitRiesz2like(Sigma_, n, nu, X);
+
+    avg_n = mean(n);
+    p = size(Omega_,1);
+    G = Dmatrix(p);
+    invSig = inv(Sigma_);
+    c1 = avg_n/2*(nu+p*avg_n)/(nu+p*avg_n+2);
+    c2 = -avg_n^2/2/(nu+p*avg_n+2);
+    fisherinfo_Sigma_itWish = G'*(c1*kron2(invSig) + c2*vec2(invSig))*G;
+
+    score.rc_paper = ...
+        ivech(mean(diag(Y))*(fisherinfo_Sigma_itWish\score.Sigma_'));
+
+    varargout{1} = score;
+
+end
 
 %%
 % p = size(Omega_,1);

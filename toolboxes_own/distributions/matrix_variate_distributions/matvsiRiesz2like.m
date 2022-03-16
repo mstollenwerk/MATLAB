@@ -1,4 +1,4 @@
-function [ nLogL, logLcontr, score ] = matvsiRiesz2like( Omega_, n, X, varargin )
+function [ nLogL, logLcontr, varargout ] = matvsiRiesz2like( Omega_, n, X, varargin )
 
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
@@ -15,16 +15,27 @@ C_Om = chol(Omega_,'lower');
 C_Sig = C_Om/sqrtm(Y);
 Sigma_ = C_Sig*C_Sig';
 
-[nLogL, logLcontr, score] = ...
-    matviRiesz2like(Sigma_, n, X);
+if nargout <= 2
+    
+    [nLogL, logLcontr] = ...
+        matviRiesz2like(Sigma_, n, X);
+    
+elseif nargout >= 3
 
-avg_n = mean(n);
-G = Dmatrix(p);
-invSig = inv(Sigma_);
-fisherinfo_Sigma_iWishart = avg_n/2*G'*kron2(invSig)*G;
+    [nLogL, logLcontr, score] = ...
+        matviRiesz2like(Sigma_, n, X);
 
-score.rc_paper = ...
-    ivech(mean(diag(Y))*(fisherinfo_Sigma_iWishart\score.Sigma_'));
+    avg_n = mean(n);
+    G = Dmatrix(p);
+    invSig = inv(Sigma_);
+    fisherinfo_Sigma_iWishart = avg_n/2*G'*kron2(invSig)*G;
+
+    score.rc_paper = ...
+	   ivech(mean(diag(Y))*(fisherinfo_Sigma_iWishart\score.Sigma_'));
+
+    varargout{1} = score;
+
+end
 
 % dOmega_dSigma = iG*kron(C_Sig*Y,I)*L'/(iG*kron(C_Sig,I)*L');
 % 

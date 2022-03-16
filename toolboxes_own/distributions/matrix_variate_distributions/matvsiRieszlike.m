@@ -34,10 +34,21 @@ iCdot_Sig = iCdot_Om/sqrtm(Y);
 Sigma_ = iCdot_Sig'*iCdot_Sig;
 dOmega_dSigma = iG*kron(iCdot_Sig',iCdot_Sig'*Y*iCdot_Sig)*L'/(iG*kron(iCdot_Sig',Sigma_)*L');
 
-[nLogL, logLcontr, score, ~, ~, fisherinfo] = ...
-    matviRieszlike(Sigma_, n, X);
+if nargout <= 2
+    
+    [nLogL, logLcontr] = ...
+        matviRieszlike(Sigma_, n, X);
+    
+elseif nargout >= 3
 
-score.Omega_scaledbyiFish = ...
-    ivech(dOmega_dSigma*(fisherinfo.Sigma_\score.Sigma_'));
+    [nLogL, logLcontr, score, ~, ~, fisherinfo] = ...
+        matviRieszlike(Sigma_, n, X);
+
+    score.Omega_scaledbyiFish = ...
+        ivech(dOmega_dSigma*(fisherinfo.Sigma_\score.Sigma_'));
+
+    varargout{1} = score;
+
+end
 
 end

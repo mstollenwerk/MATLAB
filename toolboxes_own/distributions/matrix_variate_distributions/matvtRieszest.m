@@ -28,17 +28,19 @@ p_ = p*(p+1)/2;
 if ~isempty(varargin) && strcmp(varargin{1},'EstimationStrategy:MethodOfMoments')
     %% Optimization
     
-    mean_data_mat = mean(data_mat,3);
-    L = chol(mean_data_mat,'lower');
-    
-    obj_fun = @(df) matvtRieszlike( L/matvtRieszexpmat(df(1:p),df(p+1))*L', df(1:p), df(p+1), data_mat );
-
     if isempty(x0)  
         x0 = [ 2*p.*ones(p,1); 2*p ];
     end
 
     lb = [ (0:p-1)'; 2 ];
 
+
+    
+    mean_data_mat = mean(data_mat,3);
+    L = chol(mean_data_mat,'lower');
+    
+    obj_fun = @(df) matvtRieszlike( L/matvtRieszexpmat(df(1:p),df(p+1))*L', df(1:p), df(p+1), data_mat );    
+    
     [eparam,optimoutput] = ...
         my_fmincon(...
             obj_fun, ...
