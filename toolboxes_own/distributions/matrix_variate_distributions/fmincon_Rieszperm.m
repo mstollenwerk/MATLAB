@@ -38,7 +38,8 @@ parfor ini_perm = 1:n_perm
             lls(jj) = obj_fun(eparam_,perm1_ii(jj,:));
         end
         i_opt = find(lls == min(lls));
-
+        i_opt = i_opt(1);
+        
         if i_opt ~= i_star
             perm_(ini_perm,:) = perm1_ii(i_opt,:);
             
