@@ -89,12 +89,12 @@ end
 % Optimization-------------------------------------------------------------
 for ii = 1:size(x0,2) % Looping through candidate starting points, until one works.
     try
-        disp('-------------------------------------------------------------------')
-        disp('-------------------------------------------------------------------')
-        disp(strcat("Optimization Starting Point for Recursion Parameters: p = (", num2str(x0(1:p,ii)'), "), q = (", num2str(x0(p+1:p+q,ii)'), ")."))
-        disp(strcat("Starting gas scalar BEKK(",num2str(p),",",num2str(q),")-",dist," estimation, targeting."))
-        disp('-------------------------------------------------------------------')
-        disp('-------------------------------------------------------------------')
+        %disp('-------------------------------------------------------------------')
+        %disp('-------------------------------------------------------------------')
+        %disp(strcat("Optimization Starting Point for Recursion Parameters: p = (", num2str(x0(1:p,ii)'), "), q = (", num2str(x0(p+1:p+q,ii)'), ")."))
+        %disp(strcat("Starting gas scalar BEKK(",num2str(p),",",num2str(q),")-",dist," estimation, targeting."))
+        %disp('-------------------------------------------------------------------')
+        %disp('-------------------------------------------------------------------')
         [eparam,optimoutput] = ...
             fmincon_Rieszperm(...
                 k, ...
@@ -104,21 +104,21 @@ for ii = 1:size(x0,2) % Looping through candidate starting points, until one wor
                 lb,[],[], ...
                 varargin{:} ...
             );
-        disp('-------------------------------------------------------------------')
-        disp('-------------------------------------------------------------------')
-        disp(strcat("Finished gas scalar BEKK(",num2str(p),",",num2str(q),")-",dist," estimation, targeting."))
-        disp('-------------------------------------------------------------------')
-        disp('-------------------------------------------------------------------')
+        %disp('-------------------------------------------------------------------')
+        %disp('-------------------------------------------------------------------')
+        %disp(strcat("Finished gas scalar BEKK(",num2str(p),",",num2str(q),")-",dist," estimation, targeting."))
+        %disp('-------------------------------------------------------------------')
+        %disp('-------------------------------------------------------------------')
         break
     catch ME
         ME.message
         [ME.stack.line]'
         {ME.stack.name}'        
-        disp('-------------------------------------------------------------------')
-        disp('-------------------------------------------------------------------')
-        disp(strcat("Optimization Starting Point for Recursion Parameters: p = (", num2str(x0(1:p,ii)'), "), q = (", num2str(x0(p+1:p+q,ii)'), ") didn't work."))
-        disp('-------------------------------------------------------------------')
-        disp('-------------------------------------------------------------------')        
+        %disp('-------------------------------------------------------------------')
+        %disp('-------------------------------------------------------------------')
+        %disp(strcat("Optimization Starting Point for Recursion Parameters: p = (", num2str(x0(1:p,ii)'), "), q = (", num2str(x0(p+1:p+q,ii)'), ") didn't work."))
+        %disp('-------------------------------------------------------------------')
+        %disp('-------------------------------------------------------------------')        
     end
 end
 obj_fun_opt_perm = @(param) obj_fun(param,optimoutput.perm_);
