@@ -1,75 +1,94 @@
-function [ nLogL, logLcontr, varargout ] = matvsRieszlike( Omega_, n, X, varargin )
-%MATVWISHLIKE
-%
-% USAGE:
-%   
-%
-% INPUTS:
-%   
-%
-% OUTPUTS:
-%   
-%  See also 
-%
-% COMMENTS:
-%   
-% REFERENCES:
-%      [1]                    
-%
-% DEPENDENCIES:
-%
+function [ nLogL, logLcontr, varargout ] = ...
+    matvsRieszlike( Sigma_, n, X, varargin )
+%MATVRIESZLIKE
 %
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
-% 30.08.2021
+% 20.03.2022
 
-Y = diag(n);
-C_Om = chol(Omega_,'lower');
-C_Sig = C_Om/sqrtm(Y);
-Sigma_ = C_Sig*C_Sig';
+[p,~,N] = size(X);
+p_ = p*(p+1)/2;
+narginchk(3,4);
+nargoutchk(0,6);
+%% Param
+if nargin == 4
+    if ~(isempty(Sigma_) && isempty(n))
+        error('Cannot input all_param and any of the parameters individually!')
+    end
+    all_param = varargin{1};
+    Sigma_ = ivechchol(all_param(1 : p_));
+    n = all_param(p_ + 1 : p_ + p);
+end
+% Checking if Sigma_ is symmetric p.d.
+param.Sigma_ = Sigma_;
+C = chol(Sigma_,'lower');
+param.chol_Sigma_ = vech(C);
+param.n = n;
+param.all = [param.chol_Sigma_; n];
+%% Log-likelihood computation
+logLcontr = NaN(N,1);
 
-[nLogL, logLcontr] = ...
-    matvRieszlike(Sigma_, n, X);
+term1 = sum(n.*log(n))/2;
+term2 = -sum(n)/2*log(2);
+term3 = -lgmvgammaln(n./2);
+term4 = -loglpwdet([],n./2, diag(C));
+
+log_normalizing_constant = term1 + term2 + term3 + term4;
+
+for ii = 1:N
+    R = X(:,:,ii);
+    Cr = chol(R,'lower');
+    Cz = C\Cr;
+   
+    term5 = loglpwdet([],(n-p-1)./2,diag(Cr));
+    term6 = -trace(diag(n)*(Cz*Cz'))./2;
     
+    log_kernel = term5 + term6;
+
+    logLcontr(ii) = log_normalizing_constant + log_kernel;
+end
+nLogL = -sum(logLcontr);
+%% Score computation
 if nargout >= 3
     
-    [~, ~, score] = ...
-        matvRieszlike(Sigma_, n, X);
+    score.Sigma_ = NaN(p,p,N);    
+    for ii = 1:N
+        
+        R = X(:,:,ii);
+        
+        % General matrix derivative (ignoring symmetry of Sigma_):
+        Nabla = C'\trilHalfDiag(C'*tril(C'\diag(n)/C*R/C' - C'\diag(n)))/C; 
+        
+        % Accounting for symmetry of Sigma_:
+        score.Sigma_(:,:,ii) = Nabla+Nabla' - diag(diag(Nabla));
+                
+        % Using the chain rule first deriving w.r.t. 
+        % Omega_ = C*inv(diag(n))*C' gives the same result, but is much
+        % more computationally intensive:
+        % ivech(1/2*vec(C'\diag(n)/C*R/C'*diagn/C - C'\diag(n)*diag(n)/C)'*G*dvechCYCt_dvechCCt(C,inv(diag(n))))
 
-    avg_n = mean(n);
-    p = size(Omega_,1);
-    G = Dmatrix(p);
-    invSig = inv(Sigma_);
-    fisherinfo_Sigma_Wishart = avg_n/2*G'*kron(invSig,invSig)*G;
-    
-    for ii = 1:size(X,3)
-        score.rc_paper(:,:,ii) = ...
-            ivech(avg_n*(fisherinfo_Sigma_Wishart\score.Sigma_(ii,:)'));
     end
-
+    
     varargout{1} = score;
 
 end
-
+%% Hessian (Optional Output)
+%% Fisher Info (Optional Output)
+% if nargout >= 6
+%     
+%     [G, iG] = Dmatrix(p);
+%     I = speye(p);
+%     L = ELmatrix(p);
+%     
+%     invSig = inv(Sigma_);
+%     
+%     fisherinfo.Sigma_ = NaN;
+%     fisherinfo.n = NaN;
+%     
+%     varargout{4} = fisherinfo;
+% end
+%% Optional Parameter Vector Output
 if nargout >= 5
-
-    [~, ~, ~, hessian, param] = ...
-        matvRieszlike(Sigma_, n, X);
-    
-    varargout{2} = hessian;
     varargout{3} = param;
 end
-%%
-% [~,iG] = Dmatrix(p);
-% I = speye(p);
-% L = ELmatrix(p);
-%
-% dOmega_dSigma = iG*kron(C_Sig*Y,I)*L'/(iG*kron(C_Sig,I)*L');
-% 
-% [nLogL, logLcontr, score, ~, ~, fisherinfo] = ...
-%     matvRieszlike(Sigma_, n, X);
-% 
-% score.Omega_scaledbyiFish = ...
-%     ivech(dOmega_dSigma*(fisherinfo.Sigma_\score.Sigma_'));
-
 end
