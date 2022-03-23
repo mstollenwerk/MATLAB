@@ -1,6 +1,6 @@
 function [ nLogL, logLcontr, varargout ] = ...
     matvsRieszlike( Sigma_, n, X, varargin )
-%MATVRIESZLIKE
+%MATVSRIESZLIKE
 %
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
