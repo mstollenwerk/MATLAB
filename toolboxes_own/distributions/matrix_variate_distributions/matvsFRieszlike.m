@@ -32,7 +32,7 @@ param.all = [param.chol_Sigma_; n; nu];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
 
-term1 = sum(n.*log(diag(diaga)))/2;
+term1 = -sum(nu.*log(diag(diaga)))/2;
 term2 = lgmvgammaln(flipud(n + nu)./2);%ugmvgammaln((n + nu)./2);
 term3 = -lgmvgammaln(flipud(nu)./2);%-ugmvgammaln(nu./2);
 term4 = -lgmvgammaln(n./2);
@@ -45,7 +45,7 @@ for ii = 1:N
     
     R = X(:,:,ii);
     Cr = chol(R,'lower');
-    B = I + C'\diaga/C*R;
+    B = C/diaga*C' + R;
     C_B(:,:,ii) = chol(B,'lower');
     
     term6 = loglpwdet([],(n-p-1)./2,diag(Cr));
@@ -64,7 +64,7 @@ if nargout >= 3
         
         % General matrix derivative (ignoring symmetry of Sigma_):
         Nabla = - C'\trilHalfDiag(C'*tril( ...
-            C'\diag(n) + C_B(:,:,ii)'\diag(nu+n)/C_B(:,:,ii)*C/diaga...
+            C'\diag(nu)/diaga + C_B(:,:,ii)'\diag(nu+n)/C_B(:,:,ii)*C/diaga...
             ))/C; 
 
         % Accounting for symmetry of Sigma_:
