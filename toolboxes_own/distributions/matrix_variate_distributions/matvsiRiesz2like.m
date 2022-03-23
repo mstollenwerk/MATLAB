@@ -29,7 +29,7 @@ param.all = [param.chol_Sigma_; n];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
 
-term1 = sum(n.*log(diag(diagm)))/2;
+term1 = -sum(n.*log(diag(diagm)))/2;
 term2 = -sum(n)/2*log(2);
 term3 = -lgmvgammaln(flipud(n./2));%-ugmvgammaln(n./2);
 term4 = loglpwdet([],n./2,diag(C)); % upwdet(invS,-n) = lpwdet(S,n)
