@@ -59,7 +59,7 @@ nLogL = -sum(logLcontr);
 if nargout >= 3
     invSig = inv(Sigma_);    
     
-    score.Sigma_ = NaN(N,p_);
+    score.Sigma_ = NaN(p,p,N);
     for ii = 1:N
         
         invR = inv(X(:,:,ii));
@@ -70,7 +70,7 @@ if nargout >= 3
         % Accounting for symmetry of Sigma_:
         S = S+S' - diag(diag(S));
         
-        score.Sigma_(ii,:) = S;
+        score.Sigma_(:,:,ii) = S;
 
         % The score below are also easy to get quering wolframalpha.com 
         % with eg "d/da (log(Gamma(1/2 (a+ p n))))".
