@@ -1,5 +1,5 @@
-function [ nLogL, logLcontr, varargout ] = matvsiWishlike( Omega_, n, X, varargin )
-%MATVWISHLIKE
+function [ nLogL, logLcontr, varargout ] = matviWishlike( Sigma_, n, X, varargin )
+%MATVIWISHLIKE
 %
 % USAGE:
 %   
@@ -14,40 +14,89 @@ function [ nLogL, logLcontr, varargout ] = matvsiWishlike( Omega_, n, X, varargi
 % COMMENTS:
 %   
 % REFERENCES:
-%      [1]                    
+%      [1]
 %
 % DEPENDENCIES:
 %
-%
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
-% 30.08.2021
 
-k = size(Omega_,1);
+narginchk(3,4);
+nargoutchk(0,6);
 
-Y = 1/(n-k-1);
-Sigma_ = Omega_/Y;
-dOmega_dSigma = Y;
+[p,~,N] = size(X);
+p_ = p*(p+1)/2;
+%% Parameters
+if nargin == 4
+    all_param = varargin{1};
+    Sigma_ = ivechchol(all_param(1:p_));
+    n = all_param(p_ + 1);
+end
+% Checking if Sigma_ is symmetric p.d.
+param.Sigma_ = Sigma_;
+param.n = n;
+param.all = [vechchol(Sigma_); n];
+%% Log-Likelihood
+logLcontr = NaN(N,1);
+
+log_norm_const = ...
+    n*p/2*log(n/2) ...
+  - mvgammaln(n/2, p) ...
+  + n/2*logdet(Sigma_);
+	  
+for ii = 1:N
     
-[nLogL, logLcontr] = ...
-    matviWishlike(Sigma_, n, X);
-    
+    R = X(:,:,ii);
+ 
+    log_kernel = ...
+      - (n-p-1)*trace(Sigma_/R) ...
+      - (n+p+1)*logdet(R);
+		
+    logLcontr(ii) = log_norm_const + .5*log_kernel;
+end
+nLogL = -sum(logLcontr);
+%% Scores
 if nargout >= 3
-
-    [~, ~, score, ~, param, fisherinfo] = ...
-        matviWishlike(Sigma_, n, X);
+    invSig = inv(Sigma_);    
     
-    for ii = 1:size(X,3)
-            score.Omega_scaledbyiFish(:,:,ii) = ...
-                ivech(dOmega_dSigma*(fisherinfo.Sigma_\score.Sigma_(ii,:)'));
+    score.Sigma_ = NaN(N,p_);
+    for ii = 1:N
+        
+        invR = inv(X(:,:,ii));
+       
+        % General matrix derivative (ignoring symmetry of Sigma_):
+        S = .5*( n*invSig - (n-p-1)*invR );
+
+        % Accounting for symmetry of Sigma_:
+        S = S+S' - diag(diag(S));
+        
+        score.Sigma_(ii,:) = S;
+
+        % The score below are also easy to get quering wolframalpha.com 
+        % with eg "d/da (log(Gamma(1/2 (a+ p n))))".
+        % I am just too lazy to write them down right now.
+        score.df(ii) = NaN;
+    
     end
 
-    score.rc_paper = score.Omega_scaledbyiFish;
-
     varargout{1} = score;
-    varargout{3} = param;
-    varargout{4} = fisherinfo;
-
+    
 end
+%% Hessian (Optional Output)
 
+%% Optional Parameter Vector Output
+if nargout >= 5
+    varargout{3} = param;
+end
+%% Fisher Info (Optional Output)
+if nargout >= 6
+    
+    G = Dmatrix(p);
+    fisherinfo.Sigma_ = n/2*G'*kron(invSig,invSig)*G;
+    
+    fisherinfo.df = NaN;
+    
+    varargout{4} = fisherinfo;
+    
+end
 end
