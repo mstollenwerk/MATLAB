@@ -33,10 +33,10 @@ param.all = [param.chol_Sigma_; n; nu];
 logLcontr = NaN(N,1);
 
 term1 = -sum(nu.*log(diag(diaga)))/2;
-term2 = lgmvgammaln(flipud(n + nu)./2);%ugmvgammaln((n + nu)./2);
-term3 = -lgmvgammaln(flipud(nu)./2);%-ugmvgammaln(nu./2);
+term2 = lgmvgammaln(flip(n + nu)./2);%ugmvgammaln((n + nu)./2);
+term3 = -lgmvgammaln(flip(nu)./2);%-ugmvgammaln(nu./2);
 term4 = -lgmvgammaln(n./2);
-term5 = -loglpwdet([],nu./2,diag(C));
+term5 = loglpwdet([],nu./2,diag(C));
 
 log_normalizing_constant = term1 + term2 + term3 + term4 + term5;
 
@@ -48,8 +48,8 @@ for ii = 1:N
     B = C/diaga*C' + R;
     C_B(:,:,ii) = chol(B,'lower');
     
-    term6 = loglpwdet([],(n-p-1)./2,diag(Cr));
-    term7 = loglpwdet([], -(n+nu)./2, diag(C_B(:,:,ii)));
+    term6 = loglpwdet( [], (n-p-1)./2, diag(Cr) );
+    term7 = loglpwdet( [], -(n+nu)./2, diag(C_B(:,:,ii)) );
     
     log_kernel = term6 + term7;
 
