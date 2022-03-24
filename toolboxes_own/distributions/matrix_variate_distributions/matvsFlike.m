@@ -64,9 +64,9 @@ param.nu = nu;
 param.all = [param.chol_Sigma_; n; nu];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
-term1 = p*n/2*log(n/(nu-p-1));
-term2 = -mvbetaln(n/2, nu/2, p);
-term3 = nu/2 * logdet(Sigma_);
+term1 =   p*n/2*log(n/(nu-p-1));
+term2 = - mvbetaln(n/2, nu/2, p);
+term3 = - n/2*logdet(Sigma_);
 log_normalizing_constant = term1 + term2 + term3;
 
 I = eye(p);
@@ -74,7 +74,7 @@ for ii = 1:N
     R = X(:,:,ii);
     
     term3 = (n - p - 1)/2*logdet(R);
-    term4 = -(n + nu)/2*logdet (I + n/(nu-p-1)*(C\R/C') );
+    term4 = -(n + nu)/2*log(det( I + n/(nu-p-1)*(Sigma_\R) ));
     log_kernel = term3 + term4;
 
     logLcontr(ii) = log_normalizing_constant + log_kernel;
@@ -90,7 +90,7 @@ if nargout >= 3
     
     for ii = 1:N
         
-        S = nu*invSig - (n + nu)*inv( Sigma_ + X(:,:,ii) )*n/(nu-p-1);
+        S = nu*invSig - (n + nu)*inv( Sigma_ + X(:,:,ii)*n/(nu-p-1) );
         S = .5.*S;
         
         % Accounting for symmetry of Sigma_:
