@@ -7,7 +7,6 @@ function [ nLogL, logLcontr, varargout ] = ...
 % 11.02.2021
 
 [p,~,N] = size(X);
-I = eye(p);
 p_ = p*(p+1)/2;
 narginchk(4,5); %%%%%%%
 nargoutchk(0,6);
