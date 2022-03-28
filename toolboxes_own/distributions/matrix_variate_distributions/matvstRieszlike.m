@@ -62,6 +62,7 @@ if nargout >= 3
         diagnZ = diag(n)/C*R/C';
         % General matrix derivative (ignoring symmetry of Sigma_):
         Nabla = C'\trilHalfDiag(C'*tril((nu+sum(n))/(nu-2+trace(diagnZ))*(C'\diagnZ) - C'\diag(n)))/C; 
+        score.SigmaNonSym = Nabla;
         
         % Accounting for symmetry of Sigma_:
         score.Sigma_(:,:,ii) = Nabla+Nabla' - diag(diag(Nabla));

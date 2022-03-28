@@ -65,7 +65,8 @@ if nargout >= 3
         Nabla = - C'\trilHalfDiag(C'*tril( ...
             C_B(:,:,ii)'\diag(nu+n)/C_B(:,:,ii)*C/diaga - C'\diag(nu) ...
             ))/C; 
-
+        score.SigmaNonSym = Nabla;
+        
         % Accounting for symmetry of Sigma_:
         score.Sigma_(:,:,ii) = Nabla+Nabla' - diag(diag(Nabla));
 
