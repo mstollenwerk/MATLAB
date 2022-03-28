@@ -1,5 +1,5 @@
-function [ nLogL, logLcontr, Sigma_, ScaledScore, varargout ] = ...
-    gas_scalar_BEKK_likeRec( param, p, q, R, dist, scalingtype )
+function [ nLogL, logLcontr, Sigma_, S, varargout ] = ...
+    gas_scalar_BEKK_likeRec( param, p, q, R, dist )
 %
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
@@ -11,8 +11,8 @@ t_ahead = 220;
 k_ = k*(k+1)/2;
 %% Parameters
 intrcpt = ivechchol(param(1:k_));
-scoreparam = param(k_ + 1 : k_ + p);
-garchparam = param(k_ + p + 1 : k_+ p + q);
+scoreparam = reshape(param(k_ + 1 : k_ + 2*p),[],2);
+garchparam = param(k_ + 2*p + 1 : k_+ 2*p + q);
 
 % Initialize with Backcast. Inspired by Sheppard MFE Toolbox.
 m = ceil(sqrt(T));
@@ -23,7 +23,7 @@ backCast = sum(bsxfun(@times,w, R(:,:,1:m)),3);
 % ini = intrcpt./(1 - sum(garchparam));
 %% Data Storage
 Sigma_ = NaN(k,k,T+t_ahead);
-ScaledScore = NaN(k,k,T);
+S = NaN(k,k,T,2);
 logLcontr = NaN(T,1);
 %% Recursion
 for tt=1:T
@@ -31,9 +31,11 @@ for tt=1:T
     Sigma_(:,:,tt) = intrcpt;
     for jj = 1:p
         if (tt-jj) <= 0
-            Sigma_(:,:,tt) = Sigma_(:,:,tt) + scoreparam(jj)*zeros(k);
+            Sigma_(:,:,tt) = Sigma_(:,:,tt);
         else
-            Sigma_(:,:,tt) = Sigma_(:,:,tt) + scoreparam(jj)*ScaledScore(:,:,tt-jj);
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) ...
+                                + scoreparam(jj,1)*S(:,:,tt-jj,1) ...
+                                + scoreparam(jj,2)*S(:,:,tt-jj,2);
         end
     end
     for jj = 1:q
@@ -47,7 +49,7 @@ for tt=1:T
     try
         % Likelihood Evaluation         
         [~, logLcontr(tt), score, param_dist] = ...
-            matvsLogLike( dist, Sigma_(:,:,tt), param(k_+p+q+1:end), R(:,:,tt) );   
+            matvsLogLike( dist, Sigma_(:,:,tt), param(k_+2*p+q+1:end), R(:,:,tt) );   
     catch ME
 %         tt
 %         ME.message
@@ -62,23 +64,21 @@ for tt=1:T
     end
     
     % Scaled Score 
-    if scalingtype == 1
-        ScaledScore(:,:,tt) = score.rc_paper;
-    elseif scalingtype == 2
-        ScaledScore(:,:,tt) = score.Sigma_WishFishScaling;
-    else
-        error('Invalid scalingtype input. Must be 1 or 2.')
-    end
+    SigDel = Sigma_(:,:,tt)*score.SigmaNonSym;
+    SigDelSig = SigDel*Sigma_(:,:,tt);
+    S(:,:,tt,1) = SigDelSig+SigDelSig';
+    S(:,:,tt,2) = trace(SigDel)*Sigma_(:,:,tt);
     
 end
 %% Fcst
 for tt=T+1:T+t_ahead
     Sigma_(:,:,tt) = intrcpt;
     for jj = 1:p
-        if (tt-jj) > T
-            Sigma_(:,:,tt) = Sigma_(:,:,tt) + scoreparam(jj)*zeros(k);
-        else
-            Sigma_(:,:,tt) = Sigma_(:,:,tt) + scoreparam(jj)*ScaledScore(:,:,tt-jj);
+        if (tt-jj) <= T
+
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) ...
+                                + scoreparam(jj,1)*S(:,:,tt-jj,1) ...
+                                + scoreparam(jj,2)*S(:,:,tt-jj,2);
         end
     end
     for jj = 1:q

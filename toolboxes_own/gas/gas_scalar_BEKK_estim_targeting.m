@@ -1,5 +1,5 @@
 function [eparam, tstats, logL, fit, fcst, optimoutput] = ...
-	gas_scalar_BEKK_estim_targeting( R, p, q, dist, scalingtype, x0, varargin )
+	gas_scalar_BEKK_estim_targeting( R, p, q, dist, x0, varargin )
 %
 %
 % Michael Stollenwerk
@@ -11,7 +11,7 @@ function [eparam, tstats, logL, fit, fcst, optimoutput] = ...
 [k,~,T] = size(R);
 k_ = k*(k+1)/2;
 %% Optimization
-obj_fun = @(param, perm_) obj_fun_wrapper(param, R(perm_,perm_,:), p, q, dist, scalingtype);
+obj_fun = @(param, perm_) obj_fun_wrapper(param, R(perm_,perm_,:), p, q, dist);
 % x0-----------------------------------------------------------------------
 if ~isempty(x0) && (isinf(obj_fun(x0,1:k)) || isnan(obj_fun(x0,1:k)))
     error('User supplied x0 invalid.')
@@ -49,47 +49,47 @@ if isempty(x0)
 % 		x0_df = [ ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]; 
     end
     % Candidate Starting Points for Optimization:
-    x0 = [zeros(1,p+q), x0_df]'; % This x0 should always work, so you can get rid of all the other ones and the try/catch around the optimization.
+    x0 = [zeros(1,2*p+q), x0_df]'; % This x0 should always work, so you can get rid of all the other ones and the try/catch around the optimization.
 %           ones(1,p)*.05/p, ones(1,q)*.98/q, x0_df]';    
 end
 % Optimization Specs ------------------------------------------------------
 if strcmp( dist, 'Wish' )
-    lb = [-0.001; -inf(p+q-1,1); k-1];
+    lb = [-0.001; -inf(2*p+q-1,1); k-1];
     perm_optim = 0;
 elseif strcmp( dist, 'iWish' )
-    lb = [-0.001; -inf(p+q-1,1); k+1];
+    lb = [-0.001; -inf(2*p+q-1,1); k+1];
     perm_optim = 0;
 elseif strcmp( dist, 'F' )
-    lb = [-0.001; -inf(p+q-1,1); k-1; k+1];
+    lb = [-0.001; -inf(2*p+q-1,1); k-1; k+1];
     perm_optim = 0;
 elseif strcmp( dist, 'tWish' )
-    lb = [-0.001; -inf(p+q-1,1); k-1; 2];
+    lb = [-0.001; -inf(2*p+q-1,1); k-1; 2];
     perm_optim = 0;
 elseif strcmp( dist, 'itWish' )
-    lb = [-0.001; -inf(p+q-1,1); k+1; 0];    
+    lb = [-0.001; -inf(2*p+q-1,1); k+1; 0];    
     perm_optim = 0;
 elseif strcmp( dist, 'Riesz' )
-    lb = [-0.001, -inf(p+q-1,1)', 0:k-1]';  
+    lb = [-0.001, -inf(2*p+q-1,1)', 0:k-1]';  
     perm_optim = 1;
 % elseif strcmp( dist, 'Riesz2' )
 %     lb = [-0.001, -inf(p+q-1,1)', fliplr(0:k-1)]'; %see stochstic representation
 % elseif strcmp( dist, 'iRiesz' )
 %     lb = [-0.001, -inf(p+q-1,1)', 2:k+1]';
 elseif strcmp( dist, 'iRiesz2' )
-    lb = [-0.001, -inf(p+q-1,1)', fliplr(2:k+1)]'; %conjectured
+    lb = [-0.001, -inf(2*p+q-1,1)', fliplr(2:k+1)]'; %conjectured
     perm_optim = 1;
 elseif strcmp( dist, 'tRiesz' )
-    lb = [-0.001, -inf(p+q-1,1)', 0:k-1, 2]'; 
+    lb = [-0.001, -inf(2*p+q-1,1)', 0:k-1, 2]'; 
     perm_optim = 1;
 % elseif strcmp( dist, 'tRiesz2' )
 %     lb = [-0.001, -inf(p+q-1,1)', fliplr(0:k-1), 2]'; %see stochstic representation
 % elseif strcmp( dist, 'itRiesz' )
 %     lb = [-0.001, -inf(p+q-1,1)', 2:k+1, 2]'; %conjectured
 elseif strcmp( dist, 'itRiesz2' )
-    lb = [-0.001, -inf(p+q-1,1)', fliplr(2:k+1), 2]'; %conjectured
+    lb = [-0.001, -inf(2*p+q-1,1)', fliplr(2:k+1), 2]'; %conjectured
     perm_optim = 1;
 elseif strcmp( dist, 'FRiesz' )
-    lb = [-0.001, -inf(p+q-1,1)', (0:k-1), (k-(1:k)+2)]'; %Note that scoreparam(1) has a high LB. Unfortunatelx FRiesz estimation seems very hard.
+    lb = [-0.001, -inf(2*p+q-1,1)', (0:k-1), (k-(1:k)+2)]'; %Note that scoreparam(1) has a high LB. Unfortunatelx FRiesz estimation seems very hard.
     perm_optim = 1;
 % elseif strcmp( dist, 'FRiesz2' )
 %     lb = [-0.001, -inf(p+q-1,1)', (k-(1:k)), (2:k+1) ]'; %conjectured %Note that scoreparam(1) has a high LB. Unfortunatelx FRiesz estimation seems very hard.
@@ -155,8 +155,7 @@ obj_fun_no_targeting = @(param) gas_scalar_BEKK_likeRec( ...
         p, ...
         q, ...
         R(eparam.perm_,eparam.perm_,:), ...
-        dist, ...
-        scalingtype ...
+        dist ...
     );
 %[VCV,A,B,scores,hess,gross_scores] = robustvcv(fun, eparam, 3);
 [VCV,scores,gross_scores] = vcv( obj_fun_no_targeting, eparam.all(k_+1:end) );
@@ -182,24 +181,24 @@ fcst = struct('SigmaE', SigmaE(:,:,T+1:end));
 
 end
 
-function [ nLogL, logLcontr, SigmaE, ScaledScore, param_out, fitplot ] = obj_fun_wrapper(param, R, p, q, dist, scalingtype) 
+function [ nLogL, logLcontr, SigmaE, ScaledScore, param_out, fitplot ] = ...
+    obj_fun_wrapper(param, R, p, q, dist) 
 
-    if sum(param(p+1:p+q)) >= 1
+    if sum(param(2*p+1:2*p+q)) >= 1
         nLogL = inf;   
         return
     end
     
     meanSig = mean(R,3);
     
-    vechcholIntrcpt = vechchol( meanSig*(1-sum(param(p+1:p+q))) );  
+    vechcholIntrcpt = vechchol( meanSig*(1-sum(param(2*p+1:2*p+q))) );  
     
     [ nLogL, logLcontr, SigmaE, ScaledScore, param_out, fitplot ] = gas_scalar_BEKK_likeRec( ...
         [vechcholIntrcpt; param], ...
         p, ...
         q, ...
         R, ...
-        dist, ...
-        scalingtype ...
+        dist ...
     );
 
 end
