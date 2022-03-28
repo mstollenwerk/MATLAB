@@ -87,6 +87,8 @@ if nargout >= 3
             
         S = n/2*S;
         
+        score.SigmaNonSym = S;
+        
         % Accounting for symmetry of Sigma_:
         S = S+S' - diag(diag(S));
 

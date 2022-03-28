@@ -93,9 +93,11 @@ if nargout >= 3
         S = nu*invSig - (n + nu)*inv( Sigma_ + X(:,:,ii)*n/(nu-p-1) );
         S = .5.*S;
         
+        score.SigmaNonSym = S;
+        
         % Accounting for symmetry of Sigma_:
         S = S+S' - diag(diag(S));
-                
+           
         score.Sigma_(:,:,ii) = S;
 
         % Score nu

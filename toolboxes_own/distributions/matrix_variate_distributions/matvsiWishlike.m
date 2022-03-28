@@ -66,7 +66,9 @@ if nargout >= 3
        
         % General matrix derivative (ignoring symmetry of Sigma_):
         S = .5*( n*invSig - (n-p-1)*invR );
-
+        
+        score.SigmaNonSym = S;
+        
         % Accounting for symmetry of Sigma_:
         S = S+S' - diag(diag(S));
         
