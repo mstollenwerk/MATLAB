@@ -76,6 +76,7 @@ if nargout >= 3
 
 end
 %% Hessian (Optional Output)
+varargout{2} = [];
 %% Fisher Info (Optional Output)
 if nargout >= 6
    
@@ -151,7 +152,7 @@ if nargout >= 6
 %     fisherinfo.df_2 = NaN;
 %     
 %     varargout{4} = fisherinfo;
-% end
+end
 %% Optional Parameter Vector Output
 if nargout >= 5
     varargout{3} = param;
