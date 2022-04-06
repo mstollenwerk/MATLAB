@@ -4,9 +4,28 @@ function [eparam,optimoutput] = fmincon_Rieszperm(p,obj_fun,x0,A,b,Aeq,beq,lb,ub
 %Random Variables - The F-Riesz Distribution.
 
 rng(1); % Random Seed
-n_perm = 4;
+if p <= 10
+    n_perm = 4;
+else
+    n_perm = 1;
+end
 perm_ = NaN(n_perm,p);
-perm_(1,:) = 1:p;
+% If initial permutation is given, use this one.
+for ii = 1:numel(varargin)
+    if isstring(varargin{ii}) || ischar(varargin{ii})
+        if strcmp(varargin{ii},'perm')
+            perm_(1,:) = varargin{ii+1};
+            perm_input_idx = ii;
+        end
+    end
+end
+if exist('perm_input_idx','var')
+    varargin = varargin([1:perm_input_idx-1,perm_input_idx+2:numel(varargin)]);
+end
+% If initial permutation is not given use 1:p.
+if isnan(perm_(1,1))
+    perm_(1,:) = 1:p;
+end
 for ii = 2:2*n_perm % Create matrix of originally supplied and 2*n_perm other permutations. 2*n_perm, because there is a chance that randperm generates the same permuation again in the loop.
     perm_(ii,:) = randperm(p);
     while isinf(obj_fun(x0, perm_(ii,:))) || isnan(obj_fun(x0, perm_(ii,:)))
