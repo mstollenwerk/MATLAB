@@ -1,4 +1,4 @@
-function [eparam, tstats, logL, fit, fcst, optimoutput] = ...
+function [eparam, tstats, logL, fit, fcst, weights, optimoutput] = ...
 	gas_scalar_BEKK_mix_estim_targeting( R, p, q, x0, varargin )
 %
 %
@@ -18,11 +18,11 @@ if ~isempty(x0) && (isinf(obj_fun(x0,1:k)) || isnan(obj_fun(x0,1:k)))
 end
 if isempty(x0)
     x0_df = [ ones(1,k).*(2*k), 5, ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ];
-    x0 = [zeros(1,p+q), .5, .5, 0, 0, x0_df]';
+    x0 = [0.001*ones(1,2*p)/p, 0.98*ones(1,q)/q, .5, .5, .98, 0.001, x0_df]';
 end
 % Restrictions-------------------------------------------------------------
-lb = [-0.001, -inf(p+q-1,1)', -0.001, -0.001, -inf, -inf, fliplr(2:k+1), 2, (0:k-1), (k-(1:k)+2)]'; % itRiesz part is conjectured
-ub = [inf, inf(p+1-1,1)', 1, 1];
+lb = [-0.001, -inf(2*p+q-1,1)', -1, -1, -0.001, -inf, fliplr(2:k+1), 2, (0:k-1), (k-(1:k)+2)]'; % itRiesz part is conjectured
+ub = [inf, inf(2*p+q-1,1)', 1.001, 1.001];
 % Optimization-------------------------------------------------------------
 [eparam,optimoutput] = ...
     fmincon_Rieszperm(...
@@ -77,14 +77,14 @@ end
 
 function [ nLogL, logLcontr, SigmaE, ScaledScore, weights, param_out, fitplot ] = obj_fun_wrapper(param, R, p, q) 
 
-    if sum(param(p+1:p+q)) >= 1
+    if sum(param(2*p+1:2*p+q)) >= 1
         nLogL = inf;   
         return
     end
     
     meanSig = mean(R,3);
     
-    vechcholIntrcpt = vechchol( meanSig*(1-sum(param(p+1:p+q))) );  
+    vechcholIntrcpt = vechchol( meanSig*(1-sum(param(2*p+1:2*p+q))) );  
     
     [ nLogL, logLcontr, SigmaE, ScaledScore, weights, param_out, fitplot ] = gas_scalar_BEKK_mix_likeRec( ...
         [vechcholIntrcpt; param], ...
