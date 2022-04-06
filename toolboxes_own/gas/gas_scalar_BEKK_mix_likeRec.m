@@ -1,4 +1,4 @@
-function [ nLogL, logLcontr, Sigma_, ScaledScore, weights_out, varargout ] = ...
+function [ nLogL, logLcontr, Sigma_, S, weights_out, varargout ] = ...
     gas_scalar_BEKK_mix_likeRec( param, p, q, R )
 %
 % Michael Stollenwerk
@@ -11,13 +11,16 @@ t_ahead = 220;
 k_ = k*(k+1)/2;
 %% Parameters
 intrcpt = ivechchol(param(1:k_));
-scoreparam = param(k_ + 1 : k_ + p);
-garchparam = param(k_ + p + 1 : k_+ p + q);
-weightparam = param(k_ + p + q + 1 : k_ + p + q + 4);
-n_itRiesz2 = param(k_ + p + q + 5 : k_ + p + q + 4 + k);
-nu_itRiesz2 = param(k_ + p + q + 4 + k + 1);
-n_FRiesz = param(k_ + p + q + 4 + k + 2 : k_ + p + q + 4 + k + 1 + k);
-nu_FRiesz = param(k_ + p + q + 4 + k + 1 + k + 1: k_ + p + q + 4 + k + 1 + k + k);
+scoreparam = reshape(param(k_ + 1 : k_ + 2*p),[],2);
+garchparam = param(k_ + 2*p + 1 : k_+ 2*p + q);
+weightparam = param(k_ + 2*p + q + 1 : k_ + 2*p + q + 4);
+weightparam(1:2) = abs(weightparam(1:2));
+% factor_finite_diff = 1;
+% weightparam(4) = weightparam(4)*factor_finite_diff; %For finite-diff gradient calculation to work at FRiesz opt boundary. Undone below.
+n_itRiesz2 = param(k_ + 2*p + q + 5 : k_ + 2*p + q + 4 + k);
+nu_itRiesz2 = param(k_ + 2*p + q + 4 + k + 1);
+n_FRiesz = param(k_ + 2*p + q + 4 + k + 2 : k_ + 2*p + q + 4 + k + 1 + k);
+nu_FRiesz = param(k_ + 2*p + q + 4 + k + 1 + k + 1: k_ + 2*p + q + 4 + k + 1 + k + k);
 
 % Initialize with Backcast. Inspired by Sheppard MFE Toolbox.
 m = ceil(sqrt(T));
@@ -28,7 +31,7 @@ backCast = sum(bsxfun(@times,w, R(:,:,1:m)),3);
 % ini = intrcpt./(1 - sum(garchparam));
 %% Data Storage
 Sigma_ = NaN(k,k,T+t_ahead);
-ScaledScore = NaN(k,k,T);
+S = NaN(k,k,T,2);
 weights = NaN(T+t_ahead,1);
 logLcontr = NaN(T,1);
 Lcontr_itRiesz2 = NaN(T,1);
@@ -41,9 +44,11 @@ for tt=1:T
     Sigma_(:,:,tt) = intrcpt;
     for jj = 1:p
         if (tt-jj) <= 0
-            Sigma_(:,:,tt) = Sigma_(:,:,tt) + scoreparam(jj)*zeros(k);
+            Sigma_(:,:,tt) = Sigma_(:,:,tt);
         else
-            Sigma_(:,:,tt) = Sigma_(:,:,tt) + scoreparam(jj)*ScaledScore(:,:,tt-jj);
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) ...
+                                + scoreparam(jj,1)*S(:,:,tt-jj,1) ...
+                                + scoreparam(jj,2)*S(:,:,tt-jj,2);
         end
     end
     for jj = 1:q
@@ -57,6 +62,18 @@ for tt=1:T
         weights(tt) = (1-weightparam(3))*weightparam(2) ...
                         + weightparam(3)*weights(tt-1) ...
                         + weightparam(4)*score_weights(tt-1);
+        
+        if weights(tt) > 2 || weights(tt) < -1
+            nLogL = inf;
+            logLcontr = NaN;
+            Sigma_ = NaN;
+            S = NaN;
+            weights_out = NaN;
+            varargout{1} = NaN;      
+            varargout{2} = NaN;
+            return
+        end
+        
     end   
     
     try
@@ -66,7 +83,7 @@ for tt=1:T
         Lcontr_itRiesz2(tt) = exp(-nLogLcontr_itRiesz2);
         Lcontr_FRiesz(tt) = exp(-nLogLcontr_FRiesz);
         Like_tt = weights(tt)*Lcontr_itRiesz2(tt) + (1-weights(tt))*Lcontr_FRiesz(tt);
-        score_weights(tt) = (Lcontr_itRiesz2(tt) - Lcontr_FRiesz(tt))/Like_tt;
+        score_weights(tt) = (weights(tt)-weights(tt)^2)*(Lcontr_itRiesz2(tt) - Lcontr_FRiesz(tt))/Like_tt;
         logLcontr(tt) = log(Like_tt);
     catch ME
 %         tt
@@ -76,7 +93,7 @@ for tt=1:T
         nLogL = inf;
         logLcontr = NaN;
         Sigma_ = NaN;
-        ScaledScore = NaN;
+        S = NaN;
         weights_out = NaN;
         varargout{1} = NaN;      
         varargout{2} = NaN;
@@ -84,18 +101,25 @@ for tt=1:T
     end
     
     % Scaled Score 
-    ScaledScore(:,:,tt) = weights(tt)*scoreSig_itR.rc_paper ...
-                          + (1-weights(tt))*scoreSig_FR.rc_paper;
+    SigDel_it = Sigma_(:,:,tt)*scoreSig_itR.SigmaNonSym;
+    SigDel_F = Sigma_(:,:,tt)*scoreSig_FR.SigmaNonSym;
+    SigDelSig_it = SigDel_it*Sigma_(:,:,tt);
+    SigDelSig_F = SigDel_F*Sigma_(:,:,tt);
+    S(:,:,tt,1) = weights(tt)*SigDelSig_it+(1-weights(tt))*SigDelSig_F; %SigDelSig_F;
+    S(:,:,tt,1) = S(:,:,tt,1) + S(:,:,tt,1)';
+    S(:,:,tt,2) = (weights(tt)*trace(SigDel_it)+(1-weights(tt))*trace(SigDel_F))*Sigma_(:,:,tt); %trace(SigDel_F)*Sigma_(:,:,tt);
     
 end
 %% Fcst
 for tt=T+1:T+t_ahead
     Sigma_(:,:,tt) = intrcpt;
     for jj = 1:p
-        if (tt-jj) > T
-            Sigma_(:,:,tt) = Sigma_(:,:,tt) + scoreparam(jj)*zeros(k);
-        else
-            Sigma_(:,:,tt) = Sigma_(:,:,tt) + scoreparam(jj)*ScaledScore(:,:,tt-jj);
+        if (tt-jj) <= T
+            
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) ...
+                                + scoreparam(jj,1)*S(:,:,tt-jj,1) ...
+                                + scoreparam(jj,2)*S(:,:,tt-jj,2);
+                            
         end
     end
     for jj = 1:q
@@ -134,6 +158,7 @@ if nargout >= 5
     param_out.intrcpt = intrcpt;
     param_out.scoreparam = scoreparam;
     param_out.garch_param = garchparam;
+%     weightparam(4) = factor_finite_diff*weightparam(4);
     param_out.weight_param = weightparam;
     param_out.n_itRiesz2 = n_itRiesz2;
     param_out.nu_itRiesz2 = nu_itRiesz2;
