@@ -29,7 +29,7 @@ p = size(Omega_,1);
 L = ELmatrix(p);
 
 Y = diag(n);
-U_Om = chol(Omega_);
+U_Om = cholU(Omega_);
 U = U_Om/sqrtm(Y);
 Sigma_ = U*U';
 dOmega_dSigma = iG*kron(U,Omega_)*L'/(iG*kron(U,Sigma_)*L');
