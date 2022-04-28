@@ -27,7 +27,7 @@ Y = matvFRiesz2expmat(n,nu);
 C_Om = cholU(Omega_);
 C_Sig = C_Om/sqrtm(Y);
 Sigma_ = C_Sig*C_Sig';
-nLogL = matvFRieszlike(Sigma_, n, nu, X);
+nLogL = matvFRiesz2like(Sigma_, n, nu, X);
 
 % p = size(Omega_,1);
 % [nLogL, logLcontr, score, ~, ~, fisherinfo] = ...
