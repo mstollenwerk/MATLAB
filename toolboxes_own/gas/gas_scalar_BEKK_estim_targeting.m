@@ -47,6 +47,8 @@ if isempty(x0)
 		x0_df = [ ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ];
 %     elseif strcmp( dist, 'FRiesz2' )
 % 		x0_df = [ ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ]; 
+    elseif strcmp( dist, 'iFRiesz2' )
+        x0_df = [ ones(1,k).*(2*k+3), ones(1,k).*(2*k+3) ];
     end
     % Candidate Starting Points for Optimization:
     x0 = [0.001*ones(1,2*p)/p, 0.98*ones(1,q)/q, x0_df;
@@ -92,8 +94,15 @@ elseif strcmp( dist, 'itRiesz2' )
 elseif strcmp( dist, 'FRiesz' )
     lb = [-0.001, -inf(2*p+q-1,1)', (0:k-1), (k-(1:k)+2)]'; %Note that scoreparam(1) has a high LB. Unfortunatelx FRiesz estimation seems very hard.
     perm_optim = 1;
+elseif strcmp( dist, 'iFRiesz2')
+    lb = [-0.001, -inf(2*p+q-1,1)', flip((0:k-1)), (0:k-1) ]';
+    perm_optim = 1;
 % elseif strcmp( dist, 'FRiesz2' )
 %     lb = [-0.001, -inf(p+q-1,1)', (k-(1:k)), (2:k+1) ]'; %conjectured %Note that scoreparam(1) has a high LB. Unfortunatelx FRiesz estimation seems very hard.
+end
+if ~isempty(varargin(1)) && strcmp(varargin{1},'noperm')
+    perm_optim = 0;
+    varargin = varargin(2:end);
 end
 % A = [ zeros(1,p) ones(1,q) zeros(1, length(x0)-p-q) ];   % Stationarity
 % b = 1;                                                   % Stationarity

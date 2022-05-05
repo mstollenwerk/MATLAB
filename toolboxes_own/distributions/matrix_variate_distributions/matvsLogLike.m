@@ -96,13 +96,20 @@ elseif strcmp( dist, 'FRiesz' )
     n = dfs(1 : k); 
     nu = dfs(k + 1 : k + k);
     [ nLogL, logLcontr, score] = matvsFRieszlike(Sigma_,n,nu,dta_mat); 
+elseif strcmp( dist, 'iFRiesz2' )
+    if length(dfs) ~= k+k
+        error('length(dfs) wrong.')
+    end    
+    n = dfs(1 : k); 
+    nu = dfs(k + 1 : k + k);
+    [ nLogL, logLcontr, score] = matvsiFRiesz2like(Sigma_,n,nu,dta_mat);
 % elseif strcmp( dist, 'FRiesz2' )
 %     if length(dfs) ~= k+k
 %         error('length(dfs) wrong.')
 %     end    
 %     n = dfs(1 : k); 
 %     nu = dfs(k + 1 : k + k);
-%     [ nLogL, logLcontr, score] = matvsFRiesz2like(Sigma_,n,nu,dta_mat); 
+%     [ nLogL, logLcontr, score] = matvsFRiesz2like(Sigma_,n,nu,dta_mat);
 end
 
 if nargout >= 4

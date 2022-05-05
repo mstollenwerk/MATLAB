@@ -30,7 +30,9 @@ elseif strcmp( dist, 'tRiesz2' )
 elseif strcmp( dist, 'itRiesz2' )
     [ eparam, tstats, logL, optimoutput ] = matvitRiesz2est(X,x0,varargin{:});
 elseif strcmp( dist, 'FRiesz2' )
-    [ eparam, tstats, logL, optimoutput ] = matvFRiesz2est(X,x0,varargin{:});    
+    [ eparam, tstats, logL, optimoutput ] = matvFRiesz2est(X,x0,varargin{:});  
+elseif strcmp( dist, 'iFRiesz2' )
+    [ eparam, tstats, logL, optimoutput ] = matviFRiesz2est(X,x0,varargin{:});    
 end
 
 end
