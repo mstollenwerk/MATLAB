@@ -31,30 +31,30 @@ p_ = p*(p+1)/2;
 if nargin >= 5
     all_param = varargin{1};
     Sigma_ = ivechchol(all_param(1:p_));
-    n = all_param(p_ + 1);
-    nu = all_param(p_ + 2);
+    nu = all_param(p_ + 1);
+    n = all_param(p_ + 2);
 end
 param.Sigma_ = Sigma_;
-param.n = n;
 param.nu = nu;
+param.n = n;
 % This serves as a p.d. check on Sigma_. Optionally this param struct can be returned.
 param.all = [vechchol(Sigma_); n; nu];
 %% Log-Likelihood
 logLcontr = NaN(N,1);
 
 log_norm_const = ...
-	gammaln( (nu + n*p)/2 ) ...
-  - gammaln(nu/2) ...
-  - mvgammaln(n/2, p) ...
-  + n*p/2*log((n-p-1)/nu) ...
-  + n/2*logdet(Sigma_);
+	gammaln( (n + nu*p)/2 ) ...
+  - gammaln(n/2) ...
+  - mvgammaln(nu/2, p) ...
+  + nu*p/2*log((nu-p-1)/n) ...
+  + nu/2*logdet(Sigma_);
 	  
 for ii = 1:N
     R = X(:,:,ii);
  
     log_kernel = ...
-      - (n+p+1)/2*logdet(R) ...
-      - (nu + n*p)/2*log(1+(n-p-1)/nu*trace(Sigma_/R));
+      - (nu+p+1)/2*logdet(R) ...
+      - (n + nu*p)/2*log(1+(nu-p-1)/n*trace(Sigma_/R));
     
     logLcontr(ii) = log_norm_const + log_kernel;
 end
@@ -70,7 +70,7 @@ if nargout >= 3
         R = X(:,:,ii);
        
         % General matrix derivative (ignoring symmetry of Sigma_): [ enter to matrixcalculus.org: -dfn/2*log(det(Sigma)) - (dft + dfn*p)/2*log(dft+tr(inv(Sigma)*A)) ]        
-        S = n*invSig - (nu+p*n)/(nu/(n-p-1) + trace(Sigma_/R))*inv(R);
+        S = nu*invSig - (n+p*nu)/(n/(nu-p-1) + trace(Sigma_/R))*inv(R);
         S = .5.*S;
         
         score.SigmaNonSym = S;
@@ -92,8 +92,8 @@ end
 if nargout >= 6
     
     G = Dmatrix(p);
-    c1 = n/2*(nu+p*n)/(nu+p*n+2);
-    c2 = -n^2/2/(nu+p*n+2);
+    c1 = nu/2*(n+p*nu)/(n+p*nu+2);
+    c2 = -nu^2/2/(n+p*nu+2);
     fisherInfo.Sigma_ = G'*(c1*kron2(invSig) + c2*vec2(invSig))*G;
     
     varargout{4} = fisherInfo;

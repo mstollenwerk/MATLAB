@@ -1,4 +1,4 @@
-function [ nLogL, logLcontr, varargout ] = matviWishlike( Sigma_, n, X, varargin )
+function [ nLogL, logLcontr, varargout ] = matvsiWishlike( Sigma_, nu, X, varargin )
 %MATVIWISHLIKE
 %
 % USAGE:
@@ -30,27 +30,27 @@ p_ = p*(p+1)/2;
 if nargin == 4
     all_param = varargin{1};
     Sigma_ = ivechchol(all_param(1:p_));
-    n = all_param(p_ + 1);
+    nu = all_param(p_ + 1);
 end
 % Checking if Sigma_ is symmetric p.d.
 param.Sigma_ = Sigma_;
-param.n = n;
-param.all = [vechchol(Sigma_); n];
+param.n = nu;
+param.all = [vechchol(Sigma_); nu];
 %% Log-Likelihood
 logLcontr = NaN(N,1);
 
 log_norm_const = ...
-    n*p/2*log((n-p-1)/2) ...
-  - mvgammaln(n/2, p) ...
-  + n/2*logdet(Sigma_);
+    nu*p/2*log((nu-p-1)/2) ...
+  - mvgammaln(nu/2, p) ...
+  + nu/2*logdet(Sigma_);
 	  
 for ii = 1:N
     
     R = X(:,:,ii);
  
     log_kernel = ...
-      - (n-p-1)*trace(Sigma_/R) ...
-      - (n+p+1)*logdet(R);
+      - (nu-p-1)*trace(Sigma_/R) ...
+      - (nu+p+1)*logdet(R);
 		
     logLcontr(ii) = log_norm_const + .5*log_kernel;
 end
@@ -65,7 +65,7 @@ if nargout >= 3
         invR = inv(X(:,:,ii));
        
         % General matrix derivative (ignoring symmetry of Sigma_):
-        S = .5*( n*invSig - (n-p-1)*invR );
+        S = .5*( nu*invSig - (nu-p-1)*invR );
         
         score.SigmaNonSym = S;
         
@@ -94,7 +94,7 @@ end
 if nargout >= 6
     
     G = Dmatrix(p);
-    fisherinfo.Sigma_ = n/2*G'*kron(invSig,invSig)*G;
+    fisherinfo.Sigma_ = nu/2*G'*kron(invSig,invSig)*G;
     
     fisherinfo.df = NaN;
     

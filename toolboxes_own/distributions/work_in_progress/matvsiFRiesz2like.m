@@ -16,7 +16,7 @@ for ii = 1:size(X,3)
     B = inv(inv(Omega_) + inv(X(:,:,ii)));
     C_B = chol(B,'lower');
     
-    Nabla = -(C'\trilHalfDiag(C'*tril(C'\diag(nu) - C'\A/C*C_B*diag(nu+n)*C_B'/C'))/C);
+    Nabla = -(C'\trilHalfDiag(C'*tril(C'\diag(n) - C'\A/C*C_B*diag(n+nu)*C_B'/C'))/C);
     score.SigmaNonSym(:,:,ii) = Nabla;
 
     % Accounting for symmetry of Sigma_:    

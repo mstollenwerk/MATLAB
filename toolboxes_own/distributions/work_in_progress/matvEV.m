@@ -78,10 +78,10 @@ elseif strcmp( dist, 'iRiesz2' )
     if length(dfs) ~= k
         error('length(dfs) wrong.')
     end    
-    n = dfs; 
+    nu = dfs; 
     for ii = 1:N
         L = chol(Sigma_(:,:,ii),'lower');
-        EV(:,:,ii) = L*matviRiesz2expmat(n)*L';
+        EV(:,:,ii) = L*matviRiesz2expmat(nu)*L';
     end
 elseif strcmp( dist, 'tRiesz' )
     if length(dfs) ~= k + 1

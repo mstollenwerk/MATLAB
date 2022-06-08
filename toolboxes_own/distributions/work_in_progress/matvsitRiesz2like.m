@@ -12,31 +12,31 @@ narginchk(4,5); %%%%%%%
 nargoutchk(0,6);
 %% Param
 if nargin == 5 %%%%%%%
-    if ~(isempty(Sigma_) && isempty(nu) && isempty(n))
+    if ~(isempty(Sigma_) && isempty(n) && isempty(nu))
         error('Cannot input all_param and any of the parameters individually!')
     end
     all_param = varargin{1};
     Sigma_ = ivechchol(all_param(1 : p_));
-    n = all_param(p_ +  1 : p_ + p);
-    nu = all_param(p_ + p + 1);    
+    n = all_param(p_ + 1);    
+    nu = all_param(p_ +  2 : p_ + 1 + p);
 end
 % Checking if Sigma_ is symmetric p.d.
 param.Sigma_ = Sigma_;
 C = chol(Sigma_,'lower');
 param.chol_Sigma_ = vech(C);
-param.nu = nu;
 param.n = n;
-diagm = matviRiesz2expmat(n);
+param.nu = nu;
+diagm = matviRiesz2expmat(nu);
 param.all = [param.chol_Sigma_; n; nu];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
 
-term1 = -sum(n.*log(diag(diagm)))/2;
-term2 = gammaln((nu + sum(n))/2);
-term3 = -gammaln(nu/2);
-term4 = -ugmvgammaln(n./2);
-term5 = -sum(n)/2*log(nu);
-term6 = loglpwdet([],n./2,diag(C)); % upwdet(invS,-n) = lpwdet(S,n)
+term1 = -sum(nu.*log(diag(diagm)))/2;
+term2 = gammaln((n + sum(nu))/2);
+term3 = -gammaln(n/2);
+term4 = -ugmvgammaln(nu./2);
+term5 = -sum(nu)/2*log(n);
+term6 = loglpwdet([],nu./2,diag(C)); % upwdet(invS,-n) = lpwdet(S,n)
 
 log_normalizing_constant = term1 + term2 + term3 + term4 + term5 + term6;
 
@@ -46,8 +46,8 @@ for ii = 1:N
     Cr = chol(R,'lower');
     iCz = Cr\C;
     
-    term7 = loglpwdet([],-(n+p+1)./2,diag(Cr)); % upwdet(invS,-n) = lpwdet(S,n)
-    term8 = -(nu + sum(n))/2*log(1 + trace(diagm\(iCz'*iCz))/nu);
+    term7 = loglpwdet([],-(nu+p+1)./2,diag(Cr)); % upwdet(invS,-n) = lpwdet(S,n)
+    term8 = -(n + sum(nu))/2*log(1 + trace(diagm\(iCz'*iCz))/n);
     
     log_kernel = term7 + term8;
 
@@ -64,7 +64,7 @@ if nargout >= 3
         
         % General matrix derivative (ignoring symmetry of Sigma_):
         Nabla = - C'\trilHalfDiag(C'*tril( ...
-            (nu + sum(n))/(nu+trace(inv(diagm)*C'*inv(R)*C))*inv(R)*C*inv(diagm) - C'\diag(n) ...
+            (n + sum(nu))/(n+trace(inv(diagm)*C'*inv(R)*C))*inv(R)*C*inv(diagm) - C'\diag(nu) ...
             ))/C; 
         score.SigmaNonSym = Nabla;
         

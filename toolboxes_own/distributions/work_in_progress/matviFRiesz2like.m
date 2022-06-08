@@ -11,7 +11,7 @@ narginchk(4,5); %%%%%%%
 nargoutchk(0,6);
 %% Param
 if nargin == 5 %%%%%%%
-    if ~(isempty(Omega_) && isempty(n) && isempty(nu))
+    if ~(isempty(Omega_) && isempty(nu) && isempty(n))
         error('Cannot input all_param and any of the parameters individually!')
     end
     all_param = varargin{1};
@@ -21,23 +21,23 @@ if nargin == 5 %%%%%%%
 end
 % Checking if Sigma_ is symmetric p.d.
 param.Omega_ = Omega_;
-C = chol(Omega_,'lower');
+C_Omega = chol(Omega_,'lower');
 param.chol_Omega_ = vechchol(Omega_);
-param.n = n;
 param.nu = nu;
+param.n = n;
 param.all = [param.chol_Omega_; n; nu];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
 
-term1 = lgmvgammaln((n + nu)./2);
-term2 = -lgmvgammaln(nu./2);
-term3 = -lgmvgammaln(flip(n)./2);
-term4 = loglpwdet([],-nu./2,diag(C));
+term1 = lgmvgammaln((nu + n)./2);
+term2 = -lgmvgammaln(n./2);
+term3 = -lgmvgammaln(flip(nu)./2);
+term4 = loglpwdet([],-n./2,diag(C_Omega));
 
 log_normalizing_constant = term1 + term2 + term3 + term4;
 
 for ii = 1:N
-    term5 = loglpwdet(X(:,:,ii),-(n+p+1)./2);
+    term5 = loglpwdet(X(:,:,ii),-(nu+p+1)./2);
     term6 = logupwdet(inv(X(:,:,ii)) + inv(Omega_), -(n+nu)./2);
     
     log_kernel = term5 + term6;
@@ -56,7 +56,7 @@ if nargout >= 3
         C_B = chol(B,'lower');
         
         % General matrix derivative (ignoring symmetry of Sigma_):
-        S = -1/2*(C'\diag(nu)/C - Omega_\C_B*diag(nu+n)*C_B'/Omega_);
+        S = -1/2*(C_Omega'\diag(n)/C_Omega - Omega_\C_B*diag(n+nu)*C_B'/Omega_);
         
 %         score.Sigma_WishFishScaling(:,:,ii) = 2/mean(n)*Sigma_*S*Sigma_;
         

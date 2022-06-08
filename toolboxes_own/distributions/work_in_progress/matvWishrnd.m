@@ -1,4 +1,4 @@
-function A = matvWishrnd( Sigma_, df, N )
+function R = matvWishrnd( Omega_, df, N )
 %MATVWISHRND
 %
 % USAGE:
@@ -22,11 +22,15 @@ function A = matvWishrnd( Sigma_, df, N )
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
 
-p = size(Sigma_,1);
-A = NaN(p,p,N);
-for ii=1:N
+p = size(Omega_,1);
+C = chol(Omega_,'lower');
 
-    A(:,:,ii) = wishrnd( Sigma_, df );
+R = NaN(p,p,N);
+for ii=1:N
+    
+    B = BarlettL(ones(p,1)*df);
+    L = C*B;
+    R(:,:,ii) = L*L';
     
 end
 
