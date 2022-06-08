@@ -19,6 +19,7 @@ m = ceil(sqrt(T));
 w = .06 * .94.^(0:(m-1));
 w = reshape(w/sum(w),[1 1 m]);
 backCast = sum(bsxfun(@times,w, R(:,:,1:m)),3);
+iniSig = backCast;
 % Initialize recursion at unconditional mean (stationarity assumed).
 % ini = intrcpt./(1 - sum(garchparam));
 %% Data Storage
@@ -40,7 +41,7 @@ for tt=1:T
     end
     for jj = 1:q
         if (tt-jj) <= 0
-            Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*backCast;
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*iniSig;
         else
             Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*Sigma_(:,:,tt-jj);
         end
@@ -89,16 +90,16 @@ for tt=T+1:T+t_ahead
 % forecasts are non-pd, it tries to go closer and closer to this point,
 % sometimes stopping at a point where there are non-finite derivatives,
 % which causes my_fmincon to fail.
-%     if any(eig(Sigma_(:,:,tt))<0) %This is if the forecasted Sigmas are not pd, which can happen despite all in-sample sigmas being pd. in this case likely the estimated scoreparam is too high for stationarity.
-%         nLogL = inf;
-%         logLcontr = NaN;
-%         SigmaE = NaN;
-%         varargout{1} = NaN;      
-%         varargout{2} = NaN;
-%         return
-%     end
+    if any(eig(Sigma_(:,:,tt))<0) %This is if the forecasted Sigmas are not pd, which can happen despite all in-sample sigmas being pd. in this case likely the estimated scoreparam is too high for stationarity.
+        nLogL = inf;
+        logLcontr = NaN;
+        SigmaE = NaN;
+        varargout{1} = NaN;      
+        varargout{2} = NaN;
+        return
+    end
 end
-[Sigma_(:,:,T+1:T+t_ahead), pdadjustments_made] = makepd(Sigma_(:,:,T+1:T+t_ahead));
+% [Sigma_(:,:,T+1:T+t_ahead), pdadjustments_made] = makepd(Sigma_(:,:,T+1:T+t_ahead));
 %% Log-Likelihood
 nLogL = -sum(logLcontr);
 %% Parameter Output
@@ -106,7 +107,10 @@ if nargout >= 5
     param_out.intrcpt = intrcpt;
     param_out.scoreparam = scoreparam;
     param_out.garch_param = garchparam;
-    param_out.n = param_dist.n;
+    
+    if isfield(param_dist,'n')
+        param_out.n = param_dist.n;
+    end
     
     if isfield(param_dist,'nu')
         param_out.nu = param_dist.nu;
