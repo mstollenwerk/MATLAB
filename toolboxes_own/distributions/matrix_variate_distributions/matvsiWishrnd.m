@@ -4,7 +4,7 @@ function R = matvsiWishrnd( Sigma_, df, T )
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
 
-p = length(df);
+p = size(Sigma_,1);
 Omega_ = (n-p-1)*Sigma_;
 R = matviWishrnd( Omega_, df, T );
 
