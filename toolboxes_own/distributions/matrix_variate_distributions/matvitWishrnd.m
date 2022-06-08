@@ -1,4 +1,4 @@
-function A = matvitWishrnd( Sigma_, n, nu, N )
+function A = matvitWishrnd( Omega_, n, nu, N )
 %MATVTWISHRND
 %
 % USAGE:
@@ -22,11 +22,11 @@ function A = matvitWishrnd( Sigma_, n, nu, N )
 %
 % DEPENDENCIES:
 
-p = size(Sigma_,1);
+p = size(Omega_,1);
 A = NaN(p,p,N);
 for ii=1:N
 
-    W = iwishrnd( Sigma_, n );
+    W = iwishrnd( Omega_, n );
     chi2_ = chi2rnd(nu); 
     A(:,:,ii) = W*(chi2_/nu);
     

@@ -1,5 +1,5 @@
-function R = matvsiRiesz2rnd( Sigma_, nu, T)
-%MATVSIRIESZ2RND Random standardized inverse Riesz 2 matrix.
+function R = matvsRieszrnd( Sigma_, n, T)
+%MATVRIESZRND
 %
 % USAGE:
 %   
@@ -18,22 +18,20 @@ function R = matvsiRiesz2rnd( Sigma_, nu, T)
 %
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
-% 06.06.2022
+% 11.02.2021
 %
 % DEPENDENCIES:
 %
-
 p = size(Sigma_,1);
 C = chol(Sigma_,'lower');
-m = diag(matviRiesz2expmat(nu));
-M = diag(sqrt(1./m));
+M = diag(sqrt(1./n));
 
 R = NaN(p,p,T);
 for tt = 1:T
     
-    BU = BarlettU(nu);
-    L = C*M/BU';
-    R(:,:,ii) = L*L';
+    BL = BarlettL(n);
+    L = C*M*BL;
+    R(:,:,tt) = L*L';
     
 end
 

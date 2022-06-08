@@ -1,5 +1,5 @@
-function R = matvsFRieszrnd( Sigma_, n, nu, N)
-%MATVSRND Random standardized F-Riesz matrices.
+function R = matvsiFRiesz2rnd( Sigma_, n, nu, N)
+%MATVSRND Random standardized inverse F-Riesz 2 matrices.
 %   Detailed explanation goes here
 %
 % Michael Stollenwerk
@@ -10,7 +10,7 @@ function R = matvsFRieszrnd( Sigma_, n, nu, N)
 %
 p = size(Sigma_,1);
 C = chol(Sigma_,'lower');
-m = diag(matvFRieszexpmat(n,nu));
+m = diag(matviFRiesz2expmat(n,nu));
 M = diag(sqrt(1./m));
 
 

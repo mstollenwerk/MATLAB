@@ -1,5 +1,5 @@
-function A = matviRiesz2rnd( Sigma_, n, T)
-%MATVRIESZ2RND
+function R = matviRiesz2rnd( Omega_, nu, T)
+%MATVRIESZRND
 %
 % USAGE:
 %   
@@ -18,17 +18,21 @@ function A = matviRiesz2rnd( Sigma_, n, T)
 %
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
-% 11.02.2021
+% 24.03.2022
 %
 % DEPENDENCIES:
 %
-p = size(Sigma_,1);
 
-invA = matvRiesz2rnd(inv(Sigma_), n, T);
+p = size(Omega_,1);
+C = chol(Omega_,'lower');
 
-A = NaN(p,p,T);
+R = NaN(p,p,T);
 for tt = 1:T
-    A(:,:,tt) = inv(invA(:,:,tt));
+    
+    BU = BarlettU(nu);
+    L = C/BU';
+    R(:,:,ii) = L*L';
+    
 end
 
 end

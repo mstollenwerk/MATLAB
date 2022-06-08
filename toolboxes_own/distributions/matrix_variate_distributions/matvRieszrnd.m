@@ -1,4 +1,4 @@
-function A = matvRieszrnd( Sigma_, n, T)
+function R = matvRieszrnd( Omega_, n, T)
 %MATVRIESZRND
 %
 % USAGE:
@@ -22,20 +22,16 @@ function A = matvRieszrnd( Sigma_, n, T)
 %
 % DEPENDENCIES:
 %
-p = size(Sigma_,1);
-p_ = p*(p+1)/2 - p;
-L = chol(Sigma_,'lower');
+p = size(Omega_,1);
+C = chol(Omega_,'lower');
 
-A = NaN(p,p,T);
+R = NaN(p,p,T);
 for tt = 1:T
-    chi2_ = NaN(p,1);
-    for pp = 1:p
-        chi2_(pp) = sqrt(chi2rnd( n(pp) - pp + 1 ));
-    end
-    G = diag(chi2_);
-    G(tril(true(p),-1)) = randn(p_,1);
-    A_ = L*(G*G')*L';
-    A(:,:,tt) = (A_ + A_')./2; % ensure symmetry
+    
+    BL = BarlettL(n);
+    L = C*BL;
+    R(:,:,tt) = L*L';
+    
 end
 
 end
