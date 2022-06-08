@@ -1,27 +1,9 @@
-function [ nLogL, logLcontr, varargout ] = matvWishlike( Sigma_, n, X, varargin )
-%MATVWISHLIKE
-%
-% USAGE:
-%   
-%
-% INPUTS:
-%   
-%
-% OUTPUTS:
-%   
-%  See also 
-%
-% COMMENTS:
-%   
-% REFERENCES:
-%      [1]                    
-%
-% DEPENDENCIES:
-%
+function [ nLogL, logLcontr, varargout ] = matvsWishlike( Sigma_, n, X, varargin )
+%MATVSWISHLIKE Log-likelihood of Wishart distribution.
 %
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
-% 14.08.2020
+% 30.08.2021
 
 narginchk(3,4);
 nargoutchk(0,6);
@@ -43,16 +25,17 @@ param.all = [vechchol(Sigma_); n];
 logLcontr = NaN(N,1);
 
 log_norm_const = ...
+    n*p/2*log(n) ...
   - n*p/2*log(2) ...
   - mvgammaln(n/2, p) ...
   - n/2*logdet(Sigma_);
 	  
 for ii = 1:N
-    A = X(:,:,ii);
+    R = X(:,:,ii);
  
     log_kernel = ...
-      -  trace(Sigma_\A) ...
-      + (n-p-1)*logdet(A);
+      -  trace(n*(Sigma_\R)) ...
+      + (n-p-1)*logdet(R);
 		
     logLcontr(ii) = log_norm_const + .5*log_kernel;
 end
@@ -61,27 +44,22 @@ nLogL = -sum(logLcontr);
 if nargout >= 3
     invSig = inv(Sigma_);    
     
-    score.Sigma_ = NaN(N,p_);
-    score.Sigma_WishFishScaling = NaN(p,p,N);
-    score.df = NaN(N,1);
+    score.Sigma_ = NaN(p,p,N);
     
     for ii = 1:N
         
-        A = X(:,:,ii);
+        R = X(:,:,ii);
         
         % General matrix derivative (ignoring symmetry of Sigma_): [ enter to matrixcalculus.org: -df/2*log(det(Sigma))-tr(inv(Sigma)*A) ]
-        S = - n/2*invSig ...
-            + 1/2*(Sigma_\A/Sigma_);
+        S = Sigma_\R/Sigma_ - invSig;
+        S = n/2*S;
         
-        score.Sigma_WishFishScaling(:,:,ii) = 2/n*Sigma_*S*Sigma_;
+        score.SigmaNonSym = S;
         
         % Accounting for symmetry of Sigma_:
-        S = 2*S - diag(diag(S));
+        S = S+S' - diag(diag(S));
         
-        % Numerical inaccuracies make S not exactly symmetric
-        S = (S+S')./2;
-        
-        score.Sigma_(ii,:) = vech(S);
+        score.Sigma_(:,:,ii) = S;
 
         % The score below are also easy to get quering wolframalpha.com 
         % with eg "d/da (log(Gamma(1/2 (a+ p n))))".
