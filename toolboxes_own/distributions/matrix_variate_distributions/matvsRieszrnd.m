@@ -1,5 +1,5 @@
 function R = matvsRieszrnd( Sigma_, n, T)
-%MATVRIESZRND
+%MATVSRIESZRND
 %
 % USAGE:
 %   

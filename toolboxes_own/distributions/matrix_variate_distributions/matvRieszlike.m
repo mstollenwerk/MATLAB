@@ -1,14 +1,14 @@
 function [ nLogL, logLcontr, varargout ] = ...
-    matvRieszlike( Sigma_, n, X, varargin )
+    matvRieszlike( Omega_, n, X, varargin )
 %MATVRIESZLIKE
 %
 % USAGE:
-%   [ nLogL, score, param ] = matvFlike( Sigma_, n1, n2, X )
+%   [ nLogL, score, param ] = matvFlike( Omega_, n1, n2, X )
 %   [ nLogL, score, param ] = matvFlike( [], [], [], X, all_param )
 %
 % INPUTS:
 %   X       - Array (p by p). Symmetric p.d. data matrix.
-%   SIGMA_  - Array (p by p). Symmetric p.d. parameter matrix, 
+%   Omega_  - Array (p by p). Symmetric p.d. parameter matrix, 
 %             regulates covariance. 
 %   n1    - Double. First degrees of freedom parameter. 
 %   n2    - Double. Second degrees of freedom parameter. 
@@ -47,19 +47,19 @@ narginchk(3,4);
 nargoutchk(0,6);
 %% Param
 if nargin == 4
-    if ~(isempty(Sigma_) && isempty(n))
+    if ~(isempty(Omega_) && isempty(n))
         error('Cannot input all_param and any of the parameters individually!')
     end
     all_param = varargin{1};
-    Sigma_ = ivechchol(all_param(1 : p_));
+    Omega_ = ivechchol(all_param(1 : p_));
     n = all_param(p_ + 1 : p_ + p);
 end
-% Checking if Sigma_ is symmetric p.d.
-param.Sigma_ = Sigma_;
-C = chol(Sigma_,'lower');
-param.chol_Sigma_ = vech(C);
+% Checking if Omega_ is symmetric p.d.
+param.Omega_ = Omega_;
+C = chol(Omega_,'lower');
+param.chol_Omega_ = vech(C);
 param.n = n;
-param.all = [param.chol_Sigma_; n];
+param.all = [param.chol_Omega_; n];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
 
@@ -71,7 +71,7 @@ log_normalizing_constant = term1 + term2 + term3;
 
 for ii = 1:N
     term4 = loglpwdet(X(:,:,ii),(n-p-1)./2);
-    term5 = -trace(Sigma_\X(:,:,ii))./2;
+    term5 = -trace(Omega_\X(:,:,ii))./2;
     
     log_kernel = term4 + term5;
 
@@ -81,25 +81,25 @@ nLogL = -sum(logLcontr);
 %% Score computation
 if nargout >= 3
     
-    score.Sigma_ = NaN(N,p_);
+    score.Omega_ = NaN(N,p_);
     score.n = NaN(N,p);
     
     for ii = 1:N
         
         A = X(:,:,ii);
         
-        % General matrix derivative (ignoring symmetry of Sigma_):
-        S = 1/2*(Sigma_\A/Sigma_ - C'\diag(n)/C);
+        % General matrix derivative (ignoring symmetry of Omega_):
+        S = 1/2*(Omega_\A/Omega_ - C'\diag(n)/C);
         
-%         score.Sigma_WishFishScaling(:,:,ii) = 2/mean(n)*Sigma_*S*Sigma_;
+%         score.Omega_WishFishScaling(:,:,ii) = 2/mean(n)*Omega_*S*Omega_;
         
-        % Accounting for symmetry of Sigma_:
+        % Accounting for symmetry of Omega_:
         S = 2*S - diag(diag(S));
         
         % Numerical inaccuracies make S not exactly symmetric
         S = (S+S')./2;
                 
-        score.Sigma_(ii,:) = vech(S);
+        score.Omega_(ii,:) = vech(S);
 
         % Score nu
         score.n(ii,:) = NaN(p,1);
@@ -117,9 +117,9 @@ if nargout >= 6
     I = speye(p);
     L = ELmatrix(p);
     
-    invSig = inv(Sigma_);
+    invSig = inv(Omega_);
     
-    fisherinfo.Sigma_ = 1/2*G'*kron(C'\diag(n),invSig)*L'/(iG*kron(C,I)*L');
+    fisherinfo.Omega_ = 1/2*G'*kron(C'\diag(n),invSig)*L'/(iG*kron(C,I)*L');
     fisherinfo.n = NaN;
     
     varargout{4} = fisherinfo;
