@@ -1,22 +1,5 @@
-function [ nLogL, logLcontr, varargout ] = matviWishlike( Omega_, nu, X, varargin )
-%MATVIWISHLIKE
-%
-% USAGE:
-%   
-%
-% INPUTS:
-%   
-%
-% OUTPUTS:
-%   
-%  See also 
-%
-% COMMENTS:
-%   
-% REFERENCES:
-%      [1]
-%
-% DEPENDENCIES:
+function [ nLogL, logLcontr, varargout ] = matviWishlike( Omega_, nu, R, varargin )
+%MATVIWISHLIKE Log-likelihood of inverse-Wishart matrix.
 %
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
@@ -24,7 +7,7 @@ function [ nLogL, logLcontr, varargout ] = matviWishlike( Omega_, nu, X, varargi
 narginchk(3,4);
 nargoutchk(0,6);
 
-[p,~,N] = size(X);
+[p,~,N] = size(R);
 p_ = p*(p+1)/2;
 %% Parameters
 if nargin == 4
@@ -45,7 +28,7 @@ log_norm_const = ...
   + nu/2*logdet(Omega_);
 	  
 for ii = 1:N
-    B = inv(X(:,:,ii));
+    B = inv(R(:,:,ii));
  
     log_kernel = ...
       - trace(Omega_*B) ...
@@ -63,7 +46,7 @@ if nargout >= 3
     score.df = NaN(N,1);
     for ii = 1:N
         
-        invA = inv(X(:,:,ii));
+        invA = inv(R(:,:,ii));
        
         % General matrix derivative (ignoring symmetry of Omega_):
         S = .5*( nu*invSig - invA );

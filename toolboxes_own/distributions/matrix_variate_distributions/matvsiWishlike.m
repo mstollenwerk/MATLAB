@@ -1,22 +1,5 @@
-function [ nLogL, logLcontr, varargout ] = matvsiWishlike( Sigma_, nu, X, varargin )
-%MATVIWISHLIKE
-%
-% USAGE:
-%   
-%
-% INPUTS:
-%   
-%
-% OUTPUTS:
-%   
-%  See also 
-%
-% COMMENTS:
-%   
-% REFERENCES:
-%      [1]
-%
-% DEPENDENCIES:
+function [ nLogL, logLcontr, varargout ] = matvsiWishlike( Sigma_, nu, R, varargin )
+%MATVSIWISHLIKE Log-likelihood of standardized inverse-Wishart matrix.
 %
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
@@ -24,7 +7,7 @@ function [ nLogL, logLcontr, varargout ] = matvsiWishlike( Sigma_, nu, X, vararg
 narginchk(3,4);
 nargoutchk(0,6);
 
-[p,~,N] = size(X);
+[p,~,N] = size(R);
 p_ = p*(p+1)/2;
 %% Parameters
 if nargin == 4
@@ -46,11 +29,11 @@ log_norm_const = ...
 	  
 for ii = 1:N
     
-    R = X(:,:,ii);
+    R_ = R(:,:,ii);
  
     log_kernel = ...
-      - (nu-p-1)*trace(Sigma_/R) ...
-      - (nu+p+1)*logdet(R);
+      - (nu-p-1)*trace(Sigma_/R_) ...
+      - (nu+p+1)*logdet(R_);
 		
     logLcontr(ii) = log_norm_const + .5*log_kernel;
 end
@@ -62,7 +45,7 @@ if nargout >= 3
     score.Sigma_ = NaN(p,p,N);
     for ii = 1:N
         
-        invR = inv(X(:,:,ii));
+        invR = inv(R(:,:,ii));
        
         % General matrix derivative (ignoring symmetry of Sigma_):
         S = .5*( nu*invSig - (nu-p-1)*invR );
