@@ -1,4 +1,4 @@
-function A = matvtWishrnd( Sigma_, n, nu, N )
+function R = matvtWishrnd( Omega_, n, nu, T )
 %MATVTWISHRND
 %
 % USAGE:
@@ -26,13 +26,13 @@ function A = matvtWishrnd( Sigma_, n, nu, N )
 %
 % DEPENDENCIES:
 
-p = size(Sigma_,1);
-A = NaN(p,p,N);
-for ii=1:N
+p = size(Omega_,1);
+R = NaN(p,p,T);
+for ii=1:T
 
-    W = wishrnd( Sigma_, n );
+    W = wishrnd( Omega_, n );
     chi2_ = chi2rnd(nu); 
-    A(:,:,ii) = W/(chi2_/nu);
+    R(:,:,ii) = W/(chi2_/nu);
     
     % Alternatively:
 %     gamma_ = gamrnd( df_t/2, 2/df_t );

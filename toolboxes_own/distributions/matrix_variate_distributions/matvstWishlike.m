@@ -1,4 +1,4 @@
-function [ nLogL, logLcontr, varargout ] = matvtWishlike( Sigma_, n, nu, X, varargin )
+function [ nLogL, logLcontr, varargout ] = matvstWishlike( Sigma_, n, nu, R, varargin )
 %MATVTWISHLIKE
 %
 % USAGE:
@@ -29,7 +29,7 @@ function [ nLogL, logLcontr, varargout ] = matvtWishlike( Sigma_, n, nu, X, vara
 narginchk(4,5);
 nargoutchk(0,6);
 
-[p,~,N] = size(X);
+[p,~,N] = size(R);
 p_ = p*(p+1)/2;
 %% Parameters
 if nargin >= 5
@@ -51,19 +51,21 @@ param.all = [param.chol_Sigma_; n; nu];
 logLcontr = NaN(N,1);
 trQ = NaN(N,1);
 
-for ii = 1:N
-    A = X(:,:,ii);
-    trQ(ii) = trace(Sigma_\A);
+term1 = gammaln( (nu + n*p)/2 );
+term2 = - gammaln(nu/2);
+term3 = - mvgammaln(n/2, p);
+term4 = n*p/2*log(n/(nu-2));
+term5 = - n/2*logdet(Sigma_);
 
-    term1 = gammaln( (nu + n*p)/2 );
-    term2 = - gammaln(nu/2);
-    term3 = - mvgammaln(n/2, p);
-    term4 = nu/2*log(nu);
-    term5 = - n/2*logdet(Sigma_);    
-    log_norm_const = term1 + term2 + term3 + term4 + term5;
+log_norm_const = term1 + term2 + term3 + term4 + term5;
+
+for ii = 1:N
     
-    term6 = (n-p-1)/2*logdet(A);
-    term7 = - (nu + n*p)/2*log(nu+trQ(ii));
+    R_ = R(:,:,ii);
+    trQ(ii) = trace(Sigma_\R_);
+    
+    term6 = (n-p-1)/2*logdet(R_);
+    term7 = - (nu + n*p)/2*log(1+n/(nu-2)*trQ(ii));
     log_kernel = term6 + term7;    
     
     logLcontr(ii) = log_norm_const + log_kernel;
@@ -72,31 +74,25 @@ nLogL = -sum(logLcontr);
 %% Scores (Optional Output)
 if nargout >= 3
     
-    score.Sigma_ = NaN(N,p_);
-    score.Sigma_WishFishScaling = NaN(p,p,N);
-    score.cholSigma = NaN;
-    score.n = NaN;
+    score.Sigma_ = NaN(p,p,N);
     score.nu = NaN;
-    score.all = NaN;
     
     invSig = inv(Sigma_);    
-    for ii = 1:N        
-        A = X(:,:,ii);
+    for ii = 1:N     
+        
+        R_ = R(:,:,ii);
        
         % General matrix derivative (ignoring symmetry of Sigma_): [ enter to matrixcalculus.org: -dfn/2*log(det(Sigma)) - (dft + dfn*p)/2*log(dft+tr(inv(Sigma)*A)) ]        
-        S = - n*invSig ...
-            + (nu + p*n) / (nu + trace(Sigma_\A)) * (Sigma_\A/Sigma_);
-        S = .5*S;
+        S = (nu+p*n)/(nu-2+n*trace(Sigma_\R_)) * (Sigma_\R_/Sigma_) - invSig;
+            
+        S = n/2*S;
         
-        score.Sigma_WishFishScaling(:,:,ii) = 2/n*Sigma_*S*Sigma_;
+        score.SigmaNonSym = S;
         
         % Accounting for symmetry of Sigma_:
-        S = 2*S - diag(diag(S));
-        
-        % Numerical inaccuracies make S not exactly symmetric
-        S = vech((S+S')./2);
+        S = S+S' - diag(diag(S));
 
-        score.Sigma_(ii,:) = S;
+        score.Sigma_(:,:,ii) = S;
 
         % Wolframalpha querie: d/da log(gamma((a + p*n)/2)) - p*n/2*log(a)
         % - log(gamma(a/2)) - (a + p*n)/2*log(1+q/a) 
@@ -106,8 +102,6 @@ if nargout >= 3
         term4 = log(trQ(ii)/nu+1);
         term5 = psi(nu/2);
         score.nu(ii) = .5*(term1+term2+term3+term4+term5);
-        
-        score.n(ii) = NaN;
     
     end
     
