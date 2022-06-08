@@ -1,6 +1,7 @@
 function [ nLogL, logLcontr, varargout ] = ...
     matvsFlike( Sigma_, n, nu, X, varargin )
-%MATVFLIKE Negative log-likelihood and score of the matrix-variate F distr.
+%MATVSFLIKE Negative log-likelihood of the standardized matrix-variate F
+%distribution.
 %
 % USAGE:
 %   [ nLogL, score, param ] = matvFlike( Sigma_, df_1, df_2, X )
@@ -9,7 +10,7 @@ function [ nLogL, logLcontr, varargout ] = ...
 % INPUTS:
 %   X       - Array (p by p). Symmetric p.d. data matrix.
 %   SIGMA_  - Array (p by p). Symmetric p.d. parameter matrix, 
-%             regulates covariance. 
+%             expected value matrix. 
 %   DF_1    - Double. First degrees of freedom parameter. 
 %   df_2    - Double. Second degrees of freedom parameter. 
 %
@@ -22,8 +23,6 @@ function [ nLogL, logLcontr, varargout ] = ...
 % 
 % COMMENTS:
 %
-%   This is the distribution representation as in Stollenwerk (2022), i.e.
-%   be note the nu definition.
 %
 % REFERENCES:
 %   [1] Stollenwerk (2022)

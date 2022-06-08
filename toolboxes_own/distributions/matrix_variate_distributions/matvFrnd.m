@@ -2,7 +2,7 @@ function R = matvFrnd( Omega_, n, nu, N )
 %MATVFRND Random matrix-F distribution matrix.
 %   Detailed explanation goes here
 
-p = length(n);
+p = size(Omega_,1);
 C = chol(Omega_,'lower');
 
 R = NaN(p,p,N);
