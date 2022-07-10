@@ -1,5 +1,5 @@
-function [ nLogL, logLcontr, score, varargout] = ...
-    matvsLogLike(dist, Sigma_, dfs, dta_mat)
+function [ nLogL, logLcontr, varargout] = ...
+    matvsLogLike(dist, Sigma_, dfs, R)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 k = size(Sigma_,1);
@@ -9,116 +9,96 @@ if strcmp( dist, 'Wish' )
         error('length(dfs) wrong.')
     end    
     n = dfs(1);
-    [ nLogL, logLcontr, score] = matvsWishlike(Sigma_,n,dta_mat);
+    like = @(R) matvsWishlike(Sigma_,n,R);
 elseif strcmp( dist, 'iWish' )
     if length(dfs) ~= 1
         error('length(dfs) wrong.')
     end    
-    n = dfs(1);
-    [ nLogL, logLcontr, score] = matvsiWishlike(Sigma_,n,dta_mat);   
+    nu = dfs(1);
+    like = @(R) matvsiWishlike(Sigma_,nu,R);   
 elseif strcmp( dist, 'tWish' )
     if length(dfs) ~= 2
         error('length(dfs) wrong.')
     end    
     n = dfs(1); 
     nu = dfs(2); 
-    [ nLogL, logLcontr, score] = matvstWishlike(Sigma_,n,nu,dta_mat);    
+    like = @(R) matvstWishlike(Sigma_,n,nu,R);    
 elseif strcmp( dist, 'itWish' )
     if length(dfs) ~= 2
         error('length(dfs) wrong.')
     end        
     n = dfs(1); 
     nu = dfs(2);
-    [ nLogL, logLcontr, score] = matvsitWishlike(Sigma_,n,nu,dta_mat);
+    like = @(R) matvsitWishlike(Sigma_,n,nu,R);
 elseif strcmp( dist, 'F' )
     if length(dfs) ~= 2
         error('length(dfs) wrong.')
     end    
     n = dfs(1); 
     nu = dfs(2);
-    [ nLogL, logLcontr, score] = matvsFlike(Sigma_,n,nu,dta_mat);    
+    like = @(R) matvsFlike(Sigma_,n,nu,R);    
 elseif strcmp( dist, 'Riesz' )
     if length(dfs) ~= k
         error('length(dfs) wrong.')
     end        
     n = dfs(1 : k);
-    [ nLogL, logLcontr, score] = matvsRieszlike(Sigma_,n,dta_mat);    
-% elseif strcmp( dist, 'Riesz2' )
-%     if length(dfs) ~= k
-%         error('length(dfs) wrong.')
-%     end        
-%     n = dfs(1 : k);
-%     [ nLogL, logLcontr, score] = matvsRiesz2like(Sigma_,n,dta_mat);        
-% elseif strcmp( dist, 'iRiesz' )
-%     if length(dfs) ~= k
-%         error('length(dfs) wrong.')
-%     end        
-%     n = dfs(1 : k);
-%     [ nLogL, logLcontr, score] = matvsiRieszlike(Sigma_,n,dta_mat); 
+    like = @(R) matvsRieszlike(Sigma_,n,R);
 elseif strcmp( dist, 'iRiesz2' )
     if length(dfs) ~= k
         error('length(dfs) wrong.')
     end        
-    n = dfs(1 : k); 
-    [ nLogL, logLcontr, score] = matvsiRiesz2like(Sigma_,n,dta_mat); 
+    nu = dfs(1 : k); 
+    like = @(R) matvsiRiesz2like(Sigma_,nu,R); 
 elseif strcmp( dist, 'tRiesz' )
     if length(dfs) ~= k+1
         error('length(dfs) wrong.')
     end        
     n = dfs(1 : k); 
     nu = dfs(k + 1);
-    [ nLogL, logLcontr, score] = matvstRieszlike(Sigma_,n,nu,dta_mat); 
-% elseif strcmp( dist, 'tRiesz2' )
-%     if length(dfs) ~= k+1
-%         error('length(dfs) wrong.')
-%     end    
-%     n = dfs(1 : k); 
-%     nu = dfs(k + 1); 
-%     [ nLogL, logLcontr, score] = matvstRiesz2like(Sigma_,n,nu,dta_mat); 
-% elseif strcmp( dist, 'itRiesz' )
-%     if length(dfs) ~= k+1
-%         error('length(dfs) wrong.')
-%     end    
-%     n = dfs(1 : k); 
-%     nu = dfs(k + 1);
-%     [ nLogL, logLcontr, score] = matvsitRieszlike(Sigma_,n,nu,dta_mat); 
+    like = @(R) matvstRieszlike(Sigma_,n,nu,R);
 elseif strcmp( dist, 'itRiesz2' )
     if length(dfs) ~= k+1
         error('length(dfs) wrong.')
     end    
-    n = dfs(1 : k); 
-    nu = dfs(k + 1);
-    [ nLogL, logLcontr, score] = matvsitRiesz2like(Sigma_,n,nu,dta_mat); 
+    n = dfs(1); 
+    nu = dfs(2 : k + 1);
+    like = @(R) matvsitRiesz2like(Sigma_,n,nu,R); 
 elseif strcmp( dist, 'FRiesz' )
     if length(dfs) ~= k+k
         error('length(dfs) wrong.')
     end    
     n = dfs(1 : k); 
     nu = dfs(k + 1 : k + k);
-    [ nLogL, logLcontr, score] = matvsFRieszlike(Sigma_,n,nu,dta_mat); 
+    like = @(R) matvsFRieszlike(Sigma_,n,nu,R); 
 elseif strcmp( dist, 'iFRiesz2' )
     if length(dfs) ~= k+k
         error('length(dfs) wrong.')
     end    
     n = dfs(1 : k); 
     nu = dfs(k + 1 : k + k);
-    [ nLogL, logLcontr, score] = matvsiFRiesz2like(Sigma_,n,nu,dta_mat);
-% elseif strcmp( dist, 'FRiesz2' )
-%     if length(dfs) ~= k+k
-%         error('length(dfs) wrong.')
-%     end    
-%     n = dfs(1 : k); 
-%     nu = dfs(k + 1 : k + k);
-%     [ nLogL, logLcontr, score] = matvsFRiesz2like(Sigma_,n,nu,dta_mat);
+    like = @(R) matvsiFRiesz2like(Sigma_,n,nu,R);
 end
 
-if nargout >= 4
-    param.Sigma_ = Sigma_;
-    param.n = n;
-    if exist('nu','var')
-        param.nu = nu;
-    end
-    varargout{1} = param;
+if nargout <= 2
+    [ nLogL, logLcontr ] = like(R);
+elseif nargout == 3    
+    [ nLogL, logLcontr, score ] = like(R);
+    varargout{1} = score;
+elseif nargout == 4    
+    [ nLogL, logLcontr, score, hessian ] = like(R);
+    varargout{1} = score;
+    varargout{2} = hessian;
+elseif nargout == 5    
+    [ nLogL, logLcontr, score, hessian, param ] = like(R);
+    varargout{1} = score;
+    varargout{2} = hessian;
+    varargout{3} = param;    
+elseif nargout == 6
+    [ nLogL, logLcontr, score, hessian, param, fisherinfo ] = like(R);
+    varargout{1} = score;
+    varargout{2} = hessian;
+    varargout{3} = param;
+    varargout{4} = fisherinfo;
 end
 
 end

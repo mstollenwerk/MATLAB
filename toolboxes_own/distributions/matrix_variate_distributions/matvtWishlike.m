@@ -83,9 +83,10 @@ if nargout >= 3
     for ii = 1:N        
         A = R(:,:,ii);
        
+        trInvOmA = trace(Omega_\A);
         % General matrix derivative (ignoring symmetry of Omega_): [ enter to matrixcalculus.org: -dfn/2*log(det(Sigma)) - (dft + dfn*p)/2*log(dft+tr(inv(Sigma)*A)) ]        
         S = - n*invSig ...
-            + (nu + p*n) / (nu + trace(Omega_\A)) * (Omega_\A/Omega_);
+            + (nu + p*n) / (nu + trInvOmA) * (Omega_\A/Omega_);
         S = .5*S;
         
         score.Omega_WishFishScaling(:,:,ii) = 2/n*Omega_*S*Omega_;
@@ -98,16 +99,17 @@ if nargout >= 3
 
         score.Omega_(ii,:) = S;
 
-        % Wolframalpha querie: d/da log(gamma((a + p*n)/2)) - p*n/2*log(a)
-        % - log(gamma(a/2)) - (a + p*n)/2*log(1+q/a) 
-        term1 = trQ(ii)*(nu + n*p)/nu^2/(trQ(ii)/nu+1);
-        term2 = -n*p/nu;
-        term3 = psi(.5*(nu+n*p));
-        term4 = log(trQ(ii)/nu+1);
-        term5 = psi(nu/2);
-        score.nu(ii) = .5*(term1+term2+term3+term4+term5);
+        score.n(ii) = .5*( p*psi((nu+p*n)/2) - sum(mvpsi(ones(p,1)*n/2)) ...
+                          - p*log(nu) - logdet(Omega_) + logdet(A) - p*log(1+trInvOmA/nu) );
         
-        score.n(ii) = NaN;
+        score.nu(ii) = .5*( psi((nu+p*n)/2) - psi(nu/2) - p*n/nu ...
+                         - log(1+trInvOmA/nu) + (nu+p*n)*(trInvOmA/nu^2)/(1+trInvOmA/nu) );
+                     
+        score.n_scaled(ii) = -score.n(ii) / ...
+            (.25*p^2*psi(1,(nu+p*n)/2) - .25*sum(mvpsi(ones(p,1)*n/2,1)));
+                   
+        score.nu_scaled(ii) = -score.nu(ii) / ...
+            (.25*psi(1,(nu+p*n)/2) - .25*psi(1,nu/2) + .5*(p*n+nu+4)/(p*n+nu+2)*p*n/(p*n+nu)/nu);                     
     
     end
     

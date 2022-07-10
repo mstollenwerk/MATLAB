@@ -21,7 +21,7 @@ w = reshape(w/sum(w),[1 1 m]);
 backCast = sum(bsxfun(@times,w, R(:,:,1:m)),3);
 iniSig = backCast;
 % Initialize recursion at unconditional mean (stationarity assumed).
-% ini = intrcpt./(1 - sum(garchparam));
+% iniSig = intrcpt./(1 - sum(garchparam));
 %% Data Storage
 Sigma_ = NaN(k,k,T+t_ahead);
 S = NaN(k,k,T,2);
@@ -49,7 +49,7 @@ for tt=1:T
     
     try
         % Likelihood Evaluation         
-        [~, logLcontr(tt), score, param_dist] = ...
+        [~, logLcontr(tt), score, ~, param_dist] = ...
             matvsLogLike( dist, Sigma_(:,:,tt), param(k_+2*p+q+1:end), R(:,:,tt) );   
     catch ME
 %         tt
@@ -93,7 +93,7 @@ for tt=T+1:T+t_ahead
     if any(eig(Sigma_(:,:,tt))<0) %This is if the forecasted Sigmas are not pd, which can happen despite all in-sample sigmas being pd. in this case likely the estimated scoreparam is too high for stationarity.
         nLogL = inf;
         logLcontr = NaN;
-        SigmaE = NaN;
+        Sigma_ = NaN;
         varargout{1} = NaN;      
         varargout{2} = NaN;
         return

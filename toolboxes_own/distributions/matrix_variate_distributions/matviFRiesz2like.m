@@ -49,6 +49,8 @@ nLogL = -sum(logLcontr);
 if nargout >= 3
     
     score.Sigma_ = NaN(p,p,N);
+    score.n = NaN(N,p);
+    score.nu = NaN(N,p);
     
     for ii = 1:N
         
@@ -67,6 +69,12 @@ if nargout >= 3
         S = (S+S')./2;
                 
         score.Omega_(:,:,ii) = S;
+        score.n(ii,:) = .5*(mvpsi((n+nu)/2) - mvpsi(n/2)) ...
+                      - log(diag(C_Omega)) + log(diag(C_B));
+        score.n_scaled(ii,:) = -score.n(ii,:)'./( .25*( mvpsi((n+nu)/2,1) - mvpsi(n/2,1) ) ); 
+        score.nu(ii,:) = .5*(mvpsi((n+nu)/2) - flip(mvpsi(flip(nu)/2))) ...
+                      - log(diag(chol(X(:,:,ii),'lower'))) + log(diag(C_B));
+        score.nu_scaled(ii,:) = -score.nu(ii,:)'./( .25*(mvpsi((n+nu)/2,1) - flip(mvpsi(flip(nu)/2,1))) );
 
     end
     

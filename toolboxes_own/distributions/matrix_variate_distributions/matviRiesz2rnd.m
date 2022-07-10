@@ -31,7 +31,7 @@ for tt = 1:T
     
     BU = BarlettU(nu);
     L = C/BU';
-    R(:,:,ii) = L*L';
+    R(:,:,tt) = L*L';
     
 end
 

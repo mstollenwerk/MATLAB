@@ -51,7 +51,8 @@ nLogL = -sum(logLcontr);
 %% Score computation
 if nargout >= 3
     
-    score.Sigma_ = NaN(p,p,N);    
+    score.Sigma_ = NaN(p,p,N);  
+    score.n_originalpdf = NaN(N,p);
     for ii = 1:N
         
         R = X(:,:,ii);
@@ -67,6 +68,11 @@ if nargout >= 3
         % Omega_ = C*inv(diag(n))*C' gives the same result, but is much
         % more computationally intensive:
         % ivech(1/2*vec(C'\diag(n)/C*R/C'*diagn/C - C'\diag(n)*diag(n)/C)'*G*dvechCYCt_dvechCCt(C,inv(diag(n))))
+        
+        score.n_originalpdf(ii,:) = .5*( -log(2) - mvpsi(n/2) ) ...
+                        + log(diag(chol(R,'lower'))) - log(diag(C)./sqrt(n));
+        score.n_originalpdf_scaled(ii,:) = score.n_originalpdf(ii,:)' ./ ...
+            ( .25*mvpsi(n/2,1) );
 
     end
     

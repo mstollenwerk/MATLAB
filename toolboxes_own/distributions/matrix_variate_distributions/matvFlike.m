@@ -60,9 +60,9 @@ param.nu = nu;
 param.all = [param.chol_Omega_; n; nu];
 %% Log-likelihood computation
 logLcontr = NaN(N,1);
-term2 = -mvbetaln(n/2, nu/2, p);
-term3 = nu/2 * logdet(Omega_);
-log_normalizing_constant = term1 + term2 + term3;
+term1 = -mvbetaln(n/2, nu/2, p);
+term2 = nu/2 * logdet(Omega_);
+log_normalizing_constant = term1 + term2;
 
 for ii = 1:N
     term3 = (n - p - 1)/2*logdet( X(:,:,ii) );
@@ -92,9 +92,17 @@ if nargout >= 3
                 
         score.Omega_(ii,:) = vech(S);
 
-        % Score nu
-        score.df_1(ii) = NaN;
-        score.df_2(ii) = NaN;
+        % Score dfs
+        score.n(ii) = .5*( sum(mvpsi(ones(p,1)*(n+nu)/2)) - sum(mvpsi(ones(p,1)*n/2)) ...
+                           + logdet(X(:,:,ii)) - logdet(Omega_ + X(:,:,ii)) );
+        score.nu(ii) = .5*( sum(mvpsi(ones(p,1)*(n+nu)/2)) - sum(mvpsi(ones(p,1)*nu/2)) ...
+                            + logdet(Omega_) - logdet(Omega_ + X(:,:,ii)) );
+                        
+        fisherinfo.n(ii) = -.25*( sum(mvpsi(ones(p,1)*(n+nu)/2,1)) - sum(mvpsi(ones(p,1)*n/2,1)) );
+        fisherinfo.nu(ii) = -.25*( sum(mvpsi(ones(p,1)*(n+nu)/2,1)) - sum(mvpsi(ones(p,1)*nu/2,1)) );
+        
+        score.n_scaled(ii) = score.n(ii)/fisherinfo.n(ii);
+        score.nu_scaled(ii) = score.nu(ii)/fisherinfo.nu(ii);
 
     end
     

@@ -1,11 +1,11 @@
 function [ nLogL, logLcontr, weights, scores_weights ] = ...
-    gas_weights_mix_2_likeRec( param, logL1, logL2 )
+    gas_weights_mix_2_likeRec( param, L1, L2 )
 %
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
 % 05.04.2022
 
-T = length(logL1);
+T = length(L1);
 t_ahead = 220;
 %% Parameters
 %% Data Storage
@@ -30,8 +30,8 @@ for tt=1:T
         return
     end
     
-    Like_tt = weights(tt)*logL1(tt) + (1 - weights(tt))*logL2(tt);
-    scores_weights(tt) = (weights(tt)-weights(tt)^2)*(logL1(tt) - logL2(tt))/Like_tt;
+    Like_tt = weights(tt)*L1(tt) + (1 - weights(tt))*L2(tt);
+    scores_weights(tt) = (weights(tt)-weights(tt)^2)*(L1(tt) - L2(tt))/Like_tt;
     
     logLcontr(tt) = log(Like_tt);
     

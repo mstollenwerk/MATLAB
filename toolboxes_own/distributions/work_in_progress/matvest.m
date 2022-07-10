@@ -1,39 +1,109 @@
-function [ eparam, tstats, logL, optimoutput ] = matvest(X,dist,x0,varargin)
+function [ eparam, tstats, logL, optimoutput ] = matvest(R,dist,x0,varargin)
 %MATVEST Simple wrapper around my matrix-variate distribution estimations
 
+[p,~,T] = size(R);
+p_ = p*(p+1)/2;
+meanR = mean(R,3);
+
+obj_fun = @(dfs, perm) matvsLogLike_errorINF(...
+    dist, meanR(perm,perm,:), dfs, R(perm,perm,:)...
+);
+
+x0_df_barlett = 2*p;
+x0_df_barlettL = 2*p*ones(1,p);
+x0_df_barlettU = 2*p*ones(1,p);
+x0_df_chi = 5;
+
 if strcmp( dist, 'Wish' )
-    [ eparam, tstats, logL, optimoutput ] = matvWishest(X,x0,varargin{:});
+    x0_df = x0_df_barlett;
 elseif strcmp( dist, 'iWish' )
-    [ eparam, tstats, logL, optimoutput ] = matviWishest(X,x0,varargin{:});
+    x0_df = x0_df_barlett;
 elseif strcmp( dist, 'tWish' )
-    [ eparam, tstats, logL, optimoutput ] = matvtWishest(X,x0,varargin{:});
+    x0_df = [ x0_df_barlett, x0_df_chi ];
 elseif strcmp( dist, 'itWish' )
-    [ eparam, tstats, logL, optimoutput ] = matvitWishest(X,x0,varargin{:});
+    x0_df = [ x0_df_chi, x0_df_barlett ];
 elseif strcmp( dist, 'F' )
-    [ eparam, tstats, logL, optimoutput ] = matvFest(X,x0,varargin{:});   
+    x0_df = [ x0_df_barlett, x0_df_barlett ];
 elseif strcmp( dist, 'Riesz' )
-    [ eparam, tstats, logL, optimoutput ] = matvRieszest(X,x0,varargin{:});
-elseif strcmp( dist, 'iRiesz' )
-    [ eparam, tstats, logL, optimoutput ] = matviRieszest(X,x0,varargin{:});
-elseif strcmp( dist, 'tRiesz' )
-    [ eparam, tstats, logL, optimoutput ] = matvtRieszest(X,x0,varargin{:});
-elseif strcmp( dist, 'itRiesz' )
-    [ eparam, tstats, logL, optimoutput ] = matvitRieszest(X,x0,varargin{:});
-elseif strcmp( dist, 'FRiesz' )
-    [ eparam, tstats, logL, optimoutput ] = matvFRieszest(X,x0,varargin{:});
-elseif strcmp( dist, 'Riesz2' )
-    [ eparam, tstats, logL, optimoutput ] = matvRiesz2est(X,x0,varargin{:});
+    x0_df = x0_df_barlettL;
 elseif strcmp( dist, 'iRiesz2' )
-    [ eparam, tstats, logL, optimoutput ] = matviRiesz2est(X,x0,varargin{:});
-elseif strcmp( dist, 'tRiesz2' )
-    [ eparam, tstats, logL, optimoutput ] = matvtRiesz2est(X,x0,varargin{:});
+    x0_df = x0_df_barlettU;
+elseif strcmp( dist, 'tRiesz' )
+    x0_df = [ x0_df_barlettL, x0_df_chi ];
 elseif strcmp( dist, 'itRiesz2' )
-    [ eparam, tstats, logL, optimoutput ] = matvitRiesz2est(X,x0,varargin{:});
-elseif strcmp( dist, 'FRiesz2' )
-    [ eparam, tstats, logL, optimoutput ] = matvFRiesz2est(X,x0,varargin{:});  
+    x0_df = [ x0_df_chi, x0_df_barlettU ];
+elseif strcmp( dist, 'FRiesz' )
+    x0_df = [ x0_df_barlettL, x0_df_barlettU ];
 elseif strcmp( dist, 'iFRiesz2' )
-    [ eparam, tstats, logL, optimoutput ] = matviFRiesz2est(X,x0,varargin{:});    
+    x0_df = [ x0_df_barlettL, x0_df_barlettU ];
 end
+
+if contains(dist,'Riesz')
+    perm_optim = 1;
+else
+    perm_optim = 0;
+end
+if ~isempty(varargin) && strcmp(varargin{1},'noperm')
+    perm_optim = 0;
+    varargin = varargin(2:end);
+end
+if perm_optim
+    [eparam,optimoutput] = ...
+        fmincon_Rieszperm(...
+            p, ...
+            obj_fun, ...
+            x0_df', ...
+            [],[],[],[], ...
+            [],[],[], ...
+            varargin{:} ...
+        );
+else
+    [eparam,optimoutput] = ...
+        my_fmincon(...
+            @(param) obj_fun(param,1:p), ...
+            x0_df', ...
+            [],[],[],[], ...
+            [],[],[], ...
+            varargin{:} ...
+        );
+    optimoutput.perm_ = 1:p;
+end
+
+% Output Creation----------------------------------------------------------
+[ nLogL, logLcontr, ~, ~, eparam ] = obj_fun( eparam, optimoutput.perm_ );
+eparam.perm_ = optimoutput.perm_;
+
+%[VCV,A,B,scores,hess,gross_scores] = robustvcv(fun, eparam, 3);
+[VCV,scores,gross_scores] = vcv( obj_fun, eparam.all(p_+1:end), optimoutput.perm_ );
+tstats = eparam.all(p_+1:end)./sqrt(diag(VCV));
+
+
+aic = 2*nLogL + 2*(numel(x0)+p_);
+bic = 2*nLogL + log(T)*(numel(x0)+p_); % see Yu, Li and Ng (2017) 
+logL_detR_part = -(p+1)/2*sum(logdet3d(R));
+logL = struct(...
+    'logL', -nLogL,...
+    'logL_detR_part', logL_detR_part, ...
+    'aic', aic,...
+    'bic', bic,...
+    'logLcontr', logLcontr...
+);
+
+end
+
+function [ nLogL, logLcontr, score, hessian, param ] = ...
+    matvsLogLike_errorINF(dist, Sigma_, dfs, R) 
+    
+    try
+        [ nLogL, logLcontr, score, hessian, param ] = ...
+            matvsLogLike(dist, Sigma_, dfs, R);
+    catch
+        nLogL = inf;
+        logLcontr = NaN;
+        score = NaN;
+        hessian = NaN;
+        param = NaN;
+    end
 
 end
 

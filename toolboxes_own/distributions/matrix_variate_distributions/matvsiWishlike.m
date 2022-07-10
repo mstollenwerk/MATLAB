@@ -43,6 +43,8 @@ if nargout >= 3
     invSig = inv(Sigma_);    
     
     score.Sigma_ = NaN(p,p,N);
+    score.nu_originalpdf = NaN(N,1);
+    
     for ii = 1:N
         
         invR = inv(R(:,:,ii));
@@ -56,12 +58,13 @@ if nargout >= 3
         S = S+S' - diag(diag(S));
         
         score.Sigma_(:,:,ii) = S;
-
-        % The score below are also easy to get quering wolframalpha.com 
-        % with eg "d/da (log(Gamma(1/2 (a+ p n))))".
-        % I am just too lazy to write them down right now.
-        score.df(ii) = NaN;
+            
+        Omega_ = (nu-p-1)*Sigma_;
+        score.nu_originalpdf(ii) = ...
+            .5*( -p*log(2) - sum(mvpsi(ones(p,1)*nu/2)) + logdet(Omega_) - logdet(R(:,:,ii)) );
     
+        score.nu_originalpdf_scaled(ii) = - score.nu_originalpdf(ii) ./ ...
+            (-.25*sum(mvpsi(ones(p,1)*nu/2,1)));
     end
 
     varargout{1} = score;

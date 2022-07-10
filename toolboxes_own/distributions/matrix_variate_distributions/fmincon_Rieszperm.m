@@ -5,7 +5,13 @@ function [eparam,optimoutput] = fmincon_Rieszperm(p,obj_fun,x0,A,b,Aeq,beq,lb,ub
 
 rng(1); % Random Seed
 if p <= 10
-    n_perm = 4;
+    if p == 2
+        n_perm = 2;
+    elseif p == 3
+        n_perm = 3;
+    else
+        n_perm = 4;
+    end
 else
     n_perm = 1;
 end

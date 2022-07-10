@@ -43,18 +43,18 @@ param.all = [vechchol(Omega_); n; nu];
 logLcontr = NaN(N,1);
 
 log_norm_const = ...
-	gammaln( (nu + n*p)/2 ) ...
-  - gammaln(nu/2) ...
-  - mvgammaln(n/2, p) ...
-  + nu/2*log(nu) ...
-  + n/2*log(det(Omega_));
+	gammaln( (n + nu*p)/2 ) ...
+  - gammaln(n/2) ...
+  - mvgammaln(nu/2, p) ...
+  + n/2*log(n) ...
+  + nu/2*log(det(Omega_));
 	  
 for ii = 1:N
     B = inv(X(:,:,ii));
  
     log_kernel = ...
-		(n+p+1)/2*logdet(B) ...
-      - (nu + n*p)/2*log(nu+trace(Omega_*B));
+		(nu+p+1)/2*logdet(B) ...
+      - (n + nu*p)/2*log(n+trace(Omega_*B));
     
     logLcontr(ii) = log_norm_const + log_kernel;
 end
@@ -71,11 +71,12 @@ if nargout >= 3
         
         B = inv(X(:,:,ii));
        
+        trOmInvR = trace(Omega_*B);
         % General matrix derivative (ignoring symmetry of Omega_): [ enter to matrixcalculus.org: -dfn/2*log(det(Sigma)) - (dft + dfn*p)/2*log(dft+tr(inv(Sigma)*A)) ]        
-        S = n/2*invSig ...
-            - (nu + p*n)/ 2 / (nu + trace(Omega_*B)) * B;
+        S = nu/2*invSig ...
+            - (n + p*nu)/ 2 / (n + trOmInvR) * B;
         
-        score.Omega_WishFishScaling(:,:,ii) = 2/n*Omega_*S*Omega_;
+        score.Omega_WishFishScaling(:,:,ii) = 2/nu*Omega_*S*Omega_;
         
         % Accounting for symmetry of Omega_:
         S = 2*S - diag(diag(S));
@@ -84,12 +85,16 @@ if nargout >= 3
         S = (S+S')./2;
                 
         score.Omega_(ii,:) = vech(S);
-
-        % The score below are also easy to get quering wolframalpha.com 
-        % with eg "d/da (log(Gamma(1/2 (a+ p n))))".
-        % I am just too lazy to write them down right now.
-        score.n(ii) = NaN;
-        score.nu(ii) = NaN;
+        
+        s_n = psi((n+p*nu)/2) -  nu*p/n - psi(n/2) - log(1+trOmInvR/n) + (n+p*nu)*(trOmInvR/n^2)/(1+trOmInvR/n);
+        score.n(ii) = .5*s_n;
+        score.n_scaled(ii) = -score.n(ii) ./ ...
+            ( .25*psi(1,(n+p*nu)/2) - .25*psi(1,n/2) + .5*(p*nu+n+4)/(p*nu+n+2)*p*nu/(p*nu+n)/n );
+        
+        s_nu = p*psi((n+p*nu)/2) - p*log(n) - sum(mvpsi(ones(p,1)*nu/2)) - p*log(1+trOmInvR/n) + logdet(Omega_) - logdet(X(:,:,ii));
+        score.nu(ii) = .5*s_nu;
+        score.nu_scaled(ii) = -score.nu(ii) ./ ...
+            ( .25*( p^2*psi(1,(n+p*nu)/2) - sum(mvpsi(ones(p,1)*nu/2,1)) ) );
     
     end
     
@@ -103,8 +108,8 @@ end
 if nargout >= 6
     
     G = Dmatrix(p);
-    c1 = n/2*(nu+p*n)/(nu+p*n+2);
-    c2 = -n^2/2/(nu+p*n+2);
+    c1 = nu/2*(n+p*nu)/(n+p*nu+2);
+    c2 = -nu^2/2/(n+p*nu+2);
     fisherInfo.Omega_ = G'*(c1*kron2(invSig) + c2*vec2(invSig))*G;
     
     varargout{4} = fisherInfo;

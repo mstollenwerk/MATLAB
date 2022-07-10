@@ -43,7 +43,7 @@ if nargout >= 3
     
     score.Omega_ = NaN(N,p_);
     score.Omega_WishFishScaling = NaN(p,p,N);
-    score.df = NaN(N,1);
+    score.nu = NaN(N,1);
     for ii = 1:N
         
         invA = inv(R(:,:,ii));
@@ -61,10 +61,10 @@ if nargout >= 3
         
         score.Omega_(ii,:) = vech(S);
 
-        % The score below are also easy to get quering wolframalpha.com 
-        % with eg "d/da (log(Gamma(1/2 (a+ p n))))".
-        % I am just too lazy to write them down right now.
-        score.df(ii) = NaN;
+        score.nu(ii) = .5*( -p*log(2) - sum(mvpsi(ones(p,1)*nu/2)) + logdet(Omega_) - logdet(R(:,:,ii)) );
+        
+        score.nu_scaled(ii) = - score.nu(ii) ./ ...
+            (-.25*sum(mvpsi(ones(p,1)*nu/2,1)));
     
     end
 

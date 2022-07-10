@@ -35,13 +35,14 @@ term3 = -lgmvgammaln(flipud(nu./2));%-ugmvgammaln(n./2);
 term4 = loglpwdet([],nu./2,diag(C)); % upwdet(invS,-n) = lpwdet(S,n)
 log_normalizing_constant = term1 + term2 + term3 + term4;
 
+Cr = NaN(p,p,N);
 for ii = 1:N
     
     R = X(:,:,ii);
-    Cr = chol(R,'lower');
-    iCz = Cr\C;
+    Cr(:,:,ii) = chol(R,'lower');
+    iCz = Cr(:,:,ii)\C;
     
-    term5 = loglpwdet([],-(nu+p+1)./2,diag(Cr)); % upwdet(invS,-n) = lpwdet(S,n)
+    term5 = loglpwdet([],-(nu+p+1)./2,diag(Cr(:,:,ii))); % upwdet(invS,-n) = lpwdet(S,n)
     term6 = -trace(diagm\(iCz'*iCz))./2;
     
     log_kernel = term5 + term6;
@@ -52,7 +53,8 @@ nLogL = -sum(logLcontr);
 %% Score computation
 if nargout >= 3
     
-    score.Sigma_ = NaN(p,p,N);    
+    score.Sigma_ = NaN(p,p,N);  
+    score.nu_originalpdf = NaN(N,p);
     for ii = 1:N
 
         R = X(:,:,ii);
@@ -64,6 +66,12 @@ if nargout >= 3
         % Accounting for symmetry of Sigma_:
         score.Sigma_(:,:,ii) = Nabla+Nabla' - diag(diag(Nabla));
 
+        score.nu_originalpdf(ii,:) = .5*( -log(2) - flip(mvpsi(flip(nu)/2)) ) ...
+                - log(diag(Cr(:,:,ii))) + log(diag(C)./sqrt(diag(diagm)));
+            
+        score.nu_originalpdf_scaled(ii,:) = score.nu_originalpdf(ii,:)' ./ ...
+            (.25*flip(mvpsi(flip(nu)/2),1));
+                    
     end
     
     varargout{1} = score;

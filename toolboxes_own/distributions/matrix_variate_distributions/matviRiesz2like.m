@@ -21,8 +21,8 @@ if nargin == 4
 end
 % Checking if Omega_ is symmetric p.d.
 param.Omega_ = Omega_;
-C = chol(Omega_,'lower');
-param.chol_Omega_ = vech(C);
+COm = chol(Omega_,'lower');
+param.chol_Omega_ = vech(COm);
 param.n = nu;
 param.all = [param.chol_Omega_; nu];
 %% Log-likelihood computation
@@ -31,14 +31,16 @@ logLcontr = NaN(N,1);
 invSig = inv(Omega_);
 term1 = -sum(nu)/2*log(2);
 term2 = -ugmvgammaln(nu./2);
-term3 = loglpwdet([],nu./2,diag(C)); % upwdet(invS,-n) = lpwdet(S,n)
+term3 = loglpwdet([],nu./2,diag(COm)); % upwdet(invS,-n) = lpwdet(S,n)
 log_normalizing_constant = term1 + term2 + term3;
 
+Cr = NaN(p,p,N);
 for ii = 1:N
     
+    Cr(:,:,ii) = chol(X(:,:,ii),'lower');
     A = X(:,:,ii);
     
-    term4 = loglpwdet(A,-(nu+p+1)./2); % upwdet(invS,-n) = lpwdet(S,n)
+    term4 = loglpwdet([],-(nu+p+1)./2,diag(Cr(:,:,ii))); % upwdet(invS,-n) = lpwdet(S,n)
     term5 = -trace(Omega_/A)./2;
     
     log_kernel = term4 + term5;
@@ -50,9 +52,9 @@ nLogL = -sum(logLcontr);
 if nargout >= 3
     
     score.Omega_ = NaN(N,p_);
-    score.n = NaN(N,p);
+    score.nu = NaN(N,p);
     
-    q = C'\diag(nu)/C;
+    q = COm'\diag(nu)/COm;
     
     for ii = 1:N
         invA = inv(X(:,:,ii));
@@ -72,7 +74,11 @@ if nargout >= 3
         score.Omega_(ii,:) = vech(S);
 
         % Score nu
-        score.n(ii,:) = NaN(p,1);
+        score.nu(ii,:) = .5*( -log(2) - flip(mvpsi(flip(nu)/2)) ) ...
+                        - log(diag(Cr(:,:,ii))) + log(diag(COm));
+                    
+        score.nu_scaled(ii,:) = score.nu(ii,:)' ./ ...
+            (.25*flip(mvpsi(flip(nu)/2),1));                    
 
     end
     
@@ -88,7 +94,7 @@ if nargout >= 6
     I = speye(p);
     L = ELmatrix(p);
     
-    fishSig = G'*kron(inv(C)',q)*L'/(iG*kron(C,I)*L');
+    fishSig = G'*kron(inv(COm)',q)*L'/(iG*kron(COm,I)*L');
     fishSig = -.5*fishSig;
     fisherinfo.Omega_ = fishSig;
     fisherinfo.n = NaN;

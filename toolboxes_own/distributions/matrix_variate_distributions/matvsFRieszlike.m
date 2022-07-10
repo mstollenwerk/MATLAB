@@ -40,14 +40,15 @@ term5 = loglpwdet([],nu./2,diag(C));
 log_normalizing_constant = term1 + term2 + term3 + term4 + term5;
 
 C_B = NaN(p,p,N);
+Cr = NaN(p,p,N);
 for ii = 1:N
     
     R = X(:,:,ii);
-    Cr = chol(R,'lower');
+    Cr(:,:,ii) = chol(R,'lower');
     B = C/diaga*C' + R;
     C_B(:,:,ii) = chol(B,'lower');
     
-    term6 = loglpwdet( [], (n-p-1)./2, diag(Cr) );
+    term6 = loglpwdet( [], (n-p-1)./2, diag(Cr(:,:,ii)) );
     term7 = loglpwdet( [], -(n+nu)./2, diag(C_B(:,:,ii)) );
     
     log_kernel = term6 + term7;
@@ -58,25 +59,38 @@ nLogL = -sum(logLcontr);
 %% Score computation
 if nargout >= 3
     
-    score.Sigma_ = NaN(p,p,N);    
+    score.Sigma_ = NaN(p,p,N);  
+    score.SigmaNonSym = NaN(p,p,N);
+    score.n_originalpdf = NaN(N,p);
+    score.n_originalpdf_scaled = NaN(N,p);
+    score.nu_originalpdf = NaN(N,p);
+    score.nu_originalpdf_scaled = NaN(N,p);
+    
     for ii = 1:N
         
         % General matrix derivative (ignoring symmetry of Sigma_):
         Nabla = - C'\trilHalfDiag(C'*tril( ...
             C_B(:,:,ii)'\diag(nu+n)/C_B(:,:,ii)*C/diaga - C'\diag(nu) ...
             ))/C; 
-        score.SigmaNonSym = Nabla;
+        score.SigmaNonSym(:,:,ii) = Nabla;
         
         % Accounting for symmetry of Sigma_:
         score.Sigma_(:,:,ii) = Nabla+Nabla' - diag(diag(Nabla));
-
+        
+        score.n_originalpdf(ii,:) = .5*flip(mvpsi(flip(n+nu)/2)) - .5*mvpsi(n/2) + log(diag(Cr(:,:,ii))) - log(diag(C_B(:,:,ii)));
+        score.n_originalpdf_scaled(ii,:) = -score.n_originalpdf(ii,:)'./( .25*flip(mvpsi(flip(n+nu)/2,1)) - .25*mvpsi(n/2,1) );        
+        
+        COm = C/diag(sqrt(diag(diaga)));
+        score.nu_originalpdf(ii,:) = .5*flip(mvpsi(flip(n+nu)/2)) - .5*flip(mvpsi(flip(nu/2))) + log(diag(COm)) - log(diag(C_B(:,:,ii)));
+        score.nu_originalpdf_scaled(ii,:) = -score.nu_originalpdf(ii,:)'./( .25*flip(mvpsi(flip(n+nu)/2,1)) - .25*flip(mvpsi(flip(nu/2),1)) );
+        
     end
     
     varargout{1} = score;
 
 end
 %% Hessian (Optional Output)
-varargout{2} = [];
+% For the Hessian of the original pdf wrt theta see its pdf code.
 %% Fisher Info (Optional Output)
 if nargout >= 6
    

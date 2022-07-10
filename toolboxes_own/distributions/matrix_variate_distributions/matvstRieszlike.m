@@ -56,6 +56,8 @@ nLogL = -sum(logLcontr);
 if nargout >= 3
         
     score.Sigma_ = NaN(p,p,N);    
+    score.n_originalpdf = NaN(N,p);
+    score.nu_originalpdf = NaN(N,1);
     for ii = 1:N
         
         R = X(:,:,ii);
@@ -66,6 +68,20 @@ if nargout >= 3
         
         % Accounting for symmetry of Sigma_:
         score.Sigma_(:,:,ii) = Nabla+Nabla' - diag(diag(Nabla));
+        
+        trInvOmR = trace(nu/(nu-2)*diagnZ);
+        score.n_originalpdf(ii,:) = ...
+            1/2*( psi((nu+sum(n))/2) - mvpsi(n/2) - log(nu + trInvOmR) ) ...
+          - log(diag(C)./sqrt(nu/(nu-2)*n)) + log(diag(chol(R,'lower')));
+        score.nu_originalpdf(ii) = ...
+            1/2*( psi((nu+sum(n))/2) - psi(nu/2) ...
+          - log(1 + trInvOmR/nu) - (sum(n)-trInvOmR)/(nu+trInvOmR) );
+      
+        score.n_originalpdf_scaled(ii,:) = -score.n_originalpdf(ii,:)' ./ ...
+            (.25*psi(1,(nu+sum(n))/2) - .25*mvpsi(n/2,1));
+                   
+        score.nu_originalpdf_scaled(ii) = -score.nu_originalpdf(ii) ./ ...
+            (.25*psi(1,(nu+sum(n))/2) - .25*psi(1,nu/2) + .5*(sum(n)+nu+4)/(sum(n)+nu+2)*sum(n)/(sum(n)+nu)/nu);      
 
     end
     

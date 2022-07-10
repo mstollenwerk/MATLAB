@@ -57,20 +57,34 @@ nLogL = -sum(logLcontr);
 %% Score computation
 if nargout >= 3
     
-    score.Sigma_ = NaN(p,p,N);    
+    score.Sigma_ = NaN(p,p,N);
+    score.n_originalpdf = NaN(N,1);
+    score.nu_originalpdf = NaN(N,p);
     for ii = 1:N
 
         R = X(:,:,ii);
         
+        Om = C/diagm*C';
+        COm = chol(Om,'lower');
+        trOmInvR = trace(Om/R);
         % General matrix derivative (ignoring symmetry of Sigma_):
         Nabla = - C'\trilHalfDiag(C'*tril( ...
-            (n + sum(nu))/(n+trace(inv(diagm)*C'*inv(R)*C))*inv(R)*C*inv(diagm) - C'\diag(nu) ...
+            (n + sum(nu))/(n+trOmInvR)*inv(R)*C*inv(diagm) - C'\diag(nu) ...
             ))/C; 
         score.SigmaNonSym = Nabla;
         
         % Accounting for symmetry of Sigma_:
         score.Sigma_(:,:,ii) = Nabla+Nabla' - diag(diag(Nabla));
 
+        score.n_originalpdf(ii) = .5*( psi((n+sum(nu))/2) - psi(n/2) - sum(nu)/n - ...
+                           log(1+trOmInvR/n) + (n+sum(nu))*(trOmInvR/n^2)/(1+trOmInvR/n) );
+        score.nu_originalpdf(ii,:) = .5*( psi((n+sum(nu))/2) - flip(mvpsi(flip(nu)/2)) - log(n+trOmInvR) ) ...
+                         + log(diag(COm)) - log(diag(chol(R,'lower'))); 
+        score.n_originalpdf_scaled(ii) = -score.n_originalpdf(ii) ./ ...
+            ( .25*psi(1,(n+sum(nu))/2) - .25*psi(1,n/2) + .5*(sum(nu)+n+4)/(sum(nu)+n+2)*sum(nu)/(sum(nu)+n)/n );
+        score.nu_originalpdf_scaled(ii,:) = -score.nu_originalpdf(ii,:)' ./ ...
+            ( .25*( psi(1,(n+sum(nu))/2) - flip(mvpsi(flip(nu)/2,1)) ) );
+        
     end
     
     varargout{1} = score;

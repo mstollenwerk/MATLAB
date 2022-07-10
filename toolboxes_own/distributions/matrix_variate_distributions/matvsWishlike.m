@@ -61,13 +61,11 @@ if nargout >= 3
         
         score.Sigma_(:,:,ii) = S;
 
-        % The score below are also easy to get quering wolframalpha.com 
-        % with eg "d/da (log(Gamma(1/2 (a+ p n))))".
-        % I am just too lazy to write them down right now.
-        score.df(ii) = NaN;
+        score.n(ii) = 1/2*(p+p*log(n/2)-sum(mvpsi(ones(p,1)*n/2))+logdet(R)-logdet(Sigma_)-trace(Sigma_\R));
+        score.n_originalpdf(ii) = 1/2*(logdet(R)-p*log(2)-logdet(Sigma_/n)-sum(mvpsi(ones(p,1)*n/2)));
+        score.n_originalpdf_scaled(ii) = 4*score.n_originalpdf(ii)/sum(mvpsi(ones(p,1)*n/2,1));
     
     end
-    
     varargout{1} = score;
     
 end

@@ -68,9 +68,10 @@ if nargout >= 3
     for ii = 1:N
         
         R = X(:,:,ii);
-       
+        
+        trSigInvR = trace(Sigma_/R);
         % General matrix derivative (ignoring symmetry of Sigma_): [ enter to matrixcalculus.org: -dfn/2*log(det(Sigma)) - (dft + dfn*p)/2*log(dft+tr(inv(Sigma)*A)) ]        
-        S = nu*invSig - (n+p*nu)/(n/(nu-p-1) + trace(Sigma_/R))*inv(R);
+        S = nu*invSig - (n+p*nu)/(n/(nu-p-1) + trSigInvR)*inv(R);
         S = .5.*S;
         
         score.SigmaNonSym = S;
@@ -79,7 +80,20 @@ if nargout >= 3
         S = S+S' - diag(diag(S));
                 
         score.Sigma_(:,:,ii) = S;
-    
+        
+        trOmInvR = (nu-p-1)*trSigInvR;
+        s_n = psi((n+p*nu)/2) -  nu*p/n - psi(n/2) - log(1+trOmInvR/n) + (n+p*nu)*(trOmInvR/n^2)/(1+trOmInvR/n);
+        score.n_originalpdf(ii) = .5*s_n;
+        
+        s_nu = p*psi((n+p*nu)/2) - p*log(n) - sum(mvpsi(ones(p,1)*nu/2)) - p*log(1+trOmInvR/n) + logdet((nu-p-1)*Sigma_) - logdet(R);
+        score.nu_originalpdf(ii) = .5*s_nu;
+        
+        score.n_originalpdf_scaled(ii) = -score.n_originalpdf(ii) ./ ...
+            ( .25*psi(1,(n+p*nu)/2) - .25*psi(1,n/2) + .5*(p*nu+n+4)/(p*nu+n+2)*p*nu/(p*nu+n)/n );
+
+        score.nu_originalpdf_scaled(ii) = -score.nu_originalpdf(ii) ./ ...
+            ( .25*( p^2*psi(1,(n+p*nu)/2) - sum(mvpsi(ones(p,1)*nu/2,1)) ) );        
+        
     end
     
     varargout{1} = score;

@@ -8,53 +8,53 @@ if strcmp( dist, 'Wish' )
         error('length(dfs) wrong.')
     end    
     n = dfs(1);
-    R = matvWishrnd(Sigma_,n,T)./n;
+    R = matvsWishrnd(Sigma_,n,T);
 elseif strcmp( dist, 'iWish' )
     if length(dfs) ~= 1
         error('length(dfs) wrong.')
     end    
     nu = dfs(1);
-    R =  matviWishrnd(Sigma_,nu,T).*(nu-p-1);   
+    R =  matvsiWishrnd(Sigma_,nu,T);   
 elseif strcmp( dist, 'tWish' )
     if length(dfs) ~= 2
         error('length(dfs) wrong.')
     end    
     n = dfs(1); 
     nu = dfs(2); 
-    R =  matvtWishrnd(Sigma_,n,nu,T).*((nu-2)/n/nu);    
+    R =  matvstWishrnd(Sigma_,n,nu,T);    
 elseif strcmp( dist, 'itWish' )
     if length(dfs) ~= 2
         error('length(dfs) wrong.')
     end        
     n = dfs(1); 
     nu = dfs(2);
-    R =  matvitWishrnd(Sigma_,n,nu,T).*(n-p-1);
+    R =  matvsitWishrnd(Sigma_,n,nu,T);
 elseif strcmp( dist, 'F' )
     if length(dfs) ~= 2
         error('length(dfs) wrong.')
     end    
     n = dfs(1); 
     nu = dfs(2);
-    R =  matvFrnd(Sigma_,n,nu,T).*((nu-p-1)/n);    
+    R =  matvsFrnd(Sigma_,n,nu,T);    
 elseif strcmp( dist, 'Riesz' )
     if length(dfs) ~= p
         error('length(dfs) wrong.')
     end        
     n = dfs(1 : p);
-    R =  matvsRieszrnd(Sigma_,n,T);
+    R = matvsRieszrnd(Sigma_,n,T);
 elseif strcmp( dist, 'iRiesz2' )
     if length(dfs) ~= p
         error('length(dfs) wrong.')
     end        
     nu = dfs(1 : p); 
-    R =  matvsiRiesz2rnd(Sigma_,nu,T); 
+    R = matvsiRiesz2rnd(Sigma_,nu,T); 
 elseif strcmp( dist, 'tRiesz' )
     if length(dfs) ~= p+1
         error('length(dfs) wrong.')
     end        
     n = dfs(1 : p); 
     nu = dfs(p + 1);
-    R =  matvstRieszrnd(Sigma_,n,nu,T);
+    R = matvstRieszrnd(Sigma_,n,nu,T);
 elseif strcmp( dist, 'itRiesz2' )
     if length(dfs) ~= p+1
         error('length(dfs) wrong.')

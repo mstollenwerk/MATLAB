@@ -57,8 +57,8 @@ if nargin == 5 %%%%%%%
 end
 % Checking if Omega_ is symmetric p.d.
 param.Omega_ = Omega_;
-C = chol(Omega_,'lower');
-param.chol_Omega_ = vech(C);
+COm = chol(Omega_,'lower');
+param.chol_Omega_ = vech(COm);
 param.n = n;
 param.nu = nu;
 param.all = [param.chol_Omega_; n; nu];
@@ -68,7 +68,7 @@ logLcontr = NaN(N,1);
 term1 = ugmvgammaln((n + nu)./2);
 term2 = -ugmvgammaln(nu./2);
 term3 = -lgmvgammaln(n./2);
-term4 = loglpwdet([],nu./2,diag(C));
+term4 = loglpwdet([],nu./2,diag(COm));
 
 log_normalizing_constant = term1 + term2 + term3 + term4;
 
@@ -87,13 +87,15 @@ if nargout >= 3
     score.Omega_ = NaN(N,p_);
     score.n = NaN(N,p);
     score.nu = NaN(N,p);
+    score.n_scaled = NaN(N,p);
+    score.nu_scaled = NaN(N,p);
     
     for ii = 1:N
         
         A = X(:,:,ii);
         
-        C_sigplusa = chol(Omega_ + A, 'lower');
-        S = C'\diag(nu)/C - C_sigplusa'\diag(nu+n)/C_sigplusa;
+        C_Omplusa = chol(Omega_ + A, 'lower');
+        S = COm'\diag(nu)/COm - C_Omplusa'\diag(nu+n)/C_Omplusa;
         S = .5*S;
         
         score.Omega_WishFishScaling(:,:,ii) = 2/mean(n)*Omega_*S*Omega_;
@@ -105,13 +107,35 @@ if nargout >= 3
         S = (S+S')./2;
                 
         score.Omega_(ii,:) = vech(S);
-
+        
+       
+        score.n(ii,:) = .5*flip(mvpsi(flip(n+nu)/2)) - .5*mvpsi(n/2) + log(diag(chol(A,'lower'))) - log(diag(C_Omplusa));
+        score.nu(ii,:) = .5*flip(mvpsi(flip(n+nu)/2)) - .5*flip(mvpsi(flip(nu/2))) + log(diag(COm)) - log(diag(C_Omplusa));
+        
+        score.n_scaled(ii,:) = -score.n(ii,:)'./( .25*flip(mvpsi(flip(n+nu)/2,1)) - .25*mvpsi(n/2,1) );
+        score.nu_scaled(ii,:) = -score.nu(ii,:)'./( .25*flip(mvpsi(flip(n+nu)/2,1)) - .25*flip(mvpsi(flip(nu/2),1)) );
+        % For scaling see the Fisherinfos below.
+        
     end
     
     varargout{1} = score;
 
 end
 %% Hessian (Optional Output)
+if nargout >= 4
+    
+    hessian.theta = NaN(2*p,2*p,N);
+    for ii = 1:N
+        
+        hessian.theta(:,:,ii) = ...
+            1/4*[diag(flip(mvpsi(flip(n+nu)/2,1)) - mvpsi(n/2,1)), diag(flip(mvpsi(flip(n+nu)/2,1)));
+                 diag(flip(mvpsi(flip(n+nu)/2,1))), diag(flip(mvpsi(flip(n+nu)/2,1)) - flip(mvpsi(flip(nu)/2,1)))];
+                         
+    end
+    
+    varargout{2} = hessian;
+    
+end
 %% Fisher Info (Optional Output)
 if nargout >= 6
    
@@ -183,8 +207,9 @@ if nargout >= 6
 %     fishSig = mean(n)/2*G'*kron2(invSig)*G;
     
     fisherinfo.Omega_ = fishSig;
-    fisherinfo.df_1 = NaN;
-    fisherinfo.df_2 = NaN;
+    fisherinfo.dfs = ...
+            1/4*[diag(flip(mvpsi(flip(n+nu)/2,1)) - mvpsi(n/2,1)), diag(flip(mvpsi(flip(n+nu)/2,1)));
+                 diag(flip(mvpsi(flip(n+nu)/2,1))), diag(flip(mvpsi(flip(n+nu)/2,1)) - flip(mvpsi(flip(nu)/2,1)))];
     
     varargout{4} = fisherinfo;
 end

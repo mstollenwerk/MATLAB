@@ -56,8 +56,8 @@ if nargin == 4
 end
 % Checking if Omega_ is symmetric p.d.
 param.Omega_ = Omega_;
-C = chol(Omega_,'lower');
-param.chol_Omega_ = vech(C);
+COm = chol(Omega_,'lower');
+param.chol_Omega_ = vech(COm);
 param.n = n;
 param.all = [param.chol_Omega_; n];
 %% Log-likelihood computation
@@ -65,7 +65,7 @@ logLcontr = NaN(N,1);
 
 term1 = -sum(n)/2*log(2);
 term2 = -lgmvgammaln(n./2);
-term3 = -loglpwdet([],n./2, diag(C));
+term3 = -loglpwdet([],n./2, diag(COm));
 
 log_normalizing_constant = term1 + term2 + term3;
 
@@ -86,10 +86,10 @@ if nargout >= 3
     
     for ii = 1:N
         
-        A = X(:,:,ii);
+        R = X(:,:,ii);
         
         % General matrix derivative (ignoring symmetry of Omega_):
-        S = 1/2*(Omega_\A/Omega_ - C'\diag(n)/C);
+        S = 1/2*(Omega_\R/Omega_ - COm'\diag(n)/COm);
         
 %         score.Omega_WishFishScaling(:,:,ii) = 2/mean(n)*Omega_*S*Omega_;
         
@@ -101,9 +101,11 @@ if nargout >= 3
                 
         score.Omega_(ii,:) = vech(S);
 
-        % Score nu
-        score.n(ii,:) = NaN(p,1);
-
+        % Score n
+        score.n(ii,:) = .5*( -log(2) - mvpsi(n/2) ) ...
+                        + log(diag(chol(R,'lower'))) - log(diag(COm));
+        score.n_scaled(ii,:) = score.n(ii,:)' ./ ...
+            ( .25*mvpsi(n/2,1) );
     end
     
     varargout{1} = score;
@@ -119,7 +121,7 @@ if nargout >= 6
     
     invSig = inv(Omega_);
     
-    fisherinfo.Omega_ = 1/2*G'*kron(C'\diag(n),invSig)*L'/(iG*kron(C,I)*L');
+    fisherinfo.Omega_ = 1/2*G'*kron(COm'\diag(n),invSig)*L'/(iG*kron(COm,I)*L');
     fisherinfo.n = NaN;
     
     varargout{4} = fisherinfo;

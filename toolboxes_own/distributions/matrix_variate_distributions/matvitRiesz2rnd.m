@@ -5,7 +5,7 @@ function R = matvitRiesz2rnd( Omega_, n, nu, N )
 p = size(Omega_,1);
 C = chol(Omega_,'lower');
 
-R = NaN(p,p,T);
+R = NaN(p,p,N);
 for ii = 1:N
     
     BU = BarlettU(nu);

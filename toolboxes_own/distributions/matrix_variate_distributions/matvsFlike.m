@@ -72,9 +72,9 @@ I = eye(p);
 for ii = 1:N
     R = X(:,:,ii);
     
-    term3 = (n - p - 1)/2*logdet(R);
-    term4 = -(n + nu)/2*log(det( I + n/(nu-p-1)*(Sigma_\R) ));
-    log_kernel = term3 + term4;
+    term4 = (n - p - 1)/2*logdet(R);
+    term5 = -(n + nu)/2*log(det( I + n/(nu-p-1)*(Sigma_\R) ));
+    log_kernel = term4 + term5;
 
     logLcontr(ii) = log_normalizing_constant + log_kernel;
 end
@@ -84,12 +84,13 @@ if nargout >= 3
     invSig = inv(Sigma_);
 
     score.Sigma_ = NaN(p,p,N);
-    score.n = NaN(N,1);
-    score.nu = NaN(N,1);
+    score.n_originalpdf = NaN(N,1);
+    score.nu_originalpdf = NaN(N,1);
     
     for ii = 1:N
         
-        S = nu*invSig - (n + nu)*inv( Sigma_ + X(:,:,ii)*n/(nu-p-1) );
+        B = Sigma_ + X(:,:,ii)*n/(nu-p-1);
+        S = nu*invSig - (n + nu)*inv( B );
         S = .5.*S;
         
         score.SigmaNonSym = S;
@@ -98,10 +99,18 @@ if nargout >= 3
         S = S+S' - diag(diag(S));
            
         score.Sigma_(:,:,ii) = S;
-
-        % Score nu
-        score.df_1(ii) = NaN;
-        score.df_2(ii) = NaN;
+        
+        Omega_ = matvStandardize('F',Sigma_,[n,nu]);
+        score.n_originalpdf(ii) = .5*( sum(mvpsi(ones(p,1)*(n+nu)/2)) - sum(mvpsi(ones(p,1)*n/2)) ...
+                           + logdet(X(:,:,ii)) - logdet(Omega_ + X(:,:,ii)) );
+        score.nu_originalpdf(ii) = .5*( sum(mvpsi(ones(p,1)*(n+nu)/2)) - sum(mvpsi(ones(p,1)*nu/2)) ...
+                            + logdet(Omega_) - logdet(Omega_ + X(:,:,ii)) );
+                        
+        fisherinfo.n_originalpdf(ii) = -.25*( sum(mvpsi(ones(p,1)*(n+nu)/2,1)) - sum(mvpsi(ones(p,1)*n/2,1)) );
+        fisherinfo.nu_originalpdf(ii) = -.25*( sum(mvpsi(ones(p,1)*(n+nu)/2,1)) - sum(mvpsi(ones(p,1)*nu/2,1)) );
+        
+        score.n_originalpdf_scaled(ii) = score.n_originalpdf(ii)/fisherinfo.n_originalpdf(ii);
+        score.nu_originalpdf_scaled(ii) = score.nu_originalpdf(ii)/fisherinfo.nu_originalpdf(ii);                        
 
     end
     

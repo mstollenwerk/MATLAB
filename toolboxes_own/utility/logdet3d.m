@@ -6,8 +6,7 @@ for ii = 1:size(X,3)
     if all(isnan(squeeze(X(:,:,ii))))
         logdetX(ii) = NaN;
     else
-        L = chol(X(:,:,ii));
-        logdetX(ii) = 2*sum(log(diag(L)));
+        logdetX(ii) = logdet(X(:,:,ii));
     end
 end
 

@@ -65,10 +65,8 @@ if nargout >= 3
         
         score.Omega_(tt,:) = vech(S);
 
-        % The score below are also easy to get quering wolframalpha.com 
-        % with eg "d/da (log(Gamma(1/2 (a+ p n))))".
-        % I am just too lazy to write them down right now.
-        score.df(tt) = NaN;
+        score.n(tt) = 1/2*(logdet(A)-p*log(2)-logdet(Omega_)-sum(mvpsi(ones(p,1)*n/2)));
+        score.n_scaled(tt) = 4*score.n(tt)/sum(mvpsi(ones(p,1)*n/2,1));
     
     end
     

@@ -22,8 +22,7 @@ function R = matvsitWishrnd( Sigma_, n, nu, N )
 %
 % DEPENDENCIES:
 
-p = size(Sigma_,1);
-Omega_ = (n-p-1)*Sigma_;
+Omega_ = matvStandardize('itWish',Sigma_,[n; nu]);
 R = matvitWishrnd( Omega_, n, nu, N );
 
 end

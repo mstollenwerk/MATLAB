@@ -52,13 +52,13 @@ if nargin == 5 %%%%%%%
     end
     all_param = varargin{1};
     Omega_ = ivechchol(all_param(1 : p_));
-    n = all_param(p_ +  1 : p_ + p);
-    nu = all_param(p_ + p + 1);    
+    n = all_param(p_ + 1);    
+    nu = all_param(p_ +  2 : p_ + 1 + p);
 end
 % Checking if Omega_ is symmetric p.d.
 param.Omega_ = Omega_;
-C = chol(Omega_,'lower');
-param.chol_Omega_ = vech(C);
+COm = chol(Omega_,'lower');
+param.chol_Omega_ = vech(COm);
 param.nu = nu;
 param.n = n;
 param.all = [param.chol_Omega_; n; nu];
@@ -69,7 +69,7 @@ term1 = gammaln((n + sum(nu))/2);
 term2 = -gammaln(n/2);
 term3 = -ugmvgammaln(nu./2);
 term4 = -sum(nu)/2*log(n);
-term5 = loglpwdet([],nu./2,diag(C)); % upwdet(invS,-n) = lpwdet(S,n)
+term5 = loglpwdet([],nu./2,diag(COm)); % upwdet(invS,-n) = lpwdet(S,n)
 
 log_normalizing_constant = term1 + term2 + term3 + term4 + term5;
 
@@ -90,17 +90,18 @@ nLogL = -sum(logLcontr);
 if nargout >= 3
     
     score.Omega_ = NaN(N,p_);
-    score.n = NaN(N,p);
-    score.nu = NaN(N,1);
+    score.n = NaN(N,1);
+    score.nu = NaN(N,p);
     
-    q = C'\diag(nu)/C;
+    q = COm'\diag(nu)/COm;
     
     for ii = 1:N
         
         A = X(:,:,ii);
         
+        trOmInvA = trace(Omega_/A);
         % General matrix derivative (ignoring symmetry of Omega_):
-        S = q - (n + sum(nu))/(n + trace(Omega_/A))*inv(A);
+        S = q - (n + sum(nu))/(n + trOmInvA)*inv(A);
         S = .5*S;
         
         score.Omega_WishFishScaling(:,:,ii) = 2/mean(nu)*Omega_*S*Omega_;
@@ -113,8 +114,15 @@ if nargout >= 3
                 
         score.Omega_(ii,:) = vech(S);
         
-        score.n(ii,:) = NaN(p,1);
-        score.nu(ii) = NaN;
+        score.n(ii) = .5*( psi((n+sum(nu))/2) - psi(n/2) - sum(nu)/n - ...
+                           log(1+trOmInvA/n) + (n+sum(nu))*(trOmInvA/n^2)/(1+trOmInvA/n) );
+        score.nu(ii,:) = .5*( psi((n+sum(nu))/2) - flip(mvpsi(flip(nu)/2)) - log(n+trOmInvA) ) ...
+                         + log(diag(COm)) - log(diag(chol(A,'lower')));
+                     
+        score.n_scaled(ii) = -score.n(ii) ./ ...
+            ( .25*psi(1,(n+sum(nu))/2) - .25*psi(1,n/2) + .5*(sum(nu)+n+4)/(sum(nu)+n+2)*sum(nu)/(sum(nu)+n)/n );
+        score.nu_scaled(ii,:) = -score.nu(ii,:)' ./ ...
+            ( .25*( psi(1,(n+sum(nu))/2) - flip(mvpsi(flip(nu)/2,1)) ) );
     end
     
     varargout{1} = score;
@@ -130,7 +138,7 @@ if nargout >= 6
     L = ELmatrix(p);
     invSig = inv(Omega_);
     
-    term1 = G'*kron(inv(C)',q)*L'/(iG*kron(C,I)*L');
+    term1 = G'*kron(inv(COm)',q)*L'/(iG*kron(COm,I)*L');
     term2 = -1/(n+sum(nu)+2)*G'*(2*kron(invSig,q) + vec2(q))*G;
     
     fisherinfo.Omega_ = .5*(term1+term2);

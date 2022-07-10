@@ -57,8 +57,8 @@ if nargin >= 5 %%%%%%%
 end
 % Checking if Omega_ is symmetric p.d.
 param.Omega_ = Omega_;
-C = chol(Omega_,'lower');
-param.chol_Omega_ = vech(C);
+COm = chol(Omega_,'lower');
+param.chol_Omega_ = vech(COm);
 param.nu = nu;
 param.n = n;
 param.all = [param.chol_Omega_; n; nu];
@@ -69,7 +69,7 @@ term1 = gammaln((nu + sum(n))/2);
 term2 = -gammaln(nu/2);
 term3 = -lgmvgammaln(n./2);
 term4 = -sum(n)/2*log(nu);
-term5 = -loglpwdet([],n./2,diag(C));
+term5 = -loglpwdet([],n./2,diag(COm));
 
 log_normalizing_constant = term1 + term2 + term3 + term4 + term5;
 
@@ -94,8 +94,8 @@ if nargout >= 3
         A = X(:,:,ii);
         
         % General matrix derivative (ignoring symmetry of Omega_):
-        invSigA = Omega_\A;
-        S = (nu+sum(n))/(nu+trace(invSigA))*invSigA/Omega_ - C'\diag(n)/C;
+        invOmA = Omega_\A;
+        S = (nu+sum(n))/(nu+trace(invOmA))*invOmA/Omega_ - COm'\diag(n)/COm;
         S = .5*S;
         
         score.Omega_WishFishScaling(:,:,ii) = 2/mean(n)*Omega_*S*Omega_;
@@ -107,9 +107,21 @@ if nargout >= 3
         S = (S+S')./2;
                 
         score.Omega_(ii,:) = vech(S);
-
-        score.n(ii,:) = NaN(p,1);
-        score.nu(ii) = NaN;
+        
+        trInvOmA = trace(invOmA);
+        score.n(ii,:) = ...
+            1/2*( psi((nu+sum(n))/2) - mvpsi(n/2) - log(nu + trInvOmA) ) ...
+          - log(diag(COm)) + log(diag(chol(A,'lower')));
+        score.nu(ii) = ...
+            1/2*( psi((nu+sum(n))/2) - psi(nu/2) ...
+          - log(1 + trInvOmA/nu) - (sum(n)-trInvOmA)/(nu+trInvOmA) );
+        
+        score.n_scaled(ii,:) = -score.n(ii,:)' ./ ...
+            (.25*psi(1,(nu+sum(n))/2) - .25*mvpsi(n/2,1));
+                   
+        score.nu_scaled(ii) = -score.nu(ii) ./ ...
+            (.25*psi(1,(nu+sum(n))/2) - .25*psi(1,nu/2) + .5*(sum(n)+nu+4)/(sum(n)+nu+2)*sum(n)/(sum(n)+nu)/nu);
+        
     end
     
     varargout{1} = score;
@@ -125,9 +137,9 @@ if nargout >= 6
     L = ELmatrix(p);
     
     invSig = inv(Omega_);
-    q = C'\diag(n)/C;
+    q = COm'\diag(n)/COm;
     
-    term1 = kron(C'\diag(n),invSig)*L'/(G'*kron(C,I)*L')*G';
+    term1 = kron(COm'\diag(n),invSig)*L'/(G'*kron(COm,I)*L')*G';
     term2 = -1/(nu+sum(n)+2)*(2*kron(q,invSig) + vec2(q));
     
     fisherinfo.Omega_ = .5*G'*(term1+term2)*G;

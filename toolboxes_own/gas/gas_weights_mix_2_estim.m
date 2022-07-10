@@ -1,5 +1,5 @@
 function [eparam, tstats, logL, fit, fcst, weights, optimoutput] = ...
-	gas_weights_mix_2_estim( logL1, logL2, x0, varargin )
+	gas_weights_mix_2_estim( L1, L2, x0, varargin )
 %
 %
 % Michael Stollenwerk
@@ -7,7 +7,7 @@ function [eparam, tstats, logL, fit, fcst, weights, optimoutput] = ...
 % 05.04.2022
 
 %% Optimization
-obj_fun = @(param) gas_weights_mix_2_likeRec( param, logL1, logL2 );
+obj_fun = @(param) gas_weights_mix_2_likeRec( param, L1, L2 );
 % x0-----------------------------------------------------------------------
 if ~isempty(x0) && (isinf(obj_fun(x0,1:k)) || isnan(obj_fun(x0,1:k)))
     error('User supplied x0 invalid.')
@@ -45,7 +45,7 @@ logL = struct(...
     'logLcontr', logLcontr...
 );
 
-T = length(logL1);
+T = length(L1);
 fit = struct( ...
     'weights', weights(1:T), ...
     'score_weights', scores_weights ...
