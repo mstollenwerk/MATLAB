@@ -1,8 +1,12 @@
 clear
 clc
 
+if isempty(gcp('nocreate'))
+    parpool(maxNumCompThreads,'IdleTimeout', 300)
+end
+
 p = 3;
-N = 1e5;
+N = 1e4;
 
 dists = {'Wish'
         'iWish'
@@ -44,6 +48,6 @@ parfor dist_id = 1:length(dists)
     R(:,:,N/2+1:N) = matvsrnd(dist,Sig,dfs_dist,N/2);
 
     [ eparam{dist_id}, tstats{dist_id}, logL{dist_id}, optimoutput{dist_id}] = ...
-        matvest(R,dist,[]);
+        matvest(R,dist,[],'noperm','UseParallel',true);
     
 end
