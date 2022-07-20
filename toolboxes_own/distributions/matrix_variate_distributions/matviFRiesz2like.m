@@ -22,7 +22,7 @@ end
 % Checking if Sigma_ is symmetric p.d.
 param.Omega_ = Omega_;
 C_Omega = chol(Omega_,'lower');
-param.chol_Omega_ = vechchol(Omega_);
+param.chol_Omega_ = vech(C_Omega);
 param.nu = nu;
 param.n = n;
 param.all = [param.chol_Omega_; n; nu];
