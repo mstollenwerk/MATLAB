@@ -18,6 +18,6 @@ for ii = 1:p
     d(ii) = 1/(nu(ii)-p+ii-2)*(1+sum(d(1:ii-1)));
 end
     
-M = diag(d);
+M = spdiags(d,0,p,p);
 
 end

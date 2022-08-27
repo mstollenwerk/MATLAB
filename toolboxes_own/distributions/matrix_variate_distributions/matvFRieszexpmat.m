@@ -18,6 +18,6 @@ for ii = 2:k
     a(ii) = (n(ii) + sum(a(1:(ii-1))))/(nu(ii) - k + ii - 2);
 end
 
-M = diag(a);
+M = spdiags(a,0,k,k);
 
 end

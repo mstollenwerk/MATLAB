@@ -21,6 +21,6 @@ for ii = 2:p
     a(ii) = sum(m(1:ii-1)) + (n(ii) + ii - 1)*m(ii);
 end
 
-A = diag(a);
+A = spdiags(a,0,p,p);
 
 end
