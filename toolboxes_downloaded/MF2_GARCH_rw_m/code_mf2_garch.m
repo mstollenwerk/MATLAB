@@ -30,9 +30,9 @@ nlc = [];
 % bounds:
 LB = [-1; 0.0 ; -0.5; 0.0; 0.000001; 0.0; 0.0 ];
 UB = [ 1; 1.0 ; 0.5; 1.0; 0.2; 1.0; 1.0 ];
-% options = optimset('fmincon');
+options = optimoptions(@fmincon, 'Display', 'iter-detailed');
 % options = optimoptions(@fmincon,'Algorithm','sqp') ;
-options = optimoptions(@fmincon, "Algorithm", "active-set", "Display", "iter-detailed");
+% options = optimoptions(@fmincon, "Algorithm", "active-set", "Display", "iter-detailed");
 
 % choice for m
 m=63; % 21, 63, 126, 252
