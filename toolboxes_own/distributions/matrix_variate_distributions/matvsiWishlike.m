@@ -17,7 +17,7 @@ if nargin == 4
 end
 % Checking if Sigma_ is symmetric p.d.
 param.Sigma_ = Sigma_;
-param.n = nu;
+param.nu = nu;
 param.all = [vechchol(Sigma_); nu];
 %% Log-Likelihood
 logLcontr = NaN(N,1);
