@@ -13,6 +13,9 @@ if size(powers,1)<size(powers,2)
     powers = powers';
 end
 if nargin >= 3 % Allow direct input of diagL
+    if any(size(varargin{1}) ~= size(powers))
+        error('Third input must be column vector of diagonal entries of Cholesky decomposition')
+    end    
     diagU = varargin{1};
 else
     diagU = diag(inv(chol(inv(X), 'lower')'));

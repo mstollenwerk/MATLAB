@@ -20,11 +20,12 @@ function y = lgmvgammaln(x)
 % michael.stollenwerk@live.com
 % 11.02.2021
 
-if size(x,1) > size(x,2)
-    x = x';
+if any(size(x)==1)
+    if size(x,1) > size(x,2)
+        x = x';
+    end
 end
-d = length(x);
-
-y = d*(d-1)/4*log(pi)+sum(gammaln(x+(1-(1:d))/2));
+d = size(x,2);
+y = d*(d-1)/4*log(pi)+sum(gammaln(x+(1-(1:d))/2),2);
 
 end

@@ -1,5 +1,5 @@
-function [ nLogL, logLcontr, SigmaE, varargout ] = ...
-    caicov_scalar_BEKK_likeRec( param, p, q, X, dist )
+function [ nLogL, logLcontr, Sigma_, varargout ] = ...
+    caicov_scalar_BEKK_likeRec( param, p, q, R, dist )
 %
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
@@ -7,20 +7,30 @@ function [ nLogL, logLcontr, SigmaE, varargout ] = ...
 
 t_ahead = 220;
 
-[k,~,T] = size(X);
+[k,~,T] = size(R);
 k_ = k*(k+1)/2;
 %% Parameters
 % Initialize with Backcast. Code copied from Sheppard MFE Toolbox.
 m = ceil(sqrt(T));
 w = .06 * .94.^(0:(m-1));
 w = reshape(w/sum(w),[1 1 m]);
-backCast = sum(bsxfun(@times,w,X(:,:,1:m)),3);
+backCast = sum(bsxfun(@times,w,R(:,:,1:m)),3);
 % % Initialize recursion at unconditional mean (stationarity assumed).
 % ini = intrcpt./(1 - sum(garchparam) - sum(archparam));
 
 intrcpt = ivechchol(param(1:k_));
 archparam = param(k_ + 1 : k_ + p);
 garchparam = param(k_ + p + 1 : k_+ p + q);
+theta =  param(k_+p+q+1:end);
+M = matvExpMat(dist,theta,k);
+sqrtM = sqrt(M);
+if any(diag(M)<0) %Checking existence of mean.
+    nLogL = inf;
+    logLcontr = NaN;
+    Sigma_ = NaN;
+    varargout{1} = NaN; 
+    return
+end
 
 if nargout >= 4
     param_out.intrcpt = intrcpt;
@@ -32,72 +42,74 @@ if nargout >= 4
     varargout{1} = param_out;
 end
 %% Data Storage
-SigmaE = NaN(k,k,T+t_ahead);
-logLcontr = NaN(T,1);
+Sigma_ = NaN(k,k,T+t_ahead);
+Cz = NaN(k,k,T);
 %% Recursion
 
 for tt=1:T
     
-    SigmaE(:,:,tt) = intrcpt;
+    Sigma_(:,:,tt) = intrcpt;
     for jj = 1:p
         if (tt-jj) <= 0
-            SigmaE(:,:,tt) = SigmaE(:,:,tt) + archparam(jj)*backCast;
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) + archparam(jj)*backCast;
         else
-            SigmaE(:,:,tt) = SigmaE(:,:,tt) + archparam(jj)*X(:,:,tt-jj);
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) + archparam(jj)*R(:,:,tt-jj);
         end
     end
     for jj = 1:q
         if (tt-jj) <= 0
-            SigmaE(:,:,tt) = SigmaE(:,:,tt) + garchparam(jj)*backCast;
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*backCast;
         else
-            SigmaE(:,:,tt) = SigmaE(:,:,tt) + garchparam(jj)*SigmaE(:,:,tt-jj);
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*Sigma_(:,:,tt-jj);
         end
     end
-
+    
     try
-        % Centering distributions
-        Sigma_ = matvStandardize(dist, SigmaE(:,:,tt), param(k_+p+q+1:end));
-        % Likelihood Evaluation    
-        nLogLcontr = matvLogLike( dist, Sigma_, param(k_+p+q+1:end), X(:,:,tt) );
-        logLcontr(tt) = -nLogLcontr;
+        C = chol(Sigma_(:,:,tt),'lower');
+        Cr = chol(R(:,:,tt),'lower');
+		COm = C/sqrtM;
+        Cz(:,:,tt) = COm\Cr;
+        if any(strcmp( dist, {'iWish','iRiesz2','itWish','itRiesz2'} ))
+            X(tt,:) = sum(sum(inv(Cz(:,:,tt)).^2));
+        elseif strcmp( dist, 'F' )
+            X(tt,:) = logdet(eye(k) + Cz(:,:,tt)*Cz(:,:,tt)');
+        elseif strcmp( dist, 'FRiesz' )
+            X(tt,:) = diag(chol(eye(k) + Cz(:,:,tt)*Cz(:,:,tt)','lower'));
+        elseif strcmp( dist, 'iFRiesz2' )
+            C_Z_twisted_t = Cr'/COm';
+            B = eye(k) + C_Z_twisted_t*C_Z_twisted_t';
+            X(tt,:) = diag(cholU(B));            
+% 			C_Z_twisted_t = Cr/COm;
+% 			X(tt,:) = diag(chol(inv(eye(k) + C_Z_twisted_t'*C_Z_twisted_t),'lower'));
+        else
+            X = [];
+        end        
     catch ME
-%         tt
-%         ME.message
-%         [ME.stack.line]'
-%         {ME.stack.name}'
+    %         tt
+    %         ME.message
+    %         [ME.stack.line]'
+    %         {ME.stack.name}'
         nLogL = inf;
         logLcontr = NaN;
-        varargout{1} = NaN;      
-        varargout{2} = NaN;
+        Sigma_ = NaN;
+        varargout{1} = NaN; 
         return
     end
     
 end
+%% Likelihood Evaluation
+[nLogL, logLcontr] = matvLogLikeCz( dist, Cz, theta', X );
 %% Fcst
 for tt=T+1:T+t_ahead
-    SigmaE(:,:,tt) = intrcpt;
+    Sigma_(:,:,tt) = intrcpt;
     for jj = 1:p
         if (tt-jj) > T
-            SigmaE(:,:,tt) = SigmaE(:,:,tt) + archparam(jj)*SigmaE(:,:,tt-jj);
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) + archparam(jj)*Sigma_(:,:,tt-jj);
         else
-            SigmaE(:,:,tt) = SigmaE(:,:,tt) + archparam(jj)*X(:,:,tt-jj);
+            Sigma_(:,:,tt) = Sigma_(:,:,tt) + archparam(jj)*R(:,:,tt-jj);
         end
     end
     for jj = 1:q
-        SigmaE(:,:,tt) = SigmaE(:,:,tt) + garchparam(jj)*SigmaE(:,:,tt-jj);
+        Sigma_(:,:,tt) = Sigma_(:,:,tt) + garchparam(jj)*Sigma_(:,:,tt-jj);
     end
-end
-%% Log-Likelihood
-nLogL = -sum(logLcontr);
-%% Fit-Plot(s)
-if nargout >= 5
-    fitplot = NaN;
-%     fitplot = figure("Visible",false,"WindowState",'fullscreen');
-%     y1 = sum(diag3d(X),2);
-%     y2 = sum(diag3d(SigmaE(:,:,1:T)),2);
-%     plot(y1);
-%     hold on
-%     plot(y2,'LineWidth',2)
-%     text(T/2,max(y1)*3/4,strcat(num2str(sum(logLcontr))," | ARCH-Parameters:", num2str(archparam), " | GARCH-Parameters:", num2str(garchparam), " | Matrix Euclidean Distance:", num2str(mean(matrix_euclidean_loss(X,SigmaE(:,:,1:T))))));
-    varargout{2} = fitplot;
 end

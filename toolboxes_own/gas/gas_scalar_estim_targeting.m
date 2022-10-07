@@ -181,8 +181,6 @@ end
 function [ nLogL, logLcontr, dyn, S, param_out ] = ...
     obj_fun_wrapper(param, R, dist) 
     
-    p = size(R,1);
-    
     if size(param,1)<size(param,2)
         param = param';
     end

@@ -25,6 +25,13 @@ function y = mvgammaln(x,d)
 % michael.stollenwerk@live.com
 % 12.02.2017
 
-y = d*(d-1)/4*log(pi)+sum(gammaln(x+(1-(1:d))/2));
+if ~any(size(x)==1)
+    error('First input must be vector')
+end
+if size(x,1)==1
+    x = x';
+end
+
+y = d*(d-1)/4*log(pi)+sum(gammaln(x+(1-(1:d))/2),2);
 
 end

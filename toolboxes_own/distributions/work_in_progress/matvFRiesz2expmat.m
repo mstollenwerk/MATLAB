@@ -18,6 +18,6 @@ for ii = fliplr(1:k-1)
     a(ii) = (df_1(ii) + sum(a(ii+1:k)))/(df_2(ii) - ii - 1);
 end
 
-M = diag(a);
+M = spdiags(a,0,k,k);
 
 end

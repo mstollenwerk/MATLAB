@@ -3,6 +3,8 @@ function [eparam,optimoutput] = fmincon_Rieszperm(p,obj_fun,x0,A,b,Aeq,beq,lb,ub
 %Rossini (2021) - Tail Heterogeneity for Dynamic Covariance-Matrix-Valued
 %Random Variables - The F-Riesz Distribution.
 
+tic
+
 rng(1); % Random Seed
 if p <= 10
     if p == 2
@@ -12,7 +14,7 @@ if p <= 10
     else
         n_perm = 4;
     end
-else
+else % It gets too computationally expensive to have multiple starting points.
     n_perm = 1;
 end
 perm_ = NaN(n_perm,p);
@@ -35,6 +37,7 @@ end
 for ii = 2:2*n_perm % Create matrix of originally supplied and 2*n_perm other permutations. 2*n_perm, because there is a chance that randperm generates the same permuation again in the loop.
     perm_(ii,:) = randperm(p);
     while isinf(obj_fun(x0, perm_(ii,:))) || isnan(obj_fun(x0, perm_(ii,:)))
+        warning('Random Permutation didnt work with x0.')
         perm_(ii,:) = randperm(p);
     end
 end
@@ -99,5 +102,7 @@ end
 opt_id = find(opt_like==min(opt_like));
 eparam = eparam{opt_id(1)};
 optimoutput = optimoutput{opt_id(1)};
+
+optimoutput.estimation_time_overall = toc;
 
 end
