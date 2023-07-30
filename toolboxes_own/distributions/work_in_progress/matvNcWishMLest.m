@@ -1,4 +1,4 @@
-function [ eparam, tstats, logL, optimoutput ] = ncWishest( data_mat, varargin )
+function [ eparam, tstats, logL, optimoutput ] = matvNcWishMLest( data_mat, varargin )
 %WISHEST Estimates the parameters of the Wishart distribution.
 %
 % USAGE:
