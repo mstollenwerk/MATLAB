@@ -1,13 +1,10 @@
 function [eparam, tstats, logL, fit, fcst, optimoutput] = ...
-	gas_scalar_BEKK11_estim_targeting( R, dist, x0, varargin )
+	gas_scalar_har_mean_estim_targeting_opschoor_scaling( R, dist, x0, varargin )
 %
 %
 % Michael Stollenwerk
 % michael.stollenwerk@live.com
-% 25.03.2021
-
-plag = 1;
-qlag = 1;
+% 16.04.2023
 
 %% Input Checking
 % Will be added later
@@ -23,30 +20,43 @@ end
 % existence of the expected value matrix Sigma_, restrictions on the dfs
 % are stricter. The inverse Wishart, for example, exists for nu > p-1, but
 % its mean only exists for nu > p+1.
-lb_df_barlett = p-1;
-lb_df_barlettL = 0:p-1;
-lb_df_barlettU = flip(0:p-1);
-lb_df_chi = 0;
-x0_df_barlett = 2*p;
-x0_df_barlettL = 2*p*ones(1,p);
-x0_df_barlettU = 2*p*ones(1,p);
-x0_df_chi = 2.5;
+lb_df_barlett = [(p-1)];
+lb_df_barlettL = [(0:p-1)];
+lb_df_barlettU = [flip(0:p-1)];
+lb_df_chi = [0];
+x0_df_barlett = [2*p];
+x0_df_barlettL = [2*p*ones(1,p)];
+x0_df_barlettU = [2*p*ones(1,p)];
+x0_df_chi = [5];
 
 if strcmp( dist, 'Wish' )
     x0_df = x0_df_barlett;
     lb_df = lb_df_barlett;
+%     Aeq = [ zeros(4,6) eye(4) ];
+%     beq = zeros(4,1);       
 elseif strcmp( dist, 'iWish' )
     x0_df = x0_df_barlett;  
     lb_df = lb_df_barlett;
+%     Aeq = [ zeros(4,5*p+1) eye(4) ];
+%     beq = zeros(4,1);    
 elseif strcmp( dist, 'tWish' )
     x0_df = [ x0_df_barlett, x0_df_chi ];
     lb_df = [ lb_df_barlett, lb_df_chi ];
+%     Aeq = [ zeros(4,6) eye(4) zeros(4,5) ;
+%             zeros(4,11) eye(4)];
+%     beq = zeros(8,1);    
 elseif strcmp( dist, 'itWish' )
     x0_df = [ x0_df_chi, x0_df_barlett ];
     lb_df = [ lb_df_chi, lb_df_barlett ];
+%     Aeq = [ zeros(4,6) eye(4) zeros(4,5) ;
+%             zeros(4,11) eye(4)];
+%     beq = zeros(8,1);      
 elseif strcmp( dist, 'F' )
     x0_df = [ x0_df_barlett, x0_df_barlett ];   
     lb_df = [ lb_df_barlett, lb_df_barlett ]; 
+%     Aeq = [ zeros(4,6) eye(4) zeros(4,5) ;
+%             zeros(4,11) eye(4)];
+%     beq = zeros(8,1);        
 elseif strcmp( dist, 'Riesz' )
     x0_df = x0_df_barlettL;
     lb_df = lb_df_barlettL;
@@ -67,17 +77,12 @@ elseif strcmp( dist, 'iFRiesz2' )
     lb_df = [ lb_df_barlettL, lb_df_barlettU ];
 end
 if isempty(x0)
-    x0 = [0.01, 0.95, x0_df];
-    disp(x0)
-    while isinf(obj_fun(x0',1:p)) || isnan(obj_fun(x0',1:p))
-        x0(1:2) = x0(1:2)*.9;
-        disp(x0)
-    end
+    x0 = [0.0005, 0.8, 0.1, 0.05, x0_df];
 end
 
 % A = [ zeros(1,p) ones(1,q) zeros(1, length(x0)-p-q) ];   % Stationarity
 % b = 1;                                                   % Stationarity
-lb = [-inf(1,2), lb_df];
+lb = [zeros(1,4*p), lb_df];
 
 if contains(dist,'Riesz')
     perm_optim = 1;
@@ -95,36 +100,27 @@ if perm_optim
             obj_fun, ...
             x0', ...
             [],[],[],[], ...
-            lb',[],[], ...
+            lb,[],[], ...
             varargin{:} ...
         );
-    obj_fun_opt_perm = @(param) obj_fun(param,optimoutput.perm_);
 else
     [eparam,optimoutput] = ...
         my_fmincon(...
             @(param) obj_fun(param,1:p), ...
             x0', ...
             [],[],[],[], ...
-            lb',[],[], ...
+            lb,[],[], ...
             varargin{:} ...
         );
-    obj_fun_opt_perm = @(param) obj_fun(param,1:p);
     optimoutput.perm_ = 1:p;
 end
     
 % Output Creation----------------------------------------------------------
-[ nLogL, logLcontr, SigmaE, ScaledScore, eparam ] = obj_fun_opt_perm( eparam );
+[ nLogL, logLcontr, dyn, S, eparam ] = obj_fun( eparam, optimoutput.perm_ );
 eparam.perm_ = optimoutput.perm_;
 
-obj_fun_no_targeting = @(param) gas_scalar_BEKK_likeRec( ...
-        [eparam.all(1:p_); param], ...
-        plag, ...
-        qlag, ...
-        R(eparam.perm_,eparam.perm_,:), ...
-        dist ...
-    );
 %[VCV,A,B,scores,hess,gross_scores] = robustvcv(fun, eparam, 3);
-[VCV,scores,gross_scores] = vcv( obj_fun_no_targeting, eparam.all(p_+1:end) );
+[VCV,scores,gross_scores] = vcv( obj_fun, eparam.all(p_+1:end), optimoutput.perm_ );
 tstats = eparam.all(p_+1:end)./sqrt(diag(VCV));
 
 
@@ -140,30 +136,48 @@ logL = struct(...
 );
 
 fit = struct( ...
-    'SigmaE', SigmaE(:,:,1:T), ...
-    'ScaledScore', ScaledScore ...
+    'Sig', dyn.Sig(:,:,1:T), ...
+    'ScaledScoreSig', S.Sig(:,:,1:T) ...
 );
-fcst = struct('SigmaE', SigmaE(:,:,T+1:end));
+fcst = struct( ...
+    'Sig', dyn.Sig(:,:,T+1:end) ...
+);
+if isfield(S,'n')
+    fit.ScaledScoreN = S.n(:,1:T);
+    fit.n = dyn.n(:,1:T);
+    fcst.n = dyn.n(:,T+1:end);
+end
+if isfield(S,'nu')
+    fit.ScaledScoreNu = S.nu(:,1:T);
+    fit.nu = dyn.nu(:,1:T);
+    fcst.nu = dyn.nu(:,T+1:end);
+end
 
 end
 
-function [ nLogL, logLcontr, SigmaE, ScaledScore, param_out, fitplot ] = ...
+function [ nLogL, logLcontr, dyn, S, param_out ] = ...
     obj_fun_wrapper(param, R, dist) 
-
-    if param(2) >= 1
-        nLogL = inf;   
+    
+    p = size(R,1);
+    
+    if size(param,1)<size(param,2)
+        param = param';
+    end
+    
+    persistenceSig = param(2) + param(3) + param(4);
+    if persistenceSig >= 1
+        nLogL = inf;
         return
     end
     
     meanSig = mean(R,3);
     
-    vechcholIntrcpt = vechchol( meanSig*(1-param(2)) );  
+    vechcholIntrcptSig = vechchol( (1-persistenceSig)*meanSig );  
     
-    [ nLogL, logLcontr, SigmaE, ScaledScore, param_out ] = ...
-        gas_scalar_BEKK11_likeRec( ...
-            [vechcholIntrcpt; param], ...
-            R, ...
-            dist ...
+    [ nLogL, logLcontr, dyn, S, param_out ] = gas_scalar_har_mean_likeRec_opschoor_scaling( ...
+        [vechcholIntrcptSig; param], ...
+        R, ...
+        dist ...
     );
 
 end

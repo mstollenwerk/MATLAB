@@ -20,7 +20,7 @@ for ii = 1:N
     BL = BarlettL(n);    
     BU = BarlettU(nu);
     
-    L = C*M/BU'*BL;
+    L = C*M*BL/BU';
     
     R(:,:,ii) = L*L';
     

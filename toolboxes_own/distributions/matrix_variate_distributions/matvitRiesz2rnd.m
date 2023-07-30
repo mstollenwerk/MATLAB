@@ -12,9 +12,12 @@ for ii = 1:N
     L = C/BU';
     iR2 = L*L';
     
-    gam = gamrnd( n/2, 2/n );
-    
-    R(:,:,ii) = iR2.*gam;
+    chi2_ = chi2rnd(n); 
+    R(:,:,ii) = iR2*(chi2_/n);
+
+    % Alternatively:
+%     gam = gamrnd( n/2, 2/n );
+%     R(:,:,ii) = iR2.*gam;
     
 end
 

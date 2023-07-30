@@ -26,9 +26,9 @@ p = size(Omega_,1);
 A = NaN(p,p,N);
 for ii=1:N
 
-    W = iwishrnd( Omega_, n );
-    chi2_ = chi2rnd(nu); 
-    A(:,:,ii) = W*(chi2_/nu);
+    W = iwishrnd( Omega_, nu );
+    chi2_ = chi2rnd(n); 
+    A(:,:,ii) = W*(chi2_/n);
     
     % Alternatively:
 %     gamma_ = gamrnd( df_t/2, 2/df_t );

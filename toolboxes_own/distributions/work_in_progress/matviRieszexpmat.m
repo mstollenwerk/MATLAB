@@ -16,6 +16,6 @@ for ii = fliplr(1:p-1)
     d(ii) = (n(ii+1) - (ii+1))/(n(ii) - (ii+1))*d(ii+1);
 end
     
-M = spdiags(d,0,p,p);
+M = spdiags(d',0,p,p);
 
 end
